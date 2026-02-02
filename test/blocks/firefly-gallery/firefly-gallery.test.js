@@ -2,10 +2,10 @@ import { expect } from '@esm-bundle/chai';
 import { readFile } from '@web/test-runner-commands';
 import { stub } from 'sinon';
 
+import { getScreenSizeCategory } from '../../../creativecloud/scripts/utils.js';
 import {
   safeJsonParse,
   getLocalizedValue,
-  getScreenSizeCategory,
   extractAspectRatio,
   getItemTypeFromAspectRatio,
   getImageRendition,
@@ -234,8 +234,8 @@ describe('Firefly Gallery', () => {
       expect(galleryEl.querySelector('.firefly-gallery-content')).to.exist;
       expect(galleryEl.querySelector('.firefly-gallery-masonry-grid')).to.exist;
 
-      expect(fetchStub.calledOnce).to.be.true;
-      const url = fetchStub.firstCall.args[0];
+      expect(fetchStub.calledTwice).to.be.true;
+      const url = fetchStub.secondCall.args[0];
       expect(url).to.include('ImageGeneration');
     });
 
