@@ -15,11 +15,15 @@ import DA_SDK from 'https://da.live/nx/utils/sdk.js';
       case 'dev':
         appHost = 'https://milostudio-dev--milo--adobecom.aem.page';
         break;
+      case 'prod':
+      default:
+        appHost = 'https://milostudio--milo--adobecom.aem.page';
     }
     window.location.replace(
-      `${appHost}/tools/da-apps/ms-apps.html?path=${redirectPath}&tenant=${repo}&ref=${ref}&token=${token}`
+      `${appHost}/tools/da-apps/ms-apps.html?path=${redirectPath}&tenant=${repo}&ref=${ref}&token=${token}`,
     );
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error initializing DA_SDK:', error);
   }
 })();
