@@ -406,7 +406,7 @@ const CONFIG = {
     odinEndpoint: 'https://stage-odin.adobe.com/',
   },
   live: {
-    pdfViewerClientId: '9047b46d4bbe4033a0eed98f74d7d9d2',
+    pdfViewerClientId: 'feb0b9f286f14b2480aed397e1d1f055',
     pdfViewerReportSuite: 'adbadobenonacdcqa',
   },
   prod: {
@@ -415,7 +415,7 @@ const CONFIG = {
     psUrl: 'https://photoshop.adobe.com',
     odinEndpoint: 'https://odin.adobe.com/',
   },
-  page: { pdfViewerClientId: '9f6ffa6b76bf4c87a3e09e20b218d439' },
+  page: { pdfViewerClientId: 'c5d622cbd8d64c618c1802587e022e05' },
   hlxPage: { pdfViewerClientId: 'b70362e4031e4fdfb4ad5ce1ffef61a0' },
   hlxLive: { pdfViewerClientId: 'fb748b00ec814d308f5115dbc1daeea5' },
   jarvis: {
