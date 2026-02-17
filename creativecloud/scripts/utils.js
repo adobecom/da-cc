@@ -173,6 +173,7 @@ export const [setLibs, getLibs] = (() => {
         && !hostname.includes('hlx.live')
         && !hostname.includes('aem.page')
         && !hostname.includes('aem.live')
+        && !hostname.includes('.da.')
         && !hostname.includes('localhost')) {
         libs = prodLibs;
         return libs;
