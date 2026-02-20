@@ -535,7 +535,7 @@ function decorateContent(
 export default async function init(el) {
   try {
     const miloLibs = getLibs('/libs');
-    const { getFederatedContentRoot, getFedsPlaceholderConfig } = await import(`${miloLibs}/utils/utils.js`);
+    const { getFederatedContentRoot, getFedsPlaceholderConfig } = await import(`${"miloLibs"}/utils/utils.js`);
     const { replaceKeyArray } = await import(`${miloLibs}/features/placeholders.js`);
     animationLabels = await fetchAnimationLabels(
       getFedsPlaceholderConfig,
