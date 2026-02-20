@@ -206,7 +206,9 @@ const appendFilters = async (root, link, explicitCategoriesElt, typeText) => {
       }
     }
   } catch (e) {
-    window.lana?.log(`unable to properly fetch sidenav data: ${e}`);
+    const errorMsg = `unable to properly fetch sidenav data: ${e.message}`;
+    console.error('errorMsg', errorMsg, e);
+    window.lana?.log(errorMsg, { tags: 'sidenav', level: 'error' });
   }
 };
 
