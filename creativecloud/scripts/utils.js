@@ -460,7 +460,7 @@ export const scriptInit = async () => {
     });
   }());
   (async function loadPage() {
-    loadLana({ clientId: 'cc' });
+    loadLana({ clientId: 'da-cc' });
     await loadArea();
   }());
 };
