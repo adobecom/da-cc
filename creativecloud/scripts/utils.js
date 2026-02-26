@@ -195,12 +195,12 @@ const { createTag, localizeLink, getConfig, loadStyle, loadLink, loadScript, cre
 
 async function getGeoLocaleInfo() {
   const { locale } = getConfig();
-  if (!lingoActive() || !locale.regions || !Object.keys(locale.regions)) {
+  if (!lingoActive() || !Object.keys(locale.regions ?? {}).length) {
     return locale;
   }
   const country = (await getCountry()).toLowerCase();
-  const geoLocale = Object.entries(locale.regions).find(([k, v]) => v.region === country)?.[1];
-  return geoLocale ?? locale
+  const geoLocale = Object.entries(locale.regions).find(([, v]) => v.region === country)?.[1];
+  return geoLocale ?? locale;
 }
 
 // eslint-disable-next-line max-len
