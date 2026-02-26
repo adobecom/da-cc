@@ -194,18 +194,13 @@ const miloLibs = setLibs('/libs');
 const { createTag, localizeLink, getConfig, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry } = await import(`${miloLibs}/utils/utils.js`);
 
 async function getGeoLocaleInfo() {
-  const { locales: allLocales, locale: currentLocale } = getConfig();
-  if (!lingoActive()) {
-    return currentLocale;
+  const { locale } = getConfig();
+  if (!lingoActive() || !locale.regions?.length) {
+    return locale;
   }
   const country = (await getCountry()).toLowerCase();
-  let localeEntry;
-  if (!currentLocale.prefix) {
-    localeEntry = Object.entries(allLocales).find(([k, v]) => k.startsWith(country) && v.base === undefined && v.base === '');
-  } else {
-    localeEntry = Object.entries(allLocales).find(([k, v]) => k.startsWith(country) && v.base === currentLocale.prefix);
-  }
-  return localeEntry ? {prefix: localeEntry[0], ...localeEntry[1]} : currentLocale;
+  const geoLocale = locale.regions.find((r) => r.region.toLowerCase() === country);
+  return geoLocale ?? locale
 }
 
 // eslint-disable-next-line max-len
