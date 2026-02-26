@@ -191,9 +191,25 @@ export const [setLibs, getLibs] = (() => {
 const miloLibs = setLibs('/libs');
 
 // eslint-disable-next-line object-curly-newline
-const { createTag, localizeLink, getConfig, loadStyle, loadLink, loadScript, createIntersectionObserver } = await import(`${miloLibs}/utils/utils.js`);
+const { createTag, localizeLink, getConfig, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry } = await import(`${miloLibs}/utils/utils.js`);
+
+async function getGeoLocaleInfo() {
+  const { locales: allLocales, locale: currentLocale } = getConfig();
+  if (!lingoActive()) {
+    return currentLocale;
+  }
+  const country = (await getCountry()).toLowerCase();
+  let localeEntry;
+  if (!currentLocale.prefix) {
+    localeEntry = Object.entries(allLocales).find(([k, v]) => k.startsWith(country) && v.base === undefined && v.base === '');
+  } else {
+    localeEntry = Object.entries(allLocales).find(([k, v]) => k.startsWith(country) && v.base === currentLocale.prefix);
+  }
+  return localeEntry ? {prefix: localeEntry[0], ...localeEntry[1]} : currentLocale;
+}
+
 // eslint-disable-next-line max-len
-export { createTag, loadStyle, loadLink, loadScript, localizeLink, createIntersectionObserver, getConfig };
+export { createTag, loadStyle, loadLink, loadScript, localizeLink, createIntersectionObserver, getConfig, getGeoLocaleInfo };
 
 function defineDeviceByScreenSize() {
   const DESKTOP_SIZE = 1200;
