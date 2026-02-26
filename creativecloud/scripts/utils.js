@@ -195,11 +195,11 @@ const { createTag, localizeLink, getConfig, loadStyle, loadLink, loadScript, cre
 
 async function getGeoLocaleInfo() {
   const { locale } = getConfig();
-  if (!lingoActive() || !locale.regions?.length) {
+  if (!lingoActive() || !locale.regions || !Object.keys(locale.regions)) {
     return locale;
   }
   const country = (await getCountry()).toLowerCase();
-  const geoLocale = locale.regions.find((r) => r.region.toLowerCase() === country);
+  const geoLocale = Object.entries(locale.regions).find(([k, v]) => v.region === country)?.[1];
   return geoLocale ?? locale
 }
 
