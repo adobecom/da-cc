@@ -664,7 +664,7 @@ describe('nonprofit - Lingo fallback for base and sub-regions', () => {
   });
 
   it('should use base locale for form submission when akamai session set', async () => {
-    sessionStorage.removeItem('akamai');
+    sessionStorage.setItem('akamai', 'us');
     const submit = document.querySelector('input[type="submit"]');
     expect(submit).to.exist;
     submit.click();
