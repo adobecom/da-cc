@@ -13,6 +13,14 @@
   <script type="module">
     import { scriptInit } from '/creativecloud/scripts/utils.js';
     scriptInit();
+    
+    const path = window.location.pathname.toLowerCase();
+    if (/^\/([a-z]{2}_fr|fr)\//.test(path)) {
+      const meta = document.createElement('meta');
+      meta.name = 'georouting';
+      meta.content = 'off';
+      document.head.appendChild(meta);
+    }
   </script>
   <link rel="icon" href="data:," />
 </head>
