@@ -104,6 +104,12 @@ const setAriaHidden = (elementOrSelector, hidden, parent = document) => {
   }
 };
 
+const getInfoButtonAriaLabel = (templateDescription) => {
+  const trimmedDescription = templateDescription?.trim();
+  if (!trimmedDescription) return ARIA_LABELS.SHOW_INFO;
+  return `Show info button for ${trimmedDescription}`;
+};
+
 // Normalizes API item to consistent internal structure.
 const normalizeItem = (apiItem, branchLinkTestId) => ({
   image: cleanUrl(apiItem.thumbnail_url),
@@ -360,6 +366,11 @@ const updateCardWithData = (card, item, eager = false) => {
   // Update overlay text
   if (overlayText) {
     overlayText.textContent = item.altText;
+  }
+
+  const infoButton = card.querySelector(`.${CLASSES.INFO_BUTTON}`);
+  if (infoButton) {
+    infoButton.setAttribute('aria-label', getInfoButtonAriaLabel(item.altText));
   }
 
   // Update button deep link URL
