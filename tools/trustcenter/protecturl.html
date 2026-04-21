@@ -21,6 +21,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/creativecloud/features/cc-forms/components/progress-circle.css" />
   <link rel="stylesheet" href="/creativecloud/blocks/cc-forms/cc-forms.css" />
+  <link rel="stylesheet" href="/tools/trustcenter/css/protecturl.css" />
 </head>
 
 <body>
@@ -29,7 +30,7 @@
       <div class="text center xxl-spacing l-title xxl-heading s-body dark">
         <div>
           <div data-align="center" data-valign="middle">
-            <h1 id="protect-the-asset-link"><strong>Protect the asset link</strong></h1>
+            <h1 id="protect-the-asset-link"><strong>Protect or decrypt the asset link</strong></h1>
             <p>* Please note that Sidekick Login is mandatory to access the link protection form</p>
           </div>
         </div>
@@ -44,18 +45,82 @@
     </div>
     <div>
       <div class="content">
-        <div class="cc-forms default spacing-m">
-          <div class="form-components">
-            <div class="form-item"><input type="text" class="cc-form-component" name="plaintexturl" id="plaintexturl" required="required" data-required="required" placeholder="Enter the asset url*"></div>
-            <div class="form-item"><a href="/tools/trustcenter/protecturl.html?nonprod=true" class="con-button blue button-l cc-form-component submit generate-protected-link" id="generate-protected-link" daa-ll="Generate Protected L-1--" data-http-link="true">Generate Protected Link</a></div>
-            <div class="form-item"><textarea name="protected-url" id="protected-url" rows="10"></textarea></div>
+        <!-- Tabs -->
+        <div class="tc-tabs" role="tablist" aria-label="Encrypt or decrypt">
+          <button type="button" class="tc-tab active" id="tab-encrypt" data-tab="encrypt" role="tab" aria-selected="true" aria-controls="card-encrypt">
+            <svg width="14" height="16" viewBox="0 0 14 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M11.5 6H10.5V4C10.5 2.07 8.93 0.5 7 0.5C5.07 0.5 3.5 2.07 3.5 4V6H2.5C1.67 6 1 6.67 1 7.5V13.5C1 14.33 1.67 15 2.5 15H11.5C12.33 15 13 14.33 13 13.5V7.5C13 6.67 12.33 6 11.5 6ZM7 11.5C6.17 11.5 5.5 10.83 5.5 10C5.5 9.17 6.17 8.5 7 8.5C7.83 8.5 8.5 9.17 8.5 10C8.5 10.83 7.83 11.5 7 11.5ZM9 6H5V4C5 2.9 5.9 2 7 2C8.1 2 9 2.9 9 4V6Z" fill="currentColor"/>
+            </svg>
+            Encrypt Link
+          </button>
+          <button type="button" class="tc-tab" id="tab-decrypt" data-tab="decrypt" role="tab" aria-selected="false" aria-controls="card-decrypt">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M8 1C5.24 1 3 3.24 3 6H1L3.5 8.5L6 6H4C4 3.79 5.79 2 8 2C10.21 2 12 3.79 12 6C12 8.21 10.21 10 8 10V11C10.76 11 13 8.76 13 6C13 3.24 10.76 1 8 1Z" fill="currentColor"/>
+              <circle cx="8" cy="13" r="1.5" fill="currentColor"/>
+            </svg>
+            Decrypt Link
+          </button>
+        </div>
+
+        <!-- Cards Container -->
+        <div class="tc-cards">
+          <!-- Encrypt Card -->
+          <div class="tc-card" id="card-encrypt" role="tabpanel" aria-labelledby="tab-encrypt">
+            <h2 class="tc-card-title">
+              <span class="tc-icon-lock" aria-hidden="true">&#x1F512;</span> Encrypt Asset Link
+            </h2>
+            <div class="cc-forms default spacing-m">
+              <div class="form-components">
+                <div class="form-item">
+                  <label for="plaintexturl">Enter the asset url*</label>
+                  <input type="text" class="cc-form-component" name="plaintexturl" id="plaintexturl" required="required"
+                    data-required="required" placeholder="Enter the asset url*">
+                </div>
+                <div class="form-item">
+                  <a href="/tools/trustcenter/protecturl.html?nonprod=true"
+                    class="con-button blue button-l cc-form-component submit generate-protected-link"
+                    id="generate-protected-link" daa-ll="Generate Protected L-1--"
+                    data-http-link="true">Generate Protected Link</a>
+                </div>
+                <div class="form-item">
+                  <textarea name="protected-url" id="protected-url" rows="6"
+                    placeholder="Encrypted URL will appear here..." readonly></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Decrypt Card -->
+          <div class="tc-card" id="card-decrypt" role="tabpanel" aria-labelledby="tab-decrypt">
+            <h2 class="tc-card-title">
+              <span class="tc-icon-key" aria-hidden="true">&#x1F511;</span> Decrypt Protected Link
+            </h2>
+            <p class="tc-card-note">Adobe employees only — sign in with your @adobe.com account required for decryption.</p>
+            <div class="cc-forms default spacing-m">
+              <div class="form-components">
+                <div class="form-item">
+                  <label for="encryptedurl">Enter the protected link*</label>
+                  <input type="text" class="cc-form-component" name="encryptedurl" id="encryptedurl"
+                    required="required" data-required="required" placeholder="Enter the protected link">
+                </div>
+                <div class="form-item">
+                  <a href="#" class="con-button blue button-l cc-form-component submit decrypt-link"
+                    id="decrypt-link" daa-ll="Decrypt Link-1--" data-http-link="true">Decrypt Link</a>
+                </div>
+                <div class="form-item">
+                  <textarea name="decrypted-url" id="decrypted-url" rows="6"
+                    placeholder="Decrypted URL will appear here..." readonly></textarea>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
       <div class="section-metadata" data-block-status="loaded">
         <div>
           <div data-valign="middle">style</div>
-          <div data-valign="middle">xxl-spacing, half-width</div>
+          <div data-valign="middle">xxl-spacing</div>
         </div>
       </div>
     </div>
