@@ -42,6 +42,7 @@ const ARIA_LABELS = {
   CARD_LOADING: 'Loading template',
   CARD_UNAVAILABLE: 'Templates unavailable',
   SHOW_INFO: 'Show info',
+  SHOW_INFO_WITH_DESCRIPTION: (description) => `Show info button for ${description}`,
   CLOSE_CARD: 'Close card',
   OVERLAY_CLOSE: 'Close text description',
 };
@@ -107,7 +108,7 @@ const setAriaHidden = (elementOrSelector, hidden, parent = document) => {
 const getInfoButtonAriaLabel = (templateDescription) => {
   const trimmedDescription = templateDescription?.trim();
   if (!trimmedDescription) return ARIA_LABELS.SHOW_INFO;
-  return `Show info button for ${trimmedDescription}`;
+  return ARIA_LABELS.SHOW_INFO_WITH_DESCRIPTION(trimmedDescription);
 };
 
 // Normalizes API item to consistent internal structure.
