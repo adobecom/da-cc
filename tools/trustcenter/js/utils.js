@@ -52,6 +52,8 @@ function getEncryptionEndpoint() {
   const ENCRYPT_PROD_ENDPOINT = 'https://www.adobe.com/trustcenter/api/encrypturl';
 
   const allowedStageHosts = [
+    'decrypt-url--da-cc--adobecom.aem.page',
+    'encrypt-url--da-cc--adobecom.aem.page',
     'dev--cc--adobecom.aem.page',
     'main--cc--adobecom.aem.page',
     'stage--cc--adobecom.aem.page',
@@ -61,6 +63,8 @@ function getEncryptionEndpoint() {
   ];
 
   const allowedProdHosts = [
+    'decrypt-url--da-cc--adobecom.aem.live',
+    'encrypt-url--da-cc--adobecom.aem.live',
     'dev--cc--adobecom.aem.live',
     'main--cc--adobecom.aem.live',
     'stage--cc--adobecom.aem.live',
@@ -81,6 +85,8 @@ function getDecryptionEndpoint() {
   const DECRYPT_PROD_ENDPOINT = 'https://www.adobe.com/trustcenter/api/decrypturl';
 
   const allowedStageHosts = [
+    'decrypt-url--da-cc--adobecom.aem.page',
+    'encrypt-url--da-cc--adobecom.aem.page',
     'dev--cc--adobecom.aem.page',
     'main--cc--adobecom.aem.page',
     'stage--cc--adobecom.aem.page',
@@ -90,6 +96,8 @@ function getDecryptionEndpoint() {
   ];
 
   const allowedProdHosts = [
+    'decrypt-url--da-cc--adobecom.aem.live',
+    'encrypt-url--da-cc--adobecom.aem.live',
     'dev--cc--adobecom.aem.live',
     'main--cc--adobecom.aem.live',
     'stage--cc--adobecom.aem.live',
