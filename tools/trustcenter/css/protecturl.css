@@ -1,0 +1,159 @@
+* Tabs */
+.tc-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0;
+  margin: 0 auto 32px;
+  max-width: 420px;
+  background: #f0f0f0;
+  border-radius: 24px;
+  padding: 4px;
+}
+
+.tc-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 24px;
+  font-size: 15px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  border-radius: 20px;
+  background: transparent;
+  color: #666;
+  transition: all 0.25s ease;
+}
+
+.tc-tab:hover {
+  color: #333;
+}
+
+.tc-tab.active {
+  background: #fff;
+  color: #1a1a1a;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.tc-tab svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Cards Container */
+.tc-cards {
+  display: flex;
+  gap: 24px;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Card */
+.tc-card {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 28px 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.tc-card-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tc-icon-lock {
+  font-size: 20px;
+}
+
+.tc-icon-key {
+  font-size: 20px;
+}
+/* auth */
+/*.tc-card-note {
+  font-size: 12px;
+  color: #888;
+  font-style: italic;
+  margin: -8px 0 16px;
+}*/
+
+/* Form overrides inside cards */
+.tc-card .cc-forms {
+  padding: 0;
+}
+
+.tc-card .form-components {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tc-card .form-item {
+  width: 100%;
+}
+
+.tc-card .form-item label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 6px;
+}
+
+.tc-card input[type="text"] {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #fafafa;
+  color: #1a1a1a;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.tc-card input[type="text"]:focus {
+  border-color: #5C5CE0;
+  background: #fff;
+}
+
+.tc-card textarea {
+  width: 100%;
+  padding: 10px 14px;
+  font-size: 14px;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  background: #fafafa;
+  color: #1a1a1a;
+  outline: none;
+  resize: vertical;
+  font-family: monospace;
+  transition: border-color 0.2s;
+}
+
+.tc-card textarea:focus {
+  border-color: #5C5CE0;
+  background: #fff;
+}
+
+.tc-card .con-button {
+  display: inline-block;
+  text-align: center;
+  width: 100%;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 768px) {
+  .tc-cards {
+    flex-direction: column;
+  }
+}
