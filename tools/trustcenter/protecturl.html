@@ -15,12 +15,13 @@
   </style>
   <script src="/tools/trustcenter/js/utils.js" type="module"></script>
   <script type="module">
-    import { scriptInit } from '/creativecloud/scripts/utils.js';
+    /* Bridge: same origin as tools/trustcenter/js/utils.js (main--cc serves /creativecloud/). */
+    import { scriptInit } from 'https://main--cc--adobecom.aem.page/creativecloud/scripts/utils.js';
     scriptInit();
   </script>
   <link rel="icon" href="data:,">
-  <link rel="stylesheet" href="/creativecloud/features/cc-forms/components/progress-circle.css" />
-  <link rel="stylesheet" href="/creativecloud/blocks/cc-forms/cc-forms.css" />
+  <link rel="stylesheet" href="https://main--cc--adobecom.aem.page/creativecloud/features/cc-forms/components/progress-circle.css" />
+  <link rel="stylesheet" href="https://main--cc--adobecom.aem.page/creativecloud/blocks/cc-forms/cc-forms.css" />
   <link rel="stylesheet" href="/tools/trustcenter/css/protecturl.css" />
 </head>
 
