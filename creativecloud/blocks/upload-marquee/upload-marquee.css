@@ -182,7 +182,7 @@
 
 .upload-marquee-block .upload-marquee-content > *:first-child > picture img,
 .upload-marquee-block .upload-marquee-content > *:first-child > picture svg {
-  width: 100%;
+  width: auto;
   height: 100%;
   object-fit: contain;
   border-radius: inherit;
