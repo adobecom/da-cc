@@ -42,6 +42,7 @@ const ARIA_LABELS = {
   CARD_LOADING: 'Loading template',
   CARD_UNAVAILABLE: 'Templates unavailable',
   SHOW_INFO: 'Show info',
+  SHOW_INFO_WITH_DESCRIPTION: (description) => `Show info button for ${description}`,
   CLOSE_CARD: 'Close card',
   OVERLAY_CLOSE: 'Close text description',
 };
@@ -102,6 +103,12 @@ const setAriaHidden = (elementOrSelector, hidden, parent = document) => {
   if (element) {
     element.setAttribute('aria-hidden', hidden ? 'true' : 'false');
   }
+};
+
+const getInfoButtonAriaLabel = (templateDescription) => {
+  const trimmedDescription = templateDescription?.trim();
+  if (!trimmedDescription) return ARIA_LABELS.SHOW_INFO;
+  return ARIA_LABELS.SHOW_INFO_WITH_DESCRIPTION(trimmedDescription);
 };
 
 // Normalizes API item to consistent internal structure.
@@ -360,6 +367,11 @@ const updateCardWithData = (card, item, eager = false) => {
   // Update overlay text
   if (overlayText) {
     overlayText.textContent = item.altText;
+  }
+
+  const infoButton = card.querySelector(`.${CLASSES.INFO_BUTTON}`);
+  if (infoButton) {
+    infoButton.setAttribute('aria-label', getInfoButtonAriaLabel(item.altText));
   }
 
   // Update button deep link URL
