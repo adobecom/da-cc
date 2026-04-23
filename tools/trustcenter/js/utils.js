@@ -1,15 +1,15 @@
 /* Bridge: da-cc previews may not serve /creativecloud/; load from main--cc .aem.live (public code; .aem.page can 401). */
 // eslint-disable-next-line import/no-unresolved, import/no-absolute-path
-import { getLibs, isSignedInInitialized } from 'https://main--cc--adobecom.aem.live/creativecloud/scripts/utils.js';
+import { getLibs } from 'https://main--cc--adobecom.aem.live/creativecloud/scripts/utils.js';
 
 const PROTECT_URL_SUBMIT = document.querySelector('#generate-protected-link');
 const PROTECTED_URL_ELEMENT = document.querySelector('#protected-url');
 const DECRYPT_URL_SUBMIT = document.querySelector('#decrypt-link');
 const DECRYPTED_URL_ELEMENT = document.querySelector('#decrypted-url');
 
-const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
-const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
-const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
+// const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
+// const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
+// const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
 
 async function createProgressCircle(formComponents) {
   if (!formComponents || formComponents.querySelector('.progress-holder')) return;
@@ -118,47 +118,47 @@ function base64UrlSafe(encoded = '') {
   return encoded.replace(/\+/g, '-').replace(/\//g, '_');
 }
 
-async function ensureImsLoaded() {
-  if (window.adobeIMS) return;
-  const { loadIms } = await import(`${getLibs()}/utils/utils.js`);
-  await loadIms();
-}
+// async function ensureImsLoaded() {
+//   if (window.adobeIMS) return;
+//   const { loadIms } = await import(`${getLibs()}/utils/utils.js`);
+//   await loadIms();
+// }
 
-/**
- * IMS + @adobe.com gate for decrypt only. Server enforces the same; this avoids pointless calls when profile exposes email.
- * @returns {Promise<string>} Bearer token value (no "Bearer " prefix)
- */
-async function getDecryptBearerToken() {
-  await ensureImsLoaded();
-  await isSignedInInitialized();
-  if (!window.adobeIMS?.isSignedInUser()) {
-    window.adobeIMS?.signIn();
-    throw new Error(ERR_SIGN_IN);
-  }
-  const token = window.adobeIMS.getAccessToken()?.token;
-  if (!token) {
-    throw new Error(ERR_SIGN_IN);
-  }
-  try {
-    const profile = await window.adobeIMS.getProfile();
-    const email = profile?.email?.toLowerCase() || '';
-    if (email && !email.endsWith(ADOBE_EMPLOYEE_DOMAIN)) {
-      throw new Error(ERR_NOT_ADOBE);
-    }
-  } catch (err) {
-    if (err.message === ERR_NOT_ADOBE) throw err;
-    /* getProfile unavailable — rely on server-side check */
-  }
-  return token;
-}
+// /**
+//  * IMS + @adobe.com gate for decrypt only. Server enforces the same; this avoids pointless calls when profile exposes email.
+//  * @returns {Promise<string>} Bearer token value (no "Bearer " prefix)
+//  */
+// async function getDecryptBearerToken() {
+//   await ensureImsLoaded();
+//   await isSignedInInitialized();
+//   if (!window.adobeIMS?.isSignedInUser()) {
+//     window.adobeIMS?.signIn();
+//     throw new Error(ERR_SIGN_IN);
+//   }
+//   const token = window.adobeIMS.getAccessToken()?.token;
+//   if (!token) {
+//     throw new Error(ERR_SIGN_IN);
+//   }
+//   try {
+//     const profile = await window.adobeIMS.getProfile();
+//     const email = profile?.email?.toLowerCase() || '';
+//     if (email && !email.endsWith(ADOBE_EMPLOYEE_DOMAIN)) {
+//       throw new Error(ERR_NOT_ADOBE);
+//     }
+//   } catch (err) {
+//     if (err.message === ERR_NOT_ADOBE) throw err;
+//     /* getProfile unavailable — rely on server-side check */
+//   }
+//   return token;
+// }
 
 function decryptAccessMessage(code) {
-  if (code === ERR_SIGN_IN) {
-    return 'Please sign in with your Adobe account to use decryption.';
-  }
-  if (code === ERR_NOT_ADOBE) {
-    return 'Access denied. Decryption is restricted to signed-in Adobe employees (@adobe.com).';
-  }
+  // if (code === ERR_SIGN_IN) {
+  //   return 'Please sign in with your Adobe account to use decryption.';
+  // }
+  // if (code === ERR_NOT_ADOBE) {
+  //   return 'Access denied. Decryption is restricted to signed-in Adobe employees (@adobe.com).';
+  // }
   return 'Could not decrypt the provided url. Please check the input and try again.';
 }
 
@@ -174,22 +174,22 @@ async function getEncryptedText(linkUrl) {
 }
 
 async function getDecryptedUrl(encryptedText) {
-  const token = await getDecryptBearerToken();
+  // const token = await getDecryptBearerToken();
   const options = {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      // Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ encryptedText: base64UrlSafe(encryptedText) }),
   };
   const response = await fetch(getDecryptionEndpoint(), options);
-  if (response.status === 403) {
-    throw new Error(ERR_NOT_ADOBE);
-  }
-  if (response.status === 401) {
-    throw new Error(ERR_SIGN_IN);
-  }
+  // if (response.status === 403) {
+  //   throw new Error(ERR_NOT_ADOBE);
+  // }
+  // if (response.status === 401) {
+  //   throw new Error(ERR_SIGN_IN);
+  // }
   if (!response.ok) {
     throw new Error('DECRYPT_FAILED');
   }
