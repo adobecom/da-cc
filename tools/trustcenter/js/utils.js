@@ -1,6 +1,6 @@
-/* Bridge: da-cc branch previews may not serve /creativecloud/; load shared script from main--cc preview. */
+/* Bridge: da-cc previews may not serve /creativecloud/; load from main--cc .aem.live (public code; .aem.page can 401). */
 // eslint-disable-next-line import/no-unresolved, import/no-absolute-path
-import { getLibs, isSignedInInitialized } from 'https://main--cc--adobecom.aem.page/creativecloud/scripts/utils.js';
+import { getLibs, isSignedInInitialized } from 'https://main--cc--adobecom.aem.live/creativecloud/scripts/utils.js';
 
 const PROTECT_URL_SUBMIT = document.querySelector('#generate-protected-link');
 const PROTECTED_URL_ELEMENT = document.querySelector('#protected-url');
