@@ -111,7 +111,7 @@ function getDecryptionEndpoint() {
 
   if (!isNonProd() && allowedProdHosts.includes(window.location.host)) return DECRYPT_PROD_ENDPOINT;
   if (isNonProd() && allowedProdHosts.includes(window.location.host)) return DECRYPT_STAGE_ENDPOINT;
-  if (allowedStageHosts.includes(window.location.host)) return DECRYPT_PROD_ENDPOINT;
+  if (allowedStageHosts.includes(window.location.host)) return DECRYPT_STAGE_ENDPOINT;
 }
 
 function base64UrlSafe(encoded = '') {
