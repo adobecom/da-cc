@@ -188,7 +188,7 @@ export const [setLibs, getLibs] = (() => {
 const miloLibs = setLibs('/libs');
 
 // eslint-disable-next-line object-curly-newline
-const { createTag, localizeLinkAsync, getConfig, getMetadata, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry } = await import(`${getLibs()}/utils/utils.js`);
+const { createTag, localizeLinkAsync, getConfig, getMetadata, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry } = await import(`${miloLibs}/utils/utils.js`);
 
 async function getGeoLocaleInfo() {
   const { locale } = getConfig();
