@@ -124,9 +124,13 @@ function base64UrlSafe(encoded = '') {
 }
 
 async function ensureImsLoaded() {
-   if (window.adobeIMS) return;
-   const { loadIms } = await import(`${getLibs()}/utils/utils.js`);
-   await loadIms();
+  if (window.adobeIMS?.isSignedInUser) return;
+  const { loadIms } = await import(`${getLibs()}/utils/utils.js`);
+  await loadIms();
+  for (let i = 0; i < 50 && typeof window.adobeIMS?.isSignedInUser !== 'function'; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((r) => { setTimeout(r, 100); });
+  }
 }
 
 // /**
@@ -135,12 +139,16 @@ async function ensureImsLoaded() {
 //  */
 async function getDecryptBearerToken() {
   await ensureImsLoaded();
-  if (!window.adobeIMS?.isSignedInUser()) {
-    window.adobeIMS?.signIn();
+  const ims = window.adobeIMS;
+  if (typeof ims?.isSignedInUser !== 'function' || !ims.isSignedInUser()) {
+    try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+    ims?.signIn?.({ redirect_uri: window.location.href });
     throw new Error(ERR_SIGN_IN);
   }
-  const token = window.adobeIMS.getAccessToken()?.token;
+  const token = ims.getAccessToken()?.token;
   if (!token) {
+    try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+    ims.signIn?.({ redirect_uri: window.location.href });
     throw new Error(ERR_SIGN_IN);
   }
   return token;
