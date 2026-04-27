@@ -134,10 +134,8 @@ async function ensureImsLoaded() {
 //  * @returns {Promise<string>} Bearer token value (no "Bearer " prefix)
 //  */
 async function getDecryptBearerToken() {
-   await ensureImsLoaded();
-   const { isSignedInInitialized } = await import(`${getLibs()}/utils/utils.js`);
-   await isSignedInInitialized();
-   if (!window.adobeIMS?.isSignedInUser()) {
+  await ensureImsLoaded();
+  if (!window.adobeIMS?.isSignedInUser()) {
     window.adobeIMS?.signIn();
     throw new Error(ERR_SIGN_IN);
   }
