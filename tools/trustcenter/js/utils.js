@@ -50,6 +50,9 @@ function isNonProd() {
 
 // eslint-disable-next-line consistent-return
 function getEncryptionEndpoint() {
+  if (isNonProd() && window.location.host === 'decrypt-url--da-cc--adobecom.aem.page') {
+    return 'https://14257-trucsi-dev.adobeioruntime.net/api/v1/web/trust-center-sign-integration/encrypturl';
+  }
   const ENCRYPT_STAGE_ENDPOINT = 'https://www.stage.adobe.com/trustcenter/api/encrypturl';
   const ENCRYPT_PROD_ENDPOINT = 'https://www.adobe.com/trustcenter/api/encrypturl';
 
@@ -80,9 +83,11 @@ function getEncryptionEndpoint() {
   if (isNonProd() && allowedProdHosts.includes(window.location.host)) return ENCRYPT_STAGE_ENDPOINT;
   if (allowedStageHosts.includes(window.location.host)) return ENCRYPT_STAGE_ENDPOINT;
 }
-
 // eslint-disable-next-line consistent-return
 function getDecryptionEndpoint() {
+  if (isNonProd() && window.location.host === 'decrypt-url--da-cc--adobecom.aem.page') {
+    return 'https://14257-trucsi-dev.adobeioruntime.net/api/v1/web/trust-center-sign-integration/decrypturl';
+  }
   const DECRYPT_STAGE_ENDPOINT = 'https://www.stage.adobe.com/trustcenter/api/decrypturl';
   const DECRYPT_PROD_ENDPOINT = 'https://www.adobe.com/trustcenter/api/decrypturl';
 
