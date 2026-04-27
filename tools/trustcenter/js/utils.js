@@ -138,20 +138,25 @@ async function ensureImsLoaded() {
 //  * @returns {Promise<string>} Bearer token value (no "Bearer " prefix)
 //  */
 async function getDecryptBearerToken() {
-  await ensureImsLoaded();
-  const ims = window.adobeIMS;
-  if (typeof ims?.isSignedInUser !== 'function' || !ims.isSignedInUser()) {
-    try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
-    ims?.signIn?.({ redirect_uri: window.location.href });
+  try {
+    await ensureImsLoaded();
+    const ims = window.adobeIMS;
+    if (typeof ims?.isSignedInUser !== 'function' || !ims.isSignedInUser()) {
+      try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+      ims?.signIn?.({ redirect_uri: window.location.href });
+      throw new Error(ERR_SIGN_IN);
+    }
+    const token = ims.getAccessToken()?.token;
+    if (!token) {
+      try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+      ims.signIn?.({ redirect_uri: window.location.href });
+      throw new Error(ERR_SIGN_IN);
+    }
+    return token;
+  } catch (err) {
+    if (err.message === ERR_SIGN_IN || err.message === ERR_NOT_ADOBE) throw err;
     throw new Error(ERR_SIGN_IN);
   }
-  const token = ims.getAccessToken()?.token;
-  if (!token) {
-    try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
-    ims.signIn?.({ redirect_uri: window.location.href });
-    throw new Error(ERR_SIGN_IN);
-  }
-  return token;
 }
 
 function decryptAccessMessage(code) {
