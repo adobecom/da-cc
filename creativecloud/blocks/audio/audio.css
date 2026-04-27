@@ -1,0 +1,33 @@
+:root {
+  --audio-btn-size: 40px;
+}
+
+.audio-player {
+  display: inline-flex;
+}
+
+.audio-play-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--audio-btn-size);
+  height: var(--audio-btn-size);
+  padding: 0;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+.audio-play-btn svg {
+  width: 100%;
+  height: 100%;
+}
+
+.audio-play-btn:hover {
+  opacity: 0.7;
+}
+
+.audio-progress {
+  transition: stroke-dashoffset 0.25s linear;
+}
