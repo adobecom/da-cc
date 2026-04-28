@@ -204,6 +204,9 @@ async function getDecryptedUrl(encryptedText) {
   return responseJson.decryptedUrl;
 }
 
+const COPY_ICON = '<svg viewBox="0 0 36 36" focusable="false" aria-hidden="true"><path d="M27 6h-1V3a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v22a2 2 0 0 0 2 2h2v3a2 2 0 0 0 2 2h17a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2zM8 25V3h16v3H12a2 2 0 0 0-2 2v17H8zm21 8H12V8h17v25z"/></svg>';
+const CHECK_ICON = '<svg viewBox="0 0 36 36" focusable="false" aria-hidden="true"><path d="M13.5 27.4 4.1 18l2.83-2.83L13.5 21.74 29.07 6.17 31.9 9z"/></svg>';
+
 function setOutput(element, value, { isError = false } = {}) {
   element.value = value;
   element.classList.toggle('has-error', isError);
@@ -211,7 +214,8 @@ function setOutput(element, value, { isError = false } = {}) {
   if (copyBtn) {
     copyBtn.hidden = isError || !value;
     copyBtn.classList.remove('copied');
-    copyBtn.textContent = 'Copy';
+    copyBtn.innerHTML = COPY_ICON;
+    copyBtn.setAttribute('aria-label', `Copy ${element.id === 'protected-url' ? 'encrypted' : 'decrypted'} URL`);
   }
 }
 
@@ -228,10 +232,12 @@ function initCopyButtons() {
         document.execCommand('copy');
       }
       btn.classList.add('copied');
-      btn.textContent = 'Copied!';
+      btn.innerHTML = CHECK_ICON;
+      btn.setAttribute('aria-label', 'Copied');
       setTimeout(() => {
         btn.classList.remove('copied');
-        btn.textContent = 'Copy';
+        btn.innerHTML = COPY_ICON;
+        btn.setAttribute('aria-label', `Copy ${target.id === 'protected-url' ? 'encrypted' : 'decrypted'} URL`);
       }, 1500);
     });
   });
