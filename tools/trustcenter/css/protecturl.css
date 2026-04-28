@@ -217,6 +217,47 @@ main > div:nth-of-type(2) {
   width: 100%;
 }
 
+.tc-card .tc-output .tc-signin-msg {
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  padding: 0.5px 40px 10px 14px;
+  background: #fafafa;
+  border: 1px solid #d0d0d0;
+  border-radius: 6px;
+  color: #d7373f;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.2;
+  z-index: 2;
+}
+
+.tc-card .tc-output .tc-signin-msg .tc-signin-link {
+  display: inline;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: #1473e6;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  vertical-align: baseline;
+}
+
+.tc-card .tc-output .tc-signin-msg .tc-signin-link:hover,
+.tc-card .tc-output .tc-signin-msg .tc-signin-link:focus-visible {
+  color: #0d66d0;
+  outline: none;
+}
+
+.tc-card .tc-output .tc-signin-msg[hidden] {
+  display: none;
+}
+
 /* Responsive: stack on mobile */
 @media (max-width: 768px) {
   .tc-cards {
