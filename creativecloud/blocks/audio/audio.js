@@ -34,16 +34,19 @@ function attachAudioListeners(audio, btn, svg) {
 
   audio.addEventListener('play', () => {
     btn.setAttribute('aria-label', ARIA.PAUSE);
+    btn.setAttribute('title', ARIA.PAUSE);
     setIcon(svg, true);
   });
 
   audio.addEventListener('pause', () => {
     btn.setAttribute('aria-label', ARIA.PLAY);
+    btn.setAttribute('title', ARIA.PLAY);
     setIcon(svg, false);
   });
 
   audio.addEventListener('ended', () => {
     btn.setAttribute('aria-label', ARIA.PLAY);
+    btn.setAttribute('title', ARIA.PLAY);
     setIcon(svg, false);
     updateProgress(svg, 0);
   });
@@ -75,6 +78,7 @@ function buildAudioPlayer(src) {
     class: 'audio-play-btn',
     type: 'button',
     'aria-label': ARIA.PLAY,
+    title: ARIA.PLAY,
   });
   btn.appendChild(svg);
 
