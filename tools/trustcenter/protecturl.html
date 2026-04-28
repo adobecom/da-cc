@@ -77,8 +77,11 @@
                     data-http-link="true">Generate Protected Link</a>
                 </div>
                 <div class="form-item">
-                  <textarea name="protected-url" id="protected-url" rows="6"
-                    placeholder="Encrypted URL will appear here..." readonly></textarea>
+                  <div class="tc-output">
+                    <textarea name="protected-url" id="protected-url" rows="6"
+                      placeholder="Encrypted URL will appear here..." readonly></textarea>
+                    <button type="button" class="tc-copy-btn" data-copy-target="protected-url" aria-label="Copy encrypted URL">Copy</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -100,8 +103,11 @@
                     id="decrypt-link" daa-ll="Decrypt Link-1--" data-http-link="true">Decrypt Link</a>
                 </div>
                 <div class="form-item">
-                  <textarea name="decrypted-url" id="decrypted-url" rows="6"
-                    placeholder="Decrypted URL will appear here..." readonly></textarea>
+                  <div class="tc-output">
+                    <textarea name="decrypted-url" id="decrypted-url" rows="6"
+                      placeholder="Decrypted URL will appear here..." readonly></textarea>
+                    <button type="button" class="tc-copy-btn" data-copy-target="decrypted-url" aria-label="Copy decrypted URL">Copy</button>
+                  </div>
                 </div>
               </div>
             </div>
