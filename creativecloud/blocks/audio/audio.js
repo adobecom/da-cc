@@ -74,18 +74,18 @@ function buildPlayerSvg() {
 function buildAudioPlayer(src) {
   const audio = createTag('audio', { preload: 'metadata', src });
   const svg = buildPlayerSvg();
-  const btn = createTag('button', {
+  const playBtn = createTag('button', {
     class: 'audio-play-btn',
     type: 'button',
     'aria-label': ARIA.PLAY,
     title: ARIA.PLAY,
   });
-  btn.appendChild(svg);
+  playBtn.appendChild(svg);
 
-  attachAudioListeners(audio, btn, svg);
+  attachAudioListeners(audio, playBtn, svg);
 
   const wrapper = createTag('div', { class: 'audio-player' });
-  wrapper.append(btn, audio);
+  wrapper.append(playBtn, audio);
   return wrapper;
 }
 
