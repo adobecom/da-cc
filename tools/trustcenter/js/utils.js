@@ -161,7 +161,7 @@ async function getDecryptBearerToken() {
 
 function decryptAccessMessage(code) {
   if (code === ERR_SIGN_IN) {
-    return 'Please sign in with your Adobe account to use decryption.';
+    return 'Sign in with your Adobe account to use decryption.';
   }
   if (code === ERR_NOT_ADOBE) {
     return 'Access denied. Decryption is restricted to signed-in Adobe employees (@adobe.com).';
@@ -266,11 +266,44 @@ function onSubmitButtonAdded(node) {
   });
 }
 
+function getDecryptOutputContainer() {
+  return DECRYPTED_URL_ELEMENT?.closest('.tc-output');
+}
+
+function hideDecryptSignInMessage() {
+  const overlay = getDecryptOutputContainer()?.querySelector('.tc-signin-msg');
+  if (overlay) overlay.hidden = true;
+}
+
+function showDecryptSignInMessage() {
+  const container = getDecryptOutputContainer();
+  if (!container) return;
+  let overlay = container.querySelector('.tc-signin-msg');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'tc-signin-msg';
+    const link = document.createElement('button');
+    link.type = 'button';
+    link.className = 'tc-signin-link';
+    link.textContent = 'Sign in';
+    link.addEventListener('click', async () => {
+      try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+      await ensureImsLoaded();
+      window.adobeIMS?.signIn?.({ redirect_uri: window.location.href });
+    });
+    overlay.appendChild(link);
+    overlay.appendChild(document.createTextNode(' with your Adobe account to use decryption.'));
+    container.appendChild(overlay);
+  }
+  overlay.hidden = false;
+}
+
 function onDecryptButtonAdded(node) {
   node.addEventListener('click', async (e) => {
     const formComponents = node.closest('.form-components');
     try {
       e.preventDefault();
+      hideDecryptSignInMessage();
       await createProgressCircle(formComponents);
       showProgressCircle(formComponents);
       const encryptedText = document.querySelector('#encryptedurl').value.trim();
@@ -278,7 +311,12 @@ function onDecryptButtonAdded(node) {
       setOutput(DECRYPTED_URL_ELEMENT, await getDecryptedUrl(encryptedText));
       hideProgressCircle(formComponents);
     } catch (err) {
-      setOutput(DECRYPTED_URL_ELEMENT, decryptAccessMessage(err.message), { isError: true });
+      if (err.message === ERR_SIGN_IN) {
+        setOutput(DECRYPTED_URL_ELEMENT, '', { isError: true });
+        showDecryptSignInMessage();
+      } else {
+        setOutput(DECRYPTED_URL_ELEMENT, decryptAccessMessage(err.message), { isError: true });
+      }
       hideProgressCircle(formComponents);
       throw err;
     }
