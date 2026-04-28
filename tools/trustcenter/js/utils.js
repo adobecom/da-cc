@@ -204,6 +204,39 @@ async function getDecryptedUrl(encryptedText) {
   return responseJson.decryptedUrl;
 }
 
+function setOutput(element, value, { isError = false } = {}) {
+  element.value = value;
+  element.classList.toggle('has-error', isError);
+  const copyBtn = document.querySelector(`.tc-copy-btn[data-copy-target="${element.id}"]`);
+  if (copyBtn) {
+    copyBtn.hidden = isError || !value;
+    copyBtn.classList.remove('copied');
+    copyBtn.textContent = 'Copy';
+  }
+}
+
+function initCopyButtons() {
+  document.querySelectorAll('.tc-copy-btn').forEach((btn) => {
+    btn.hidden = true;
+    btn.addEventListener('click', async () => {
+      const target = document.getElementById(btn.dataset.copyTarget);
+      if (!target?.value) return;
+      try {
+        await navigator.clipboard.writeText(target.value);
+      } catch (_) {
+        target.select();
+        document.execCommand('copy');
+      }
+      btn.classList.add('copied');
+      btn.textContent = 'Copied!';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.textContent = 'Copy';
+      }, 1500);
+    });
+  });
+}
+
 function onSubmitButtonAdded(node) {
   node.addEventListener('click', async (e) => {
     const formComponents = node.closest('.form-components');
@@ -216,13 +249,13 @@ function onSubmitButtonAdded(node) {
       const allowedHosts = ['www.adobe.com'];
       const urlHost = new URL(linkUrl).host;
       if (!isNonProd() && !allowedHosts.includes(urlHost)) {
-        PROTECTED_URL_ELEMENT.value = 'Please enter a www.adobe.com asset url';
+        setOutput(PROTECTED_URL_ELEMENT, 'Please enter a www.adobe.com asset url', { isError: true });
         throw new Error('Please enter a www.adobe.com asset url');
       }
-      PROTECTED_URL_ELEMENT.value = await getEncryptedText(linkUrl);
+      setOutput(PROTECTED_URL_ELEMENT, await getEncryptedText(linkUrl));
       hideProgressCircle(formComponents);
     } catch (err) {
-      PROTECTED_URL_ELEMENT.value = 'Please enter a valid www.adobe.com asset url';
+      setOutput(PROTECTED_URL_ELEMENT, 'Please enter a valid www.adobe.com asset url', { isError: true });
       hideProgressCircle(formComponents);
       throw err;
     }
@@ -238,10 +271,10 @@ function onDecryptButtonAdded(node) {
       showProgressCircle(formComponents);
       const encryptedText = document.querySelector('#encryptedurl').value.trim();
       if (!encryptedText) throw new Error('Cannot have empty encrypted url');
-      DECRYPTED_URL_ELEMENT.value = await getDecryptedUrl(encryptedText);
+      setOutput(DECRYPTED_URL_ELEMENT, await getDecryptedUrl(encryptedText));
       hideProgressCircle(formComponents);
     } catch (err) {
-      DECRYPTED_URL_ELEMENT.value = decryptAccessMessage(err.message);
+      setOutput(DECRYPTED_URL_ELEMENT, decryptAccessMessage(err.message), { isError: true });
       hideProgressCircle(formComponents);
       throw err;
     }
@@ -266,4 +299,5 @@ function initTabs() {
   if (PROTECT_URL_SUBMIT) onSubmitButtonAdded(PROTECT_URL_SUBMIT);
   if (DECRYPT_URL_SUBMIT) onDecryptButtonAdded(DECRYPT_URL_SUBMIT);
   initTabs();
+  initCopyButtons();
 }());

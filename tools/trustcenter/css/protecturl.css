@@ -127,12 +127,59 @@
   outline: none;
   resize: vertical;
   font-family: monospace;
-  transition: border-color 0.2s;
+  transition: border-color 0.2s, background 0.2s;
 }
 
 .tc-card textarea:focus {
   border-color: #5C5CE0;
   background: #fff;
+}
+
+.tc-card textarea.has-error {
+  border-color: #d7373f;
+  background: #fff5f5;
+  color: #b22b30;
+}
+
+.tc-output {
+  position: relative;
+}
+
+.tc-copy-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #5C5CE0;
+  background: #fff;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.2s, background 0.2s, color 0.2s;
+}
+
+.tc-output:hover .tc-copy-btn,
+.tc-copy-btn:focus {
+  opacity: 1;
+}
+
+.tc-copy-btn:hover {
+  background: #5C5CE0;
+  color: #fff;
+}
+
+.tc-copy-btn.copied {
+  opacity: 1;
+  background: #2d9d3a;
+  color: #fff;
+  border-color: #2d9d3a;
+}
+
+.tc-copy-btn[hidden] {
+  display: none;
 }
 
 .tc-card .con-button {
