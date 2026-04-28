@@ -212,7 +212,6 @@ function setOutput(element, value, { isError = false } = {}) {
   element.classList.toggle('has-error', isError);
   const copyBtn = document.querySelector(`.tc-copy-btn[data-copy-target="${element.id}"]`);
   if (copyBtn) {
-    copyBtn.hidden = isError || !value;
     copyBtn.classList.remove('copied');
     copyBtn.innerHTML = COPY_ICON;
     copyBtn.setAttribute('aria-label', `Copy ${element.id === 'protected-url' ? 'encrypted' : 'decrypted'} URL`);
@@ -221,7 +220,6 @@ function setOutput(element, value, { isError = false } = {}) {
 
 function initCopyButtons() {
   document.querySelectorAll('.tc-copy-btn').forEach((btn) => {
-    btn.hidden = true;
     btn.addEventListener('click', async () => {
       const target = document.getElementById(btn.dataset.copyTarget);
       if (!target?.value) return;

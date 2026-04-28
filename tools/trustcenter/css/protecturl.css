@@ -116,8 +116,13 @@
   background: #fff;
 }
 
+.tc-card .form-item textarea,
 .tc-card textarea {
+  display: block;
+  box-sizing: border-box;
   width: 100%;
+  min-width: 100%;
+  height: 220px;
   min-height: 220px;
   padding: 10px 14px;
   font-size: 14px;
@@ -144,47 +149,61 @@
 
 .tc-output {
   position: relative;
+  flex: 1 1 100%;
+  width: 100%;
 }
 
-.tc-copy-btn {
+.tc-card .tc-output .tc-copy-btn {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
+  width: auto !important;
+  height: auto !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0;
-  background: transparent;
-  border: none;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: inherit;
   cursor: pointer;
-  opacity: 0;
-  transition: opacity 0.2s;
+  opacity: 1;
+  transition: none;
 }
 
-.tc-copy-btn svg {
+.tc-card .tc-output .tc-copy-btn:hover,
+.tc-card .tc-output .tc-copy-btn:focus,
+.tc-card .tc-output .tc-copy-btn:focus-visible,
+.tc-card .tc-output .tc-copy-btn:active {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none;
+}
+
+.tc-card .tc-output .tc-copy-btn svg {
   width: 18px;
   height: 18px;
+  display: block;
 }
 
-.tc-copy-btn svg .fill {
+.tc-card .tc-output .tc-copy-btn svg .fill {
   fill: #464646;
 }
 
-.tc-output:hover .tc-copy-btn,
-.tc-copy-btn:focus-visible {
-  opacity: 1;
-}
-
-.tc-copy-btn:hover svg .fill {
+.tc-card .tc-output .tc-copy-btn:hover svg .fill {
   fill: #1a1a1a;
 }
 
-.tc-copy-btn.copied svg .fill {
+.tc-card .tc-output .tc-copy-btn.copied svg .fill {
   fill: #2d9d3a;
-}
-
-.tc-copy-btn[hidden] {
-  display: none;
 }
 
 .tc-card .con-button {
