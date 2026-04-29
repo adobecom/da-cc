@@ -31,8 +31,8 @@
       <div class="text center xxl-spacing l-title xxl-heading s-body dark">
         <div>
           <div data-align="center" data-valign="middle">
-            <h1 id="protect-the-asset-link"><strong>Protect the asset link</strong></h1>
-            <p>* Please note that Sidekick Login is mandatory to access the link protection form</p>
+            <h1 id="decrypt-the-asset-link"><strong>Decrypt the asset link</strong></h1>
+            <p>* Please note that Sidekick Login is mandatory to access the decryption form</p>
           </div>
         </div>
       </div>
@@ -46,25 +46,24 @@
     </div>
     <div>
       <div class="content">
-        <div class="tc-tool-plain" role="region" aria-labelledby="protect-the-asset-link">
+        <div class="tc-tool-plain" role="region" aria-labelledby="decrypt-the-asset-link">
           <div class="cc-forms default spacing-m">
             <div class="form-components">
               <div class="form-item">
-                <label for="plaintexturl">Enter the asset url*</label>
-                <input type="text" class="cc-form-component" name="plaintexturl" id="plaintexturl" required="required"
-                  data-required="required" placeholder="Enter the asset url*">
+                <label for="encryptedurl">Enter the protected link*</label>
+                <p class="tc-field-hint">Sign in with your Adobe account required for decryption.</p>
+                <input type="text" class="cc-form-component" name="encryptedurl" id="encryptedurl"
+                  required="required" data-required="required" placeholder="Enter the protected link*">
               </div>
               <div class="form-item">
-                <a href="/tools/trustcenter/protecturl.html?nonprod=true"
-                  class="con-button blue button-l cc-form-component submit generate-protected-link"
-                  id="generate-protected-link" daa-ll="Generate Protected L-1--"
-                  data-http-link="true">Generate Protected Link</a>
+                <a href="#" class="con-button blue button-l cc-form-component submit decrypt-link"
+                  id="decrypt-link" daa-ll="Decrypt Link-1--" data-http-link="true">Generate Decrypted Link</a>
               </div>
               <div class="form-item">
                 <div class="tc-output">
-                  <textarea name="protected-url" id="protected-url" rows="10"
-                    placeholder="Encrypted URL will appear here..." readonly></textarea>
-                  <button type="button" class="tc-copy-btn" data-copy-target="protected-url" aria-label="Copy encrypted URL" title="Copy">
+                  <textarea name="decrypted-url" id="decrypted-url" rows="10"
+                    placeholder="Decrypted URL will appear here..." readonly></textarea>
+                  <button type="button" class="tc-copy-btn" data-copy-target="decrypted-url" aria-label="Copy decrypted URL" title="Copy">
                     <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18" focusable="false" aria-hidden="true"><rect height="1" rx="0.25" width="1" x="16" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="9" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="7" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="5" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="3" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="14" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="12" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="10" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="8" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="3" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="5" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="7" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="9" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="8" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="10" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="12" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="14" y="11" class="fill"/><path d="M5,6H1.5a.5.5,0,0,0-.5.5v10a.5.5,0,0,0,.5.5h10a.5.5,0,0,0,.5-.5V13H5.5a.5.5,0,0,1-.5-.5Z" class="fill"/></svg>
                   </button>
                 </div>

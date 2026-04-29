@@ -282,6 +282,8 @@ function showDecryptSignInMessage() {
   if (!overlay) {
     overlay = document.createElement('div');
     overlay.className = 'tc-signin-msg';
+    const inner = document.createElement('span');
+    inner.className = 'tc-signin-msg-inner';
     const link = document.createElement('button');
     link.type = 'button';
     link.className = 'tc-signin-link';
@@ -291,8 +293,13 @@ function showDecryptSignInMessage() {
       await ensureImsLoaded();
       window.adobeIMS?.signIn?.({ redirect_uri: window.location.href });
     });
-    overlay.appendChild(link);
-    overlay.appendChild(document.createTextNode(' with your Adobe account to use decryption.'));
+    inner.appendChild(link);
+    inner.appendChild(document.createTextNode(' '));
+    const rest = document.createElement('span');
+    rest.className = 'tc-signin-msg-rest';
+    rest.textContent = 'with your Adobe account to use decryption.';
+    inner.appendChild(rest);
+    overlay.appendChild(inner);
     container.appendChild(overlay);
   }
   overlay.hidden = false;
