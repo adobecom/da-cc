@@ -441,6 +441,7 @@ const CONFIG = {
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?benefits(\/.*)?/,
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?download(\/.*)?/,
   ],
+  autoBlocks: [{ audio: '.mp3' }, { audio: '.m4a' }, { audio: '.aac' }],
   brandConciergeAA: 'cc:app-reco',
   uniqueSiteId: 'da-cc',
   mepLingoCountryToRegion: {
