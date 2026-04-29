@@ -1,102 +1,42 @@
-/* Pull tabs/cards section closer to the gradient header */
+/* Pull form block up toward gradient (matches main tool page) */
 main > div:nth-of-type(2) {
   margin-top: -40px;
 }
 
-/* Tabs */
-.tc-tabs {
-  display: flex;
-  justify-content: center;
-  gap: 0;
-  margin: 0 auto 20px;
-  max-width: 420px;
-  background: #f0f0f0;
-  border-radius: 24px;
-  padding: 4px;
-}
-
-.tc-tab {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 24px;
-  font-size: 15px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  border: none;
-  border-radius: 20px;
-  background: transparent;
-  color: #666;
-  transition: all 0.25s ease;
-}
-
-.tc-tab:hover {
-  color: #333;
-}
-
-.tc-tab.active {
-  background: #fff;
-  color: #1a1a1a;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-}
-
-/* Cards Container */
-.tc-cards {
-  display: flex;
-  gap: 24px;
-  max-width: 960px;
+/* Minimal layout: no card chrome — same idea as main-only protecturl */
+.tc-tool-plain {
+  max-width: min(780px, 92vw);
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 28px 20px 48px;
+  box-sizing: border-box;
 }
 
-/* Card */
-.tc-card {
-  flex: 1;
-  background: #fff;
-  border: 1px solid #e0e0e0;
-  border-radius: 12px;
-  padding: 20px 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.tc-card-title {
-  font-size: 18px;
-  font-weight: 700;
-  margin: 0 0 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-/* auth */
-.tc-card-note {
+/* Under-field note (decrypt): below label, above input */
+.tc-field-hint {
+  margin: 2px 0 8px;
   font-size: 12px;
-  line-height: 1.4;
-  color: #888;
+  line-height: 1.45;
+  color: #666;
   font-style: italic;
-  margin: -8px 0 16px;
-  min-height: 1.4em;
+  text-align: left;
 }
 
-/* Form overrides inside cards */
-.tc-card .cc-forms {
+.tc-tool-plain .cc-forms {
   padding: 0;
 }
 
-.tc-card .form-components {
+.tc-tool-plain .form-components {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 22px;
+  align-items: stretch;
 }
 
-.tc-card .form-item {
+.tc-tool-plain .form-item {
   width: 100%;
 }
 
-.tc-card .form-item label {
+.tc-tool-plain .form-item label {
   display: block;
   font-size: 13px;
   font-weight: 600;
@@ -104,63 +44,84 @@ main > div:nth-of-type(2) {
   margin-bottom: 6px;
 }
 
-.tc-card input[type="text"] {
+.tc-tool-plain .form-item:has(.tc-field-hint) > label {
+  margin-bottom: 2px;
+}
+
+.tc-tool-plain input[type="text"] {
   width: 100%;
-  padding: 10px 14px;
-  font-size: 14px;
-  border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  background: #fafafa;
-  color: #1a1a1a;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.tc-card input[type="text"]:focus {
-  border-color: #5C5CE0;
-  background: #fff;
-}
-
-.tc-card .form-item textarea,
-.tc-card textarea {
-  display: block;
   box-sizing: border-box;
-  width: 100%;
-  min-width: 100%;
-  height: 150px;
-  min-height: 150px;
-  padding: 10px 40px 10px 14px;
+  padding: 8px 16px;
   font-size: 14px;
   border: 1px solid #d0d0d0;
-  border-radius: 6px;
-  background: #fafafa;
+  border-radius: 4px;
+  background: #fff;
   color: #1a1a1a;
   outline: none;
-  resize: vertical;
-  font-family: monospace;
-  transition: border-color 0.2s, color 0.2s;
 }
 
-.tc-card textarea:focus {
-  border-color: #5C5CE0;
-  background: #fff;
+.tc-tool-plain input[type="text"]:focus {
+  border-color: #5c5ce0;
 }
 
-.tc-card textarea.has-error {
-  color: #d7373f;
-  font-size: 13px;
-  font-family: inherit;
+.tc-tool-plain .form-item:has(> a.con-button) {
+  display: flex;
+  justify-content: center;
+}
+
+.tc-tool-plain .con-button {
+  width: auto;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  border-radius: 100px;
+  padding: 7px 18px 8px !important;
+  min-height: 0 !important;
+  font-size: 17px !important;
+  font-weight: 600;
+  line-height: 1.25 !important;
 }
 
 .tc-output {
   position: relative;
-  flex: 1 1 100%;
   width: 100%;
 }
 
-.tc-card .tc-output .tc-copy-btn {
+.tc-tool-plain .form-item textarea,
+.tc-tool-plain textarea {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 228px;
+  height: auto;
+  padding: 8px 40px 8px 16px;
+  font-size: 14px;
+  line-height: 1.45;
+  border: 1px solid #d0d0d0;
+  border-radius: 4px;
+  background: #fff;
+  color: #1a1a1a;
+  outline: none;
+  resize: vertical;
+  font-family: monospace;
+}
+
+.tc-tool-plain textarea:focus {
+  border-color: #5c5ce0;
+}
+
+.tc-tool-plain textarea.has-error {
+  color: #d7373f;
+  font-size: 13px;
+  font-family: inherit;
+  line-height: 1.45;
+}
+
+.tc-tool-plain .tc-output .tc-copy-btn {
   position: absolute;
-  top: 10px;
+  top: 4px;
   right: 10px;
   width: auto !important;
   height: auto !important;
@@ -172,95 +133,111 @@ main > div:nth-of-type(2) {
   padding: 0 !important;
   margin: 0 !important;
   background: transparent !important;
-  background-color: transparent !important;
   border: none !important;
   border-radius: 0 !important;
   box-shadow: none !important;
   color: inherit;
   cursor: pointer;
-  opacity: 1;
-  transition: none;
 }
 
-.tc-card .tc-output .tc-copy-btn:hover,
-.tc-card .tc-output .tc-copy-btn:focus,
-.tc-card .tc-output .tc-copy-btn:focus-visible,
-.tc-card .tc-output .tc-copy-btn:active {
+.tc-tool-plain .tc-output .tc-copy-btn:hover,
+.tc-tool-plain .tc-output .tc-copy-btn:focus,
+.tc-tool-plain .tc-output .tc-copy-btn:focus-visible,
+.tc-tool-plain .tc-output .tc-copy-btn:active {
   background: transparent !important;
-  background-color: transparent !important;
   border: none !important;
   box-shadow: none !important;
   outline: none;
 }
 
-.tc-card .tc-output .tc-copy-btn svg {
+.tc-tool-plain .tc-output .tc-copy-btn svg {
   width: 18px;
   height: 18px;
   display: block;
 }
 
-.tc-card .tc-output .tc-copy-btn svg .fill {
+.tc-tool-plain .tc-output .tc-copy-btn svg .fill {
   fill: #464646;
 }
 
-.tc-card .tc-output .tc-copy-btn:hover svg .fill {
+.tc-tool-plain .tc-output .tc-copy-btn:hover svg .fill {
   fill: #1a1a1a;
 }
 
-.tc-card .tc-output .tc-copy-btn.copied svg .fill {
+.tc-tool-plain .tc-output .tc-copy-btn.copied svg .fill {
   fill: #2d9d3a;
 }
 
-.tc-card .con-button {
-  display: inline-block;
-  text-align: center;
-  width: 100%;
-}
-
-.tc-card .tc-output .tc-signin-msg {
+/* Decrypt sign-in overlay: top-left like error text; blue “Sign in”, red rest, no gap */
+.tc-tool-plain .tc-output .tc-signin-msg {
   position: absolute;
   inset: 0;
   box-sizing: border-box;
-  padding: 0.5px 40px 10px 14px;
-  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding: 8px 40px 8px 16px;
+  background: #fff;
   border: 1px solid #d0d0d0;
-  border-radius: 6px;
+  border-radius: 4px;
   color: #d7373f;
   font-family: inherit;
   font-size: 13px;
-  line-height: 1.2;
+  line-height: 1.45;
+  text-align: left;
+  overflow: auto;
   z-index: 2;
 }
 
-.tc-card .tc-output .tc-signin-msg .tc-signin-link {
-  display: inline;
-  width: auto;
-  min-width: 0;
+.tc-tool-plain .tc-output .tc-signin-msg-inner {
+  display: block;
   margin: 0;
   padding: 0;
-  background: transparent;
-  border: none;
+  max-width: 100%;
+  line-height: 1.45;
   font: inherit;
+}
+
+.tc-tool-plain .tc-output .tc-signin-msg-rest {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+  line-height: inherit;
+  vertical-align: baseline;
+  transform: translateY(-2px);
+}
+
+.tc-tool-plain .tc-output .tc-signin-msg .tc-signin-link {
+  display: inline;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-size: inherit;
+  line-height: inherit;
   color: #1473e6;
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
   vertical-align: baseline;
+  -webkit-appearance: none;
+  appearance: none;
 }
 
-.tc-card .tc-output .tc-signin-msg .tc-signin-link:hover,
-.tc-card .tc-output .tc-signin-msg .tc-signin-link:focus-visible {
+.tc-tool-plain .tc-output .tc-signin-msg .tc-signin-link:hover,
+.tc-tool-plain .tc-output .tc-signin-msg .tc-signin-link:focus-visible {
   color: #0d66d0;
   outline: none;
 }
 
-.tc-card .tc-output .tc-signin-msg[hidden] {
+.tc-tool-plain .tc-output .tc-signin-msg[hidden] {
   display: none;
-}
-
-/* Responsive: stack on mobile */
-@media (max-width: 768px) {
-  .tc-cards {
-    flex-direction: column;
-  }
 }
