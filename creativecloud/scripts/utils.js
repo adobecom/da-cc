@@ -169,13 +169,11 @@ export const [setLibs, getLibs] = (() => {
         return libs;
       }
       const { hostname } = window.location;
-      if (!hostname.includes('.hlx.')
-        && !hostname.includes('.aem.')
-        && !hostname.includes('.da.')
-        && !hostname.includes('localhost')) {
+      if (!['.aem.', '.hlx.', '.stage.', 'localhost', '.da.'].some((i) => hostname.includes(i))) { 
         libs = prodLibs;
-        return libs;
-      }
+        return prodLibs 
+      };
+            if (branch === 'main' && hostname.includes('.stage.')) return '/libs';
       const branch = new URLSearchParams(window.location.search).get('milolibs') || 'main';
       if (!/^[a-zA-Z0-9_-]+$/.test(branch)) throw new Error('Invalid branch name.');
       if (branch === 'local') { libs = 'http://localhost:6456/libs'; return libs; }
