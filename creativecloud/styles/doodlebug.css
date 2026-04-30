@@ -81,7 +81,7 @@
         margin-inline: 0 180px;
     }
 
-    .aside:not(.promobar) .foreground.container .image :is(img, video) {
+    .aside:not(.promobar) .foreground.container .image :is(img:not(.accessibility-control), video) {
         border-radius: 20px;
         border: var(--glass-border);
     }
