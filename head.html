@@ -54,20 +54,6 @@
 <!-- Stream HTML Review bootstrap. No-op unless ?streamHtmlReview=1 is in the URL. -->
 <script>
   (function () {
-    var p = new URLSearchParams(window.location.search);
-    if (p.get('streamHtmlReview') !== '1') return;
-    var mapperOrigin =
-      p.get('streamMapperOrigin') ||
-      'https://main--stream-mapper--adobecom.aem.live';
-    var s = document.createElement('script');
-    s.type = 'module';
-    s.src = mapperOrigin.replace(/\/+$/, '') + '/streamlibs/standalone/html-review.js';
-    s.async = true;
-    document.head.appendChild(s);
-  })();
-  </script>
-<script>
-  (function () {
     var p = new URLSearchParams(location.search);
     if (p.get('streamHtmlReview') !== '1') return;
     var o = p.get('streamMapperOrigin') ||
