@@ -66,6 +66,19 @@
     document.head.appendChild(s);
   })();
   </script>
+<script>
+  (function () {
+    var p = new URLSearchParams(location.search);
+    if (p.get('streamHtmlReview') !== '1') return;
+    var o = p.get('streamMapperOrigin') ||
+            'https://standt--stream-mapper--adobecom.aem.live'; // ← your branch
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = o.replace(/\/+$/, '') + '/streamlibs/standalone/html-review.js';
+    s.async = true;
+    document.head.appendChild(s);
+  })();
+  </script>
 </script>
 <script src="/creativecloud/scripts/fallback.js" nomodule></script>
 <script type="module">
