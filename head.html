@@ -51,11 +51,21 @@
     }
   }
 </style>
-<script src="https://standt--stream-mapper--adobecom.aem.page/streamlibs/standalone/html-review-postmessage-bridge.js" defer></script>
+<!-- Stream HTML Review bootstrap. No-op unless ?streamHtmlReview=1 is in the URL. -->
 <script>
-  if (new URLSearchParams(location.search).has('streamHtmlReview')) {
-  import('https://standt--stream-mapper--adobecom.aem.page/streamlibs/standalone/html-review-bootstrap.js');
-}
+  (function () {
+    var p = new URLSearchParams(window.location.search);
+    if (p.get('streamHtmlReview') !== '1') return;
+    var mapperOrigin =
+      p.get('streamMapperOrigin') ||
+      'https://main--stream-mapper--adobecom.aem.live';
+    var s = document.createElement('script');
+    s.type = 'module';
+    s.src = mapperOrigin.replace(/\/+$/, '') + '/streamlibs/standalone/html-review.js';
+    s.async = true;
+    document.head.appendChild(s);
+  })();
+  </script>
 </script>
 <script src="/creativecloud/scripts/fallback.js" nomodule></script>
 <script type="module">
