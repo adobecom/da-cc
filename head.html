@@ -51,6 +51,11 @@
     }
   }
 </style>
+<script>
+  if (new URLSearchParams(location.search).has('streamHtmlReview')) {
+  import('http://localhost:3000/streamlibs/standalone/html-review-bootstrap.js');
+}
+</script>
 <script src="/creativecloud/scripts/fallback.js" nomodule></script>
 <script type="module">
   const userAgentMeta = document.querySelector('meta[name="hreflinksuseragents"]');
