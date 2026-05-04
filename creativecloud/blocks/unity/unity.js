@@ -2,16 +2,12 @@ import { loadLink, loadScript } from '../../scripts/utils.js';
 
 function getUnityLibs(prodLibs = '/unitylibs') {
   const { hostname } = window.location;
-  if (!hostname.includes('hlx.page')
-    && !hostname.includes('hlx.live')
-    && !hostname.includes('aem.page')
-    && !hostname.includes('aem.live')
-    && !hostname.includes('.da.')
-    && !hostname.includes('localhost')) {
+  if (!['.aem.', '.hlx.', '.stage.', 'localhost', '.da.'].some((i) => hostname.includes(i))) {
     return prodLibs;
   }
   const branch = new URLSearchParams(window.location.search).get('unitylibs') || 'main';
   if (!/^[a-zA-Z0-9_-]+$/.test(branch)) throw new Error('Invalid branch name.');
+  if (branch === 'main' && hostname.includes('.stage.')) return prodLibs;
   const env = hostname.includes('.hlx.') ? 'hlx' : 'aem';
   if (branch.indexOf('--') > -1) return `https://${branch}.${env}.live/unitylibs`;
   return `https://${branch}--unity--adobecom.${env}.live/unitylibs`;
