@@ -40,13 +40,27 @@ function resetActiveVideo() {
   activeMedia.video.el = null;
 }
 
+function syncPausedChrome(videoEl) {
+  const host = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
+  if (!host) return;
+  host.querySelector('.offset-filler')?.classList.remove('is-playing');
+  host.querySelector('.pause-play-wrapper')?.setAttribute('aria-pressed', 'false');
+}
+
 function stopVideo(videoEl) {
   if (!videoEl) return;
   if (!videoEl.paused) videoEl.pause();
   videoEl.currentTime = 0;
-  const host = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
-  console.log('host', host?.querySelector('.offset-filler')?.classList);
-  host?.querySelector('.offset-filler')?.classList.remove('is-playing');
+  const enforce = () => {
+    videoEl.removeEventListener('play', enforce);
+    videoEl.removeEventListener('playing', enforce);
+    try { videoEl.pause(); } catch (_) { /* no-op */ }
+    videoEl.currentTime = 0;
+    requestAnimationFrame(() => syncPausedChrome(videoEl));
+  };
+  videoEl.addEventListener('play', enforce);
+  videoEl.addEventListener('playing', enforce);
+  syncPausedChrome(videoEl);
   if (activeMedia.video.el === videoEl) resetActiveVideo();
 }
 
@@ -84,9 +98,7 @@ function toggleVideo(mediaEl) {
 
   if (currentEl === videoEl && !videoEl.paused) {
     videoEl.pause();
-    const host = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
-    host?.querySelector('.offset-filler')?.classList.remove('is-playing');
-    resetActiveVideo();
+    requestAnimationFrame(() => syncPausedChrome(videoEl));
     return;
   }
 
