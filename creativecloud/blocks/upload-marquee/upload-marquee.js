@@ -2,6 +2,7 @@ import { createTag, getLibs, getScreenSizeCategory } from '../../scripts/utils.j
 
 const miloLibs = getLibs('/libs');
 const VIEWPORTS = ['mobile-up', 'tablet-up', 'desktop-up'];
+const MEDIA_SELECTOR = 'picture, .video-container.video-holder, video';
 const DEFAULT_DROPZONE_ICON = '/cc-shared/assets/svg/s2-icon-default-image-20-n.svg';
 const AnalyticsKeys = {
   uploadAssetCTA: 'Upload asset CTA|UnityWidget',
@@ -73,8 +74,7 @@ function setUploadRowMediaPriority(uploadRow) {
   const activeColumnIndex = { mobile: 0, tablet: 1, desktop: 2 }[screenCategory];
   [...uploadRow.children].forEach((column, index) => {
     const isActive = index === activeColumnIndex;
-    const firstPara = column.querySelector('p');
-    const mediaPicture = firstPara?.querySelector('picture');
+    const mediaPicture = column.querySelector('picture');
     if (mediaPicture) {
       const img = rewritePictureToOurSizes(mediaPicture);
       if (img) {
@@ -104,7 +104,7 @@ function buildScopedId(prefix, columnId) {
 }
 
 function extractUploadContentParts(content) {
-  const media = content.querySelector('picture, .video-container.video-holder');
+  const media = content.querySelector(MEDIA_SELECTOR);
   const terms = content.querySelector('p:last-child');
   const mediaPara = media?.closest('p');
   const hasUploadMarker = (para) => para.querySelector(
@@ -319,7 +319,7 @@ function collectViewportContent(row, extractMedia) {
 }
 
 function extractMediaFromColumn(content) {
-  const media = content.querySelector('picture, .video-container.video-holder');
+  const media = content.querySelector(MEDIA_SELECTOR);
   if (!media) return null;
   const mediaContainer = createTag('div', { class: 'media-container' });
   mediaContainer.append(media);
@@ -332,12 +332,10 @@ async function decorateUploadColumn(content) {
   const dropZoneContainer = createTag('div', { class: 'drop-zone-container' });
   const uploadParts = extractUploadContentParts(content);
   if (uploadParts.media) {
+    const mediaPara = uploadParts.media.closest('p');
     mediaContainer.append(uploadParts.media);
-    if (
-      uploadParts.media.parentElement?.tagName === 'P'
-      && uploadParts.media.parentElement.textContent.trim() === ''
-    ) {
-      uploadParts.media.parentElement.remove();
+    if (mediaPara?.textContent.trim() === '') {
+      mediaPara.remove();
     }
   }
   if (!uploadParts.uploadPara) {
