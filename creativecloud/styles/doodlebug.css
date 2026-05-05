@@ -303,23 +303,23 @@
         padding: var(--spacing-xxs);
     }
 
-    .editorial-card.s-padding-media.m-rounded-corners-image .media-area > div :is(img, video) {
+    .editorial-card.s-padding-media.m-rounded-corners-image .media-area > div :is(img:not(.accessibility-control), video) {
         border-radius: var(--m-rounded-corners);
     }
 
-    .two-up .editorial-card .media-area :is(img, video),
-    .three-up .editorial-card .media-area :is(img, video),
-    .four-up .editorial-card .media-area :is(img, video) {
+    .two-up .editorial-card .media-area :is(img:not(.accessibility-control), video),
+    .three-up .editorial-card .media-area :is(img:not(.accessibility-control), video),
+    .four-up .editorial-card .media-area :is(img:not(.accessibility-control), video) {
         height: auto;
         max-height: unset;
         aspect-ratio: 284 / 269;
     }
 
-    .editorial-card.h-shadow .media-area :is(img, video) {
+    .editorial-card.h-shadow .media-area :is(img:not(.accessibility-control), video) {
         transition: filter .3s ease-in-out;
     }
 
-    .editorial-card.h-shadow:hover .media-area :is(img, video) {
+    .editorial-card.h-shadow:hover .media-area :is(img:not(.accessibility-control), video) {
         filter: brightness(.65);
     }
 
@@ -379,7 +379,7 @@
             gap: 10px;
         }
 
-        .show-2-desktop .editorial-card .media-area :is(img, video) {
+        .show-2-desktop .editorial-card .media-area :is(img:not(.accessibility-control), video) {
             height: auto;
             max-height: unset;
             aspect-ratio: 823 / 490;
