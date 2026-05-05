@@ -108,7 +108,7 @@ function extractUploadContentParts(content) {
   const terms = content.querySelector('p:last-child');
   const mediaPara = media?.closest('p');
   const hasUploadMarker = (para) => para.querySelector(
-    'span[class*=icon-share], span[class*=icon-upload], img[src$=".svg"]:not(.video-container img)',
+    'span[class*=icon-share], span[class*=icon-upload], img[src*=".svg"]:not(.video-container img)',
   );
   const candidateParagraphs = [
     ...content.querySelectorAll('p:not(:last-child)'),
