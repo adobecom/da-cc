@@ -40,20 +40,25 @@ function resetActiveVideo() {
   activeMedia.video.el = null;
 }
 
+function stopVideo(videoEl) {
+  if (!videoEl) return;
+  if (!videoEl.paused) videoEl.pause();
+  videoEl.currentTime = 0;
+  const host = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
+  console.log('host', host?.querySelector('.offset-filler')?.classList);
+  host?.querySelector('.offset-filler')?.classList.remove('is-playing');
+  if (activeMedia.video.el === videoEl) resetActiveVideo();
+}
+
 function stopActiveVideo(exceptVideoEl = null) {
   const { el: currentEl } = activeMedia.video;
-  if (!currentEl || currentEl === exceptVideoEl) return;
-  if (!currentEl.paused) currentEl.pause();
-  currentEl.currentTime = 0;
-  resetActiveVideo();
+  if (currentEl && currentEl !== exceptVideoEl) stopVideo(currentEl);
 }
 
 function stopMappedVideo(audioEl) {
-  const mappedVideoEl = audioToVideo.get(audioEl) || null;
-  if (!mappedVideoEl) return;
-  if (!mappedVideoEl.paused) mappedVideoEl.pause();
-  mappedVideoEl.currentTime = 0;
-  if (activeMedia.video.el === mappedVideoEl) resetActiveVideo();
+  console.log('stopVideo', audioEl);
+  console.log('stopVideo', audioToVideo.get(audioEl));
+  stopVideo(audioToVideo.get(audioEl) || null);
 }
 
 let audioPlayedSyncBound = false;
@@ -79,13 +84,14 @@ function toggleVideo(mediaEl) {
 
   if (currentEl === videoEl && !videoEl.paused) {
     videoEl.pause();
+    const host = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
+    host?.querySelector('.offset-filler')?.classList.remove('is-playing');
     resetActiveVideo();
     return;
   }
 
   if (currentEl && currentEl !== videoEl && !currentEl.paused) {
-    currentEl.pause();
-    currentEl.currentTime = 0;
+    stopVideo(currentEl);
   }
 
   activeMedia.video.el = videoEl;

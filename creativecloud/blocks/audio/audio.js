@@ -49,9 +49,10 @@ function attachAudioListeners(audio, btn, svg) {
   const ctrl = {
     pause() { if (!audio.paused) audio.pause(); },
     stop() {
-      if (!audio.paused) audio.pause();
+      const wasPlaying = !audio.paused;
+      if (wasPlaying) audio.pause();
       audio.currentTime = 0;
-      emit(EVT.STOPPED, { source: ctrl, type: 'audio', el: audio });
+      if (wasPlaying) emit(EVT.STOPPED, { source: ctrl, type: 'audio', el: audio });
     },
   };
 
