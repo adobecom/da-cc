@@ -21,7 +21,6 @@ function parseBlades(el) {
 }
 
 export default async function init(el) {
-  console.log('eeeeeeeeeeeeeeeee', el);
   loadStyle('/creativecloud/features/firefly-speech/speech-blade.css');
   const blades = parseBlades(el);
   const list = initSpeechBlades(blades);

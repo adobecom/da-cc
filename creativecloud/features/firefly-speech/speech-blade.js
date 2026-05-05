@@ -1,18 +1,8 @@
 import { createTag } from '../../scripts/utils.js';
-import { stopAudioPlayer } from '../../blocks/audio/audio.js';
 
 const LANA_DEFAULTS = { errorType: 'i' };
 const LANA_AUDIO = { ...LANA_DEFAULTS, tags: 'speech-audio' };
 const LANA_VIDEO = { ...LANA_DEFAULTS, tags: 'speech-video' };
-
-const BLADE_STATE = Object.freeze({
-  LOADING: 'loading',
-  PLAYING: 'playing',
-  PAUSED: 'paused',
-  ERROR: 'error',
-});
-
-const ALL_BLADE_STATES = Object.values(BLADE_STATE);
 
 const CLASSES = {
   BLADE: 'speech-blade',
@@ -30,11 +20,15 @@ const SELECTORS = {
   VIDEO_EL: 'video',
 };
 
+const AUDIO_EVENTS = {
+  PLAYED: 'audio-played',
+  STOPPED: 'audio-stopped',
+};
 
 const activeMedia = {
-  video: { el: null, blade: null },
-  audio: { blade: null },
+  video: { el: null },
 };
+const audioToVideo = new WeakMap();
 
 function getVideoEl(mediaEl) {
   if (!mediaEl) return null;
@@ -42,76 +36,77 @@ function getVideoEl(mediaEl) {
   return mediaEl.querySelector(SELECTORS.VIDEO_EL);
 }
 
-function setBladeState(bladeEl, state) {
-  if (!bladeEl) return;
-  bladeEl.classList.remove(...ALL_BLADE_STATES);
-  if (state) bladeEl.classList.add(state);
-}
-
 function resetActiveVideo() {
   activeMedia.video.el = null;
-  activeMedia.video.blade = null;
 }
 
-function toggleVideo(mediaEl, bladeEl) {
+function stopActiveVideo(exceptVideoEl = null) {
+  const { el: currentEl } = activeMedia.video;
+  if (!currentEl || currentEl === exceptVideoEl) return;
+  if (!currentEl.paused) currentEl.pause();
+  currentEl.currentTime = 0;
+  resetActiveVideo();
+}
+
+function stopMappedVideo(audioEl) {
+  const mappedVideoEl = audioToVideo.get(audioEl) || null;
+  if (!mappedVideoEl) return;
+  if (!mappedVideoEl.paused) mappedVideoEl.pause();
+  mappedVideoEl.currentTime = 0;
+  if (activeMedia.video.el === mappedVideoEl) resetActiveVideo();
+}
+
+let audioPlayedSyncBound = false;
+function bindGlobalAudioToVideoStop() {
+  if (audioPlayedSyncBound) return;
+  audioPlayedSyncBound = true;
+
+  window.addEventListener(AUDIO_EVENTS.PLAYED, (e) => {
+    const audioEl = e?.detail?.el;
+    const mappedVideoEl = audioToVideo.get(audioEl) || null;
+    stopActiveVideo(mappedVideoEl);
+  });
+
+  // Stop/reset the paired video only when audio.js explicitly performs stop().
+  window.addEventListener(AUDIO_EVENTS.STOPPED, (e) => stopMappedVideo(e?.detail?.el));
+}
+
+function toggleVideo(mediaEl) {
   const videoEl = getVideoEl(mediaEl);
   if (!videoEl) return;
 
-  const { el: currentEl, blade: currentBlade } = activeMedia.video;
+  const { el: currentEl } = activeMedia.video;
 
   if (currentEl === videoEl && !videoEl.paused) {
     videoEl.pause();
-    setBladeState(bladeEl, BLADE_STATE.PAUSED);
     resetActiveVideo();
     return;
   }
 
-  if (currentEl && currentEl !== videoEl) {
-    if (!currentEl.paused) currentEl.pause();
-    setBladeState(currentBlade, null);
+  if (currentEl && currentEl !== videoEl && !currentEl.paused) {
+    currentEl.pause();
+    currentEl.currentTime = 0;
   }
 
-  setBladeState(bladeEl, BLADE_STATE.LOADING);
   activeMedia.video.el = videoEl;
-  activeMedia.video.blade = bladeEl;
 
   // Normalize sync / async returns from HTMLMediaElement.play().
-  Promise.resolve(videoEl.play()).then(() => {
-    if (activeMedia.video.el === videoEl) setBladeState(bladeEl, BLADE_STATE.PLAYING);
-  }).catch((err) => {
-    if (activeMedia.video.el === videoEl) {
-      setBladeState(bladeEl, BLADE_STATE.ERROR);
-      resetActiveVideo();
-    }
+  Promise.resolve(videoEl.play()).catch((err) => {
+    if (activeMedia.video.el === videoEl) resetActiveVideo();
     window.lana?.log(`Error playing video: ${err}`, LANA_VIDEO);
   });
 }
 
-
-function bindAudioState(bladeEl, audioPlayerEl) {
-  const audio = audioPlayerEl.querySelector(SELECTORS.AUDIO_EL);
-  if (!audio) return;
-
-  audio.addEventListener('play', () => {
-    setBladeState(bladeEl, BLADE_STATE.PLAYING);
-    const previousBlade = activeMedia.audio.blade;
-    if (previousBlade && previousBlade !== bladeEl) {
-      stopAudioPlayer(previousBlade.querySelector(SELECTORS.AUDIO_PLAYER));
-    }
-    activeMedia.audio.blade = bladeEl;
-  });
-
-  audio.addEventListener('pause', () => {
-    if (!audio.ended) setBladeState(bladeEl, BLADE_STATE.PAUSED);
-  });
-
-  audio.addEventListener('ended', () => setBladeState(bladeEl, null));
-
-  audio.addEventListener('waiting', () => setBladeState(bladeEl, BLADE_STATE.LOADING));
-
-  audio.addEventListener('error', () => {
-    setBladeState(bladeEl, 'error');
-    window.lana?.log(`Error loading audio: ${audio.currentSrc || audio.src}`, LANA_AUDIO);
+function bindVideoToAudio(audioPlayerEl, mediaEl) {
+  const videoEl = getVideoEl(mediaEl);
+  const audioEl = audioPlayerEl?.querySelector(SELECTORS.AUDIO_EL);
+  if (!videoEl || !audioEl) return;
+  audioToVideo.set(audioEl, videoEl);
+  videoEl.addEventListener('pause', () => { if (!audioEl.paused) audioEl.pause(); });
+  videoEl.addEventListener('play', () => {
+    if (activeMedia.video.el !== videoEl) return;
+    if (!audioEl.paused) return;
+    audioEl.play().catch((err) => window.lana?.log(`Audio play failed: ${err}`, LANA_AUDIO));
   });
 }
 
@@ -140,7 +135,7 @@ export function createSpeechBlade(config, callbacks = {}) {
 
   if (config.audioSrc) {
     blade.appendChild(config.audioSrc);
-    bindAudioState(blade, config.audioSrc);
+    if (config.mediaEl) bindVideoToAudio(config.audioSrc, config.mediaEl);
   }
 
   blade.addEventListener('click', (e) => {
@@ -150,7 +145,7 @@ export function createSpeechBlade(config, callbacks = {}) {
     }
     if (callbacks.onSelect) {
       callbacks.onSelect(config.id, blade);
-      toggleVideo(config.mediaEl, blade);
+      toggleVideo(config.mediaEl);
     }
   });
 
@@ -159,6 +154,7 @@ export function createSpeechBlade(config, callbacks = {}) {
 
 export default function init(blades = []) {
   if (!Array.isArray(blades) || !blades.length) return null;
+  bindGlobalAudioToVideoStop();
 
   const wrapper = createTag('div', { class: CLASSES.BLADES });
   blades.forEach((cfg) => wrapper.appendChild(createSpeechBlade(cfg)));

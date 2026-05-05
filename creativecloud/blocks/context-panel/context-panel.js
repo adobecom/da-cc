@@ -31,6 +31,25 @@ function parseShowcaseItems(el) {
   });
 }
 
+function syncPausedChrome(videoEl) {
+  const host = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
+  if (!host) return;
+  host.querySelector('.offset-filler')?.classList.remove('is-playing');
+  host.querySelector('.pause-play-wrapper')?.setAttribute('aria-pressed', 'false');
+}
+
+function forcePauseVideo(videoEl) {
+  if (!videoEl) return;
+  const enforce = () => {
+    videoEl.removeEventListener('play', enforce);
+    videoEl.removeEventListener('playing', enforce);
+    try { videoEl.pause(); } catch (_) { /* no-op */ }
+    requestAnimationFrame(() => syncPausedChrome(videoEl));
+  };
+  videoEl.addEventListener('play', enforce);
+  videoEl.addEventListener('playing', enforce);
+}
+
 function buildMediaPanel(items) {
   const panel = createTag('div', { class: 'context-panel-media' });
   items.forEach((item, index) => {
@@ -77,4 +96,6 @@ export default async function init(el) {
 
   foreground.append(mediaPanel, bladesList);
   el.replaceChildren(foreground);
+
+  mediaPanel.querySelectorAll('video').forEach(forcePauseVideo);
 }

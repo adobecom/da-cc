@@ -1,7 +1,27 @@
 import { createTag } from '../../scripts/utils.js';
-import { getGlobalMediaBus } from '../../scripts/decorate.js';
 
 const LANA_OPTIONS = { tags: 'audio', errorType: 'i' };
+
+const EVT = {
+  PLAYED: 'audio-played',
+  PAUSED: 'audio-paused',
+  ENDED: 'audio-ended',
+  STOPPED: 'audio-stopped',
+  PAUSE_ALL: 'audio-pause-all',
+  STOP_ALL: 'audio-stop-all',
+};
+
+function emit(name, detail) {
+  window.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
+function on(name, handler) {
+  window.addEventListener(name, (e) => {
+    try { handler(e.detail); } catch (err) {
+      window.lana?.log(`Audio handler failed for "${name}": ${err}`, LANA_OPTIONS);
+    }
+  });
+}
 
 const SIZE = 40;
 const RING_RADIUS = 16;
@@ -26,28 +46,25 @@ function updateProgress(svg, ratio) {
 }
 
 function attachAudioListeners(audio, btn, svg) {
-  const mediaBus = getGlobalMediaBus();
   const ctrl = {
     pause() { if (!audio.paused) audio.pause(); },
     stop() {
       if (!audio.paused) audio.pause();
       audio.currentTime = 0;
+      emit(EVT.STOPPED, { source: ctrl, type: 'audio', el: audio });
     },
   };
 
-
-  mediaBus.subscribe('media-played', (payload) => {
+  on(EVT.PLAYED, (payload) => {
     if (!payload || payload.source === ctrl) return;
-    if (payload.type === 'audio') ctrl.pause();
-    else ctrl.stop();
+    ctrl.stop();
   });
 
-
-  mediaBus.subscribe('pause-all', (payload) => {
+  on(EVT.PAUSE_ALL, (payload) => {
     if (payload?.except === ctrl) return;
     ctrl.pause();
   });
-  mediaBus.subscribe('stop-all', (payload) => {
+  on(EVT.STOP_ALL, (payload) => {
     if (payload?.except === ctrl) return;
     ctrl.stop();
   });
@@ -61,7 +78,7 @@ function attachAudioListeners(audio, btn, svg) {
   });
 
   audio.addEventListener('play', () => {
-    mediaBus.publish('media-played', { source: ctrl, type: 'audio', el: audio });
+    emit(EVT.PLAYED, { source: ctrl, type: 'audio', el: audio });
     btn.setAttribute('aria-label', ARIA.PAUSE);
     btn.setAttribute('title', ARIA.PAUSE);
     setIcon(svg, true);
@@ -69,7 +86,7 @@ function attachAudioListeners(audio, btn, svg) {
 
   audio.addEventListener('pause', () => {
     if (!audio.ended) {
-      mediaBus.publish('media-paused', { source: ctrl, type: 'audio', el: audio });
+      emit(EVT.PAUSED, { source: ctrl, type: 'audio', el: audio });
     }
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
@@ -77,7 +94,7 @@ function attachAudioListeners(audio, btn, svg) {
   });
 
   audio.addEventListener('ended', () => {
-    mediaBus.publish('media-ended', { source: ctrl, type: 'audio', el: audio });
+    emit(EVT.ENDED, { source: ctrl, type: 'audio', el: audio });
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
     setIcon(svg, false);
@@ -88,6 +105,10 @@ function attachAudioListeners(audio, btn, svg) {
     if (Number.isFinite(audio.duration) && audio.duration > 0) {
       updateProgress(svg, audio.currentTime / audio.duration);
     }
+  });
+
+  audio.addEventListener('error', () => {
+    window.lana?.log(`Audio failed to load: ${audio.currentSrc || audio.src}`, LANA_OPTIONS);
   });
 
   return ctrl;
@@ -123,11 +144,6 @@ function buildAudioPlayer(src) {
   wrapper.append(playBtn, audio);
   wrapperToCtrl.set(wrapper, ctrl);
   return wrapper;
-}
-
-export function stopAudioPlayer(wrapperEl) {
-  if (!wrapperEl) return;
-  wrapperToCtrl.get(wrapperEl)?.stop?.();
 }
 
 export default function init(a) {
