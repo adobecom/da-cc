@@ -25,7 +25,8 @@ function isAdobeServicesHost(hostname) {
 }
 
 /**
- * Reload once when landing on a /catalog URL after the Adobe services auth flow so IMS-dependent UI can hydrate.
+ * Reload once when landing on a /catalog URL after the Adobe services auth flow 
+ * so IMS-dependent UI can hydrate.
  * Uses sessionStorage so we do not loop if referrer is still present after reload.
  */
 export function maybeRefreshCatalogFromAdobeId() {
