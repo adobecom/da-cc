@@ -261,6 +261,14 @@
   justify-content: center;
 }
 
+.upload-marquee-block.unity-prompt {
+  overflow: visible;
+}
+
+.upload-marquee-block.unity-prompt .upload-marquee-layout {
+  overflow: visible;
+}
+
 /* ===== DROP ZONE ===== */
 .upload-marquee-block .drop-zone-container {
   background: transparent;

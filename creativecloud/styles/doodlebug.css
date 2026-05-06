@@ -303,23 +303,23 @@
         padding: var(--spacing-xxs);
     }
 
-    .editorial-card.s-padding-media.m-rounded-corners-image .media-area > div :is(img, video) {
+    .editorial-card.s-padding-media.m-rounded-corners-image .media-area > div :is(img:not(.accessibility-control), video) {
         border-radius: var(--m-rounded-corners);
     }
 
-    .two-up .editorial-card .media-area :is(img, video),
-    .three-up .editorial-card .media-area :is(img, video),
-    .four-up .editorial-card .media-area :is(img, video) {
+    .two-up .editorial-card .media-area :is(img:not(.accessibility-control), video),
+    .three-up .editorial-card .media-area :is(img:not(.accessibility-control), video),
+    .four-up .editorial-card .media-area :is(img:not(.accessibility-control), video) {
         height: auto;
         max-height: unset;
         aspect-ratio: 284 / 269;
     }
 
-    .editorial-card.h-shadow .media-area :is(img, video) {
+    .editorial-card.h-shadow .media-area :is(img:not(.accessibility-control), video) {
         transition: filter .3s ease-in-out;
     }
 
-    .editorial-card.h-shadow:hover .media-area :is(img, video) {
+    .editorial-card.h-shadow:hover .media-area :is(img:not(.accessibility-control), video) {
         filter: brightness(.65);
     }
 
@@ -379,7 +379,7 @@
             gap: 10px;
         }
 
-        .show-2-desktop .editorial-card .media-area :is(img, video) {
+        .show-2-desktop .editorial-card .media-area :is(img:not(.accessibility-control), video) {
             height: auto;
             max-height: unset;
             aspect-ratio: 823 / 490;
@@ -545,7 +545,7 @@
         box-shadow: 0 1px 4px 0 #0000000C, 0 8px 8px 0 #00000013, 0 20px 12px 0 #00000018, 0 40px 24px 0 #0000001D;
     }
 
-    :is(.aside, .editorial-card) .video-container .pause-play-wrapper .offset-filler img {
+    :is(.aside, .editorial-card) .video-container .pause-play-wrapper .offset-filler img.accessibility-control {
         border: 2px solid #FFFFFF;
         border-radius: 50%;
     }
