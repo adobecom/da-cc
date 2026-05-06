@@ -646,3 +646,9 @@ TODO: Can use &[dir="rtl"] above also, & is supported by modern browsers, done t
     background-size: contain;
   }
 }
+
+:root[lang="hi"]:has(meta[name='theme'][content='doodlebug']) {
+    .aside .foreground.container .text [class*="heading-"], [class*="heading-"], h1 {
+        line-height: 116%;
+    }
+}
