@@ -131,7 +131,10 @@ function base64UrlSafe(encoded = '') {
 
 async function ensureImsLoaded() {
   if (window.adobeIMS?.isSignedInUser) return;
-  const { loadIms } = await import(`${getLibs()}/utils/utils.js`);
+  const { loadIms, setConfig, getConfig } = await import(`${getLibs()}/utils/utils.js`);
+  if (!getConfig()?.imsClientId) {
+    setConfig({ imsClientId: 'adobedotcom-cc', miloLibs: getLibs() });
+  }
   await loadIms();
   for (let i = 0; i < 50 && typeof window.adobeIMS?.isSignedInUser !== 'function'; i += 1) {
     // eslint-disable-next-line no-await-in-loop
