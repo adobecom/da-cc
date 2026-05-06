@@ -41,8 +41,7 @@ export function createSpeechBlade(config, callbacks = {}) {
   }
 
   blade.addEventListener('click', (e) => {
-    if (config.audioSrc) {
-      if (config.audioSrc.contains(e.target)) return;
+    if (config.audioSrc && !config.audioSrc.contains(e.target)) {
       config.audioSrc.querySelector(SELECTORS.AUDIO_PLAY_BTN)?.click();
     }
     if (callbacks.onSelect) {
@@ -57,7 +56,12 @@ export default function init(blades = []) {
   if (!Array.isArray(blades) || !blades.length) return null;
 
   const wrapper = createTag('div', { class: CLASSES.BLADES });
-  blades.forEach((cfg) => wrapper.appendChild(createSpeechBlade(cfg)));
+  const setSelected = (id) => {
+    wrapper.querySelectorAll(`.${CLASSES.BLADE}`).forEach((b) => {
+      b.classList.toggle('selected', b.dataset.bladeId === id);
+    });
+  };
+  blades.forEach((cfg) => wrapper.appendChild(createSpeechBlade(cfg, { onSelect: setSelected })));
 
   return wrapper;
 }

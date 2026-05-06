@@ -200,10 +200,9 @@ function setActiveBlade(root, id) {
 
 function buildBladesList(items, root) {
   const list = createTag('div', { class: 'speech-showcase-blades' });
-  items.forEach((item, index) => {
+  items.forEach((item) => {
     const { mediaEl, ...bladeConfig } = item;
     const blade = createSpeechBlade(bladeConfig, { onSelect: (id) => setActiveBlade(root, id) });
-    if (index === 0) blade.classList.add('selected');
     if (bladeConfig.audioSrc && mediaEl) bindVideoToAudio(bladeConfig.audioSrc, mediaEl);
     list.appendChild(blade);
   });
