@@ -16,11 +16,11 @@ function parseShowcaseItems(el) {
 
   return rows.flatMap((row, index) => {
     const cols = [...row.querySelectorAll(':scope > div')];
-    const flagImg = cols[0]?.querySelector('picture') || null;
-    const language = cols[1]?.textContent?.trim() || '';
-    const country = cols[2]?.textContent?.trim() || '';
-    const audioLink = cols[3]?.querySelector('.audio-player') || null;
-    const mediaEl = cols[4]?.querySelector(MEDIA_SELECTOR) || null;
+    const mediaEl = cols[0]?.querySelector(MEDIA_SELECTOR) || null;
+    const flagImg = cols[1]?.querySelector('picture') || null;
+    const language = cols[2]?.textContent?.trim() || '';
+    const country = cols[3]?.textContent?.trim() || '';
+    const audioLink = cols[4]?.querySelector('.audio-player') || null;
 
     if (!flagImg && !mediaEl) return [];
 
@@ -84,8 +84,6 @@ function buildBladesList(items, root) {
 
 export default async function init(el) {
   el.classList.add('context-panel');
-
-
   const items = parseShowcaseItems(el);
   if (!items.length) return;
 

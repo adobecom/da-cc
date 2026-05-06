@@ -2,7 +2,7 @@ import { createTag } from '../../scripts/utils.js';
 
 const LANA_OPTIONS = { tags: 'audio', errorType: 'i' };
 
-const EVT = {
+export const EVT = {
   PLAYED: 'audio-played',
   PAUSED: 'audio-paused',
   ENDED: 'audio-ended',
@@ -46,12 +46,15 @@ function updateProgress(svg, ratio) {
 }
 
 function attachAudioListeners(audio, btn, svg) {
+  let stopping = false;
   const ctrl = {
     pause() { if (!audio.paused) audio.pause(); },
     stop() {
       const wasPlaying = !audio.paused;
+      stopping = true;
       if (wasPlaying) audio.pause();
       audio.currentTime = 0;
+      stopping = false;
       if (wasPlaying) emit(EVT.STOPPED, { source: ctrl, type: 'audio', el: audio });
     },
   };
@@ -86,12 +89,12 @@ function attachAudioListeners(audio, btn, svg) {
   });
 
   audio.addEventListener('pause', () => {
-    if (!audio.ended) {
-      emit(EVT.PAUSED, { source: ctrl, type: 'audio', el: audio });
-    }
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
     setIcon(svg, false);
+    if (!stopping && !audio.ended) {
+      emit(EVT.PAUSED, { source: ctrl, type: 'audio', el: audio });
+    }
   });
 
   audio.addEventListener('ended', () => {

@@ -1,0 +1,86 @@
+.context-panel {
+  display: flex;
+  width: 100%;
+  position: relative;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.context-panel .foreground {
+  display: grid;
+  align-items: center;
+  gap: 165px;
+  width: 85%;
+  grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
+  grid-template-areas: "media blades";
+  justify-content: center;
+}
+
+.context-panel .foreground .context-panel-media {
+  grid-area: media;
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+}
+
+.context-panel .foreground .context-panel-blades {
+  display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-inline-end: 120px;
+}
+
+.context-panel .foreground .context-panel-media picture,
+.context-panel .foreground .context-panel-media picture img,
+.context-panel .foreground .context-panel-media video,
+.context-panel .foreground .context-panel-media .video-container,
+.context-panel .foreground .context-panel-media .video-holder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.context-panel .foreground .context-panel-media :is(img, video) {
+  border-radius: 20px;
+  border: 3px solid rgba(255 255 255 / 30%);
+}
+
+.context-panel .foreground .context-panel-media-slot {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease;
+}
+
+.context-panel .foreground .context-panel-media-slot.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+@media (max-width: 1199px) {
+  .context-panel .foreground {
+    gap: 8.5%;
+    width: 85%;
+    grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
+    grid-template-areas: "media blades";
+  }
+
+  /* .context-panel .foreground.container .context-panel-blades {
+    margin-inline: 9.5% 0;
+  } */
+}
+
+@media (max-width: 768px) {
+  .context-panel .foreground {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    gap: 24px;
+  }
+
+  .context-panel .foreground .context-panel-blades {
+    margin-inline: 0;
+  }
+}
