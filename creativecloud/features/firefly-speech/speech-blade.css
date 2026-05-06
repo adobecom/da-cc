@@ -1,29 +1,35 @@
+:root {
+  --speech-blade-blur: 30px;
+}
+
 .speech-blade {
+  align-items: center;
+  backdrop-filter: blur(var(--speech-blade-blur));
+  background: var(--background-color);
+  border: 2px solid var(--color-gray-200);
+  border-radius: 20px;
+  box-sizing: border-box;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  box-sizing: border-box;
+  gap: var(--spacing-xs);
   max-width: 585px;
   padding: 14px;
-  gap: 16px;
-  border-radius: 20px;
-  border: 2px solid #F4F4F4;
-  background: #fff;
-  backdrop-filter: blur(29.72222328186035px);
 }
 
 .speech-blade.selected {
+  backdrop-filter: blur(var(--speech-blade-blur));
   border: 2px solid var(--Alias-content-semantic-accent-selected, #274DEA);
-  box-shadow: 0 23.362px 15.186px 0 rgba(0, 0, 0, 0.09), 0 9.518px 7.614px 0 rgba(0, 0, 0, 0.07), 0 2.163px 3.677px 0 rgba(0, 0, 0, 0.05);
-  backdrop-filter: blur(29.72222328186035px);
+  box-shadow:
+    0 23.362px 15.186px 0 rgb(0 0 0 / 9%),
+    0 9.518px 7.614px 0 rgb(0 0 0 / 7%),
+    0 2.163px 3.677px 0 rgb(0 0 0 / 5%);
 }
 
 .speech-blade:hover {
-  background: #F8F8F8;
+  background: var(--color-gray-100);
   border-color: var(--Alias-content-semantic-accent-selected, #274DEA);
 }
 
-/* Play control only when interacting (full-card click still works via pointer-events: none) */
 .speech-blade .audio-player {
   flex-shrink: 0;
   opacity: 0;
@@ -31,62 +37,62 @@
   transition: opacity 0.15s ease;
 }
 
+.speech-blade:focus-within .audio-player,
 .speech-blade:hover .audio-player,
-.speech-blade.selected .audio-player,
-.speech-blade.playing .audio-player,
-.speech-blade.paused .audio-player,
 .speech-blade.loading .audio-player,
-.speech-blade.error .audio-player,
-.speech-blade:focus-within .audio-player {
+.speech-blade.paused .audio-player,
+.speech-blade.playing .audio-player,
+.speech-blade.selected .audio-player,
+.speech-blade.error .audio-player {
   opacity: 1;
   pointer-events: auto;
 }
 
 .speech-blade-flag {
-  flex: 0 0 auto;
-  width: 160px;
-  height: 88px;
-  flex-shrink: 0;
   border-radius: 6px;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  height: 88px;
+  width: 160px;
 }
 
 .speech-blade-flag:has(picture img[src*=".svg"]) {
-  width: 40px;
-  height: 40px;
+  height: var(--icon-size-m);
+  width: var(--icon-size-m);
 }
 
 .speech-blade-flag picture,
 .speech-blade-flag img {
   display: block;
-  width: 100%;
   height: 100%;
   object-fit: cover;
+  width: 100%;
 }
 
 .speech-blade-info {
   display: flex;
-  flex-direction: column;
   flex: 1 1 auto;
-  min-width: 0;
+  flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .speech-blade-language {
-  color: #000;
-  font-family: "Adobe Clean";
-  font-size: 20px;
+  color: var(--color-black);
+  font-family: var(--body-font-family);
+  font-size: var(--type-heading-m-size);
   font-style: normal;
   font-weight: 800;
-  line-height: 98%; /* 19.6px */
   letter-spacing: -0.6px;
+  line-height: 98%; /* 19.6px */
 }
 
 .speech-blade-country {
-  color: #5D5D5D;
-  font-family: "Adobe Clean";
-  font-size: 16px;
+  color: var(--color-gray-600);
+  font-family: var(--body-font-family);
+  font-size: var(--type-body-s-size);
   font-style: normal;
   font-weight: 400;
-  line-height: 98%; /* 15.68px */
   letter-spacing: -0.48px;
+  line-height: 98%; /* 15.68px */
 }
