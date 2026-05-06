@@ -50,11 +50,11 @@ function forcePauseVideo(videoEl) {
 }
 
 function buildMediaPanel(items) {
-  const panel = createTag('div', { class: 'context-panel-media' });
+  const panel = createTag('div', { class: 'speech-showcase-media' });
   items.forEach((item, index) => {
     if (!item.mediaEl) return;
     const slot = createTag('div', {
-      class: `context-panel-media-slot${index === 0 ? ' is-active' : ''}`,
+      class: `speech-showcase-media-slot${index === 0 ? ' is-active' : ''}`,
       'data-blade-id': item.id,
     });
     slot.appendChild(item.mediaEl);
@@ -67,13 +67,13 @@ function setActiveBlade(root, id) {
   root.querySelectorAll('.speech-blade').forEach((b) => {
     b.classList.toggle('selected', b.dataset.bladeId === id);
   });
-  root.querySelectorAll('.context-panel-media-slot').forEach((s) => {
+  root.querySelectorAll('.speech-showcase-media-slot').forEach((s) => {
     s.classList.toggle('is-active', s.dataset.bladeId === id);
   });
 }
 
 function buildBladesList(items, root) {
-  const list = createTag('div', { class: 'context-panel-blades' });
+  const list = createTag('div', { class: 'speech-showcase-blades' });
   items.forEach((item, index) => {
     const blade = createSpeechBlade(item, { onSelect: (id) => setActiveBlade(root, id) });
     if (index === 0) blade.classList.add('selected');
@@ -83,7 +83,7 @@ function buildBladesList(items, root) {
 }
 
 export default async function init(el) {
-  el.classList.add('context-panel');
+  el.classList.add('speech-showcase');
   const items = parseShowcaseItems(el);
   if (!items.length) return;
 

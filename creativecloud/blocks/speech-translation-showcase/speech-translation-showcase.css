@@ -1,4 +1,4 @@
-.context-panel {
+.speech-showcase {
   display: flex;
   width: 100%;
   position: relative;
@@ -7,7 +7,7 @@
   overflow: hidden;
 }
 
-.context-panel .foreground {
+.speech-showcase .foreground {
   display: grid;
   align-items: center;
   gap: 165px;
@@ -17,36 +17,36 @@
   justify-content: center;
 }
 
-.context-panel .foreground .context-panel-media {
+.speech-showcase .foreground .speech-showcase-media {
   grid-area: media;
   position: relative;
   min-width: 0;
   aspect-ratio: 4 / 3;
 }
 
-.context-panel .foreground .context-panel-blades {
+.speech-showcase .foreground .speech-showcase-blades {
   display: flex;
     flex-direction: column;
     gap: 25px;
     margin-inline-end: 120px;
 }
 
-.context-panel .foreground .context-panel-media picture,
-.context-panel .foreground .context-panel-media picture img,
-.context-panel .foreground .context-panel-media video,
-.context-panel .foreground .context-panel-media .video-container,
-.context-panel .foreground .context-panel-media .video-holder {
+.speech-showcase .foreground .speech-showcase-media picture,
+.speech-showcase .foreground .speech-showcase-media picture img,
+.speech-showcase .foreground .speech-showcase-media video,
+.speech-showcase .foreground .speech-showcase-media .video-container,
+.speech-showcase .foreground .speech-showcase-media .video-holder {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.context-panel .foreground .context-panel-media :is(img, video) {
+.speech-showcase .foreground .speech-showcase-media :is(img, video) {
   border-radius: 20px;
   border: 3px solid rgba(255 255 255 / 30%);
 }
 
-.context-panel .foreground .context-panel-media-slot {
+.speech-showcase .foreground .speech-showcase-media-slot {
   position: absolute;
   inset: 0;
   opacity: 0;
@@ -54,33 +54,33 @@
   transition: opacity 0.2s ease;
 }
 
-.context-panel .foreground .context-panel-media-slot.is-active {
+.speech-showcase .foreground .speech-showcase-media-slot.is-active {
   opacity: 1;
   visibility: visible;
 }
 
 @media (max-width: 1199px) {
-  .context-panel .foreground {
+  .speech-showcase .foreground {
     gap: 8.5%;
     width: 85%;
     grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
     grid-template-areas: "media blades";
   }
 
-  /* .context-panel .foreground.container .context-panel-blades {
+  /* .speech-showcase .foreground.container .speech-showcase-blades {
     margin-inline: 9.5% 0;
   } */
 }
 
 @media (max-width: 768px) {
-  .context-panel .foreground {
+  .speech-showcase .foreground {
     display: flex;
     flex-direction: column;
     width: 100%;
     gap: 24px;
   }
 
-  .context-panel .foreground .context-panel-blades {
+  .speech-showcase .foreground .speech-showcase-blades {
     margin-inline: 0;
   }
 }
