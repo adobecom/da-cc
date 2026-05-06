@@ -48,10 +48,15 @@ function isNonProd() {
 
 // eslint-disable-next-line consistent-return
 function getEncryptionEndpoint() {
+  if (isNonProd() && window.location.host === 'decrypt-url--da-cc--adobecom.aem.page') {
+    return 'https://14257-trucsi-dev.adobeioruntime.net/api/v1/web/trust-center-sign-integration/encrypturl';
+  }
   const ENCRYPT_STAGE_ENDPOINT = 'https://www.stage.adobe.com/trustcenter/api/encrypturl';
   const ENCRYPT_PROD_ENDPOINT = 'https://www.adobe.com/trustcenter/api/encrypturl';
-
+ 
   const allowedStageHosts = [
+    'decrypt-url--da-cc--adobecom.aem.page',
+    'encrypt-url--da-cc--adobecom.aem.page',
     'main--da-cc--adobecom.aem.page',
     'stage--da-cc--adobecom.aem.page',
     'dev--cc--adobecom.aem.page',
@@ -63,6 +68,8 @@ function getEncryptionEndpoint() {
   ];
 
   const allowedProdHosts = [
+    'decrypt-url--da-cc--adobecom.aem.live',
+    'encrypt-url--da-cc--adobecom.aem.live',
     'main--da-cc--adobecom.aem.live',
     'stage--da-cc--adobecom.aem.live',
     'dev--cc--adobecom.aem.live',
@@ -80,10 +87,15 @@ function getEncryptionEndpoint() {
 }
 // eslint-disable-next-line consistent-return
 function getDecryptionEndpoint() {
+  if (isNonProd() && window.location.host === 'decrypt-url--da-cc--adobecom.aem.page') {
+    return 'https://14257-trucsi-dev.adobeioruntime.net/api/v1/web/trust-center-sign-integration/decrypturl';
+  }
   const DECRYPT_STAGE_ENDPOINT = 'https://www.stage.adobe.com/trustcenter/api/decrypturl';
   const DECRYPT_PROD_ENDPOINT = 'https://www.adobe.com/trustcenter/api/decrypturl';
-
+ 
   const allowedStageHosts = [
+    'decrypt-url--da-cc--adobecom.aem.page',
+    'encrypt-url--da-cc--adobecom.aem.page',
     'main--da-cc--adobecom.aem.page',
     'stage--da-cc--adobecom.aem.page',
     'dev--cc--adobecom.aem.page',
@@ -95,6 +107,8 @@ function getDecryptionEndpoint() {
   ];
 
   const allowedProdHosts = [
+    'decrypt-url--da-cc--adobecom.aem.live',
+    'encrypt-url--da-cc--adobecom.aem.live',
     'main--da-cc--adobecom.aem.live',
     'stage--da-cc--adobecom.aem.live',
     'dev--cc--adobecom.aem.live',
