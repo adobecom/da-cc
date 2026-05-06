@@ -13,8 +13,7 @@ function parseBlades(el) {
       language,
       country,
       flagPicture: flagImg,
-      flagAlt: flagImg?.querySelector('img')?.alt || '',
-      audioSrc: audioLink || '',
+      audioSrc: audioLink,
     };
   });
 }

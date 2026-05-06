@@ -7,8 +7,6 @@ export const EVT = {
   PAUSED: 'audio-paused',
   ENDED: 'audio-ended',
   STOPPED: 'audio-stopped',
-  PAUSE_ALL: 'audio-pause-all',
-  STOP_ALL: 'audio-stop-all',
 };
 
 function emit(name, detail) {
@@ -35,7 +33,6 @@ const ARIA = {
 
 const PLAY_PATH = '<path d="M26.1463 18.2381L16.9468 13.2938C15.6144 12.5777 14 13.5429 14 15.0555V24.944C14 26.4567 15.6144 27.4218 16.9468 26.7057L26.1463 21.7615C27.5505 21.0067 27.5505 18.9928 26.1463 18.2381Z" fill="currentColor"/>';
 const PAUSE_PATH = '<rect x="14" y="13" width="4.5" height="14" fill="currentColor"/><rect x="21.5" y="13" width="4.5" height="14" fill="currentColor"/>';
-const wrapperToCtrl = new WeakMap();
 
 function setIcon(svg, isPlaying) {
   svg.querySelector('.audio-icon').innerHTML = isPlaying ? PAUSE_PATH : PLAY_PATH;
@@ -61,15 +58,6 @@ function attachAudioListeners(audio, btn, svg) {
 
   on(EVT.PLAYED, (payload) => {
     if (!payload || payload.source === ctrl) return;
-    ctrl.stop();
-  });
-
-  on(EVT.PAUSE_ALL, (payload) => {
-    if (payload?.except === ctrl) return;
-    ctrl.pause();
-  });
-  on(EVT.STOP_ALL, (payload) => {
-    if (payload?.except === ctrl) return;
     ctrl.stop();
   });
 
@@ -142,11 +130,10 @@ function buildAudioPlayer(src) {
   });
   playBtn.appendChild(svg);
 
-  const ctrl = attachAudioListeners(audio, playBtn, svg);
+  attachAudioListeners(audio, playBtn, svg);
 
   const wrapper = createTag('div', { class: 'audio-player' });
   wrapper.append(playBtn, audio);
-  wrapperToCtrl.set(wrapper, ctrl);
   return wrapper;
 }
 
