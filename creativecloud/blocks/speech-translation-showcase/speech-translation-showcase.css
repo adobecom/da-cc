@@ -61,26 +61,47 @@
 
 @media (max-width: 1199px) {
   .speech-showcase .foreground {
-    gap: 8.5%;
-    width: 85%;
+    gap: 44px;
     grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
     grid-template-areas: "media blades";
   }
 
-  /* .speech-showcase .foreground.container .speech-showcase-blades {
-    margin-inline: 9.5% 0;
-  } */
+  .speech-showcase .foreground .speech-showcase-blades {
+    margin-inline-end: 0;
+  }
 }
 
-@media (max-width: 768px) {
+/* Stack only on smaller tablets + mobile */
+@media (max-width: 900px) {
   .speech-showcase .foreground {
     display: flex;
     flex-direction: column;
+    gap: 44px;
     width: 100%;
-    gap: 24px;
   }
 
   .speech-showcase .foreground .speech-showcase-blades {
-    margin-inline: 0;
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+    gap: 25px;
+  }
+
+  .speech-showcase .foreground .speech-showcase-media {
+    width: 100%;
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* In stacked tablet layout, blades should match media width (override global max-width: 585px) */
+  .speech-showcase .foreground .speech-showcase-blades .speech-blade {
+    width: 100%;
+    max-width: none;
+  }
+
+  .speech-showcase {
+    box-sizing: border-box;
+    background: #fff;
+    padding: 40px 24px;
   }
 }
