@@ -1,0 +1,48 @@
+.speech-translation-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 55px 57px;
+  gap: 44px;
+  background: #fff;
+}
+
+.speech-translation-panel .speech-blades {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 25px;
+  align-items: stretch;
+  width: 100%;
+  max-width: 1806px;
+}
+
+/* Two columns — mid viewports */
+@media screen and (min-width: 768px) {
+  .speech-translation-panel .speech-blades {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Three columns — Figma desktop grid */
+@media screen and (min-width: 1200px) {
+  .speech-translation-panel .speech-blades {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Figma card width 585px; center in track when column is wider (e.g. 2-up on large screens) */
+.speech-translation-panel .speech-blade {
+  width: 100%;
+  max-width: 585px;
+  justify-self: center;
+  box-sizing: border-box;
+}
+
+@media screen and (max-width: 767px) {
+  .speech-translation-panel {
+    padding: 40px 24px;
+    gap: 32px;
+  }
+}

@@ -1,13 +1,15 @@
 .speech-blade {
   display: flex;
+  flex-direction: row;
+  align-items: center;
+  box-sizing: border-box;
   max-width: 585px;
   padding: 14px;
-  align-items: flex-start;
+  gap: 16px;
   border-radius: 20px;
   border: 2px solid #F4F4F4;
+  background: #fff;
   backdrop-filter: blur(29.72222328186035px);
-  gap: 16px;
-  align-items: center;
 }
 
 .speech-blade.selected {
@@ -18,6 +20,26 @@
 
 .speech-blade:hover {
   background: #F8F8F8;
+  border-color: var(--Alias-content-semantic-accent-selected, #274DEA);
+}
+
+/* Play control only when interacting (full-card click still works via pointer-events: none) */
+.speech-blade .audio-player {
+  flex-shrink: 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.speech-blade:hover .audio-player,
+.speech-blade.selected .audio-player,
+.speech-blade.playing .audio-player,
+.speech-blade.paused .audio-player,
+.speech-blade.loading .audio-player,
+.speech-blade.error .audio-player,
+.speech-blade:focus-within .audio-player {
+  opacity: 1;
+  pointer-events: auto;
 }
 
 .speech-blade-flag {
