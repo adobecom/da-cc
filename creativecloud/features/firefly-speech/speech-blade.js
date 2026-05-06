@@ -32,6 +32,8 @@ export function createSpeechBlade(config, callbacks = {}) {
   const blade = createTag('div', {
     class: `${CLASSES.BLADE} ${config.variant || ''}`.trim(),
     'data-blade-id': config.id || '',
+    role: 'button',
+    tabindex: '0',
   });
 
   blade.append(buildBladeFlag(config.flagPicture), buildBladeInfo(config));
@@ -39,6 +41,13 @@ export function createSpeechBlade(config, callbacks = {}) {
   if (config.audioSrc) {
     blade.appendChild(config.audioSrc);
   }
+
+  blade.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      blade.click();
+    }
+  });
 
   blade.addEventListener('click', (e) => {
     if (config.audioSrc && !config.audioSrc.contains(e.target)) {
