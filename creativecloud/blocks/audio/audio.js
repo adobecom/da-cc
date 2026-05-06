@@ -71,12 +71,14 @@ function attachAudioListeners(audio, btn, svg) {
 
   audio.addEventListener('play', () => {
     emit(EVT.PLAYED, { source: ctrl, type: 'audio', el: audio });
+    btn.classList.add('is-playing');
     btn.setAttribute('aria-label', ARIA.PAUSE);
     btn.setAttribute('title', ARIA.PAUSE);
     setIcon(svg, true);
   });
 
   audio.addEventListener('pause', () => {
+    btn.classList.remove('is-playing');
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
     setIcon(svg, false);
@@ -87,6 +89,7 @@ function attachAudioListeners(audio, btn, svg) {
 
   audio.addEventListener('ended', () => {
     emit(EVT.ENDED, { source: ctrl, type: 'audio', el: audio });
+    btn.classList.remove('is-playing');
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
     setIcon(svg, false);
@@ -109,7 +112,7 @@ function attachAudioListeners(audio, btn, svg) {
 function buildPlayerSvg() {
   const div = document.createElement('div');
   div.innerHTML = `<svg viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}" fill="none" aria-hidden="true">
-    <circle cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}" stroke="currentColor" stroke-opacity="0.2" stroke-width="3"/>
+    <circle class="audio-track" cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}" stroke="currentColor" stroke-opacity="0.2" stroke-width="3"/>
     <circle class="audio-progress" cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}"
       stroke="currentColor" stroke-width="3" stroke-linecap="round"
       stroke-dasharray="${CIRCUMFERENCE}" stroke-dashoffset="${CIRCUMFERENCE}"
