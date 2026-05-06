@@ -355,4 +355,5 @@ function initTabs() {
   if (DECRYPT_URL_SUBMIT) onDecryptButtonAdded(DECRYPT_URL_SUBMIT);
   initTabs();
   initCopyButtons();
+  ensureImsLoaded().catch(() => {});
 }());
