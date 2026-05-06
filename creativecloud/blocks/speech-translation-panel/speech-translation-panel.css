@@ -12,7 +12,7 @@
 .speech-translation-panel .speech-blades {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 25px;
+  gap: 24px;
   align-items: stretch;
   width: 100%;
   max-width: 1806px;

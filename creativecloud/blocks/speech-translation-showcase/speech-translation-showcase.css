@@ -26,9 +26,9 @@
 
 .speech-showcase .foreground .speech-showcase-blades {
   display: flex;
-    flex-direction: column;
-    gap: 25px;
-    margin-inline-end: 120px;
+  flex-direction: column;
+  gap: 24px;
+  margin-inline-end: 120px;
 }
 
 .speech-showcase .foreground .speech-showcase-media picture,
