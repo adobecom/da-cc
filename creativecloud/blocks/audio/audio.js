@@ -39,7 +39,7 @@ function setIcon(svg, isPlaying) {
 }
 
 function updateProgress(svg, ratio) {
-  svg.querySelector('.audio-progress').setAttribute('stroke-dashoffset', CIRCUMFERENCE * ratio);
+  svg.querySelector('.audio-progress').setAttribute('stroke-dashoffset',  CIRCUMFERENCE * (1 - ratio));
 }
 
 function attachAudioListeners(audio, btn, svg) {
@@ -109,10 +109,10 @@ function attachAudioListeners(audio, btn, svg) {
 function buildPlayerSvg() {
   const div = document.createElement('div');
   div.innerHTML = `<svg viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}" fill="none" aria-hidden="true">
-    <circle cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}" stroke="currentColor" stroke-opacity="0.01" stroke-width="3"/>
+    <circle cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}" stroke="currentColor" stroke-opacity="0.2" stroke-width="3"/>
     <circle class="audio-progress" cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}"
       stroke="currentColor" stroke-width="3" stroke-linecap="round"
-      stroke-dasharray="${CIRCUMFERENCE}" stroke-dashoffset="0"
+      stroke-dasharray="${CIRCUMFERENCE}" stroke-dashoffset="${CIRCUMFERENCE}"
       transform="rotate(-90 ${CENTER} ${CENTER})"/>
     <g class="audio-icon">${PLAY_PATH}</g>
   </svg>`;
