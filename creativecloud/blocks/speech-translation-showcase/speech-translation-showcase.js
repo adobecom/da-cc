@@ -4,14 +4,13 @@ import { createSpeechBlade } from '../../features/firefly-speech/speech-blade.js
 
 const LANA_AUDIO = { errorType: 'i', tags: 'speech-audio' };
 const LANA_VIDEO = { errorType: 'i', tags: 'speech-video' };
-
 const MEDIA_SELECTOR = 'picture, .video-container.video-holder, video';
+const USER_PAUSED_ATTR = 'data-user-paused';
 
 /* --- Video state --- */
 
 let activeVideoEl = null;
 const audioToVideo = new WeakMap();
-const enforceGuards = new WeakMap();
 
 function getVideoEl(mediaEl) {
   if (!mediaEl) return null;
@@ -19,37 +18,31 @@ function getVideoEl(mediaEl) {
   return mediaEl.querySelector('video');
 }
 
-function syncPausedChrome(videoEl) {
+function syncVideoChrome(videoEl, isPlaying) {
   const host = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
   if (!host) return;
-  host.querySelector('.offset-filler')?.classList.remove('is-playing');
-  host.querySelector('.pause-play-wrapper')?.setAttribute('aria-pressed', 'false');
+  host.querySelector('.offset-filler')?.classList.toggle('is-playing', isPlaying);
+  host.querySelector('.pause-play-wrapper')?.setAttribute('aria-pressed', String(isPlaying));
 }
 
-function clearEnforceGuard(videoEl) {
-  const guard = enforceGuards.get(videoEl);
-  if (!guard) return;
-  videoEl.removeEventListener('play', guard);
-  videoEl.removeEventListener('playing', guard);
-  enforceGuards.delete(videoEl);
+const canplayGuarded = new WeakSet();
+function guardCanplay(videoEl) {
+  if (canplayGuarded.has(videoEl)) return;
+  canplayGuarded.add(videoEl);
+  videoEl.addEventListener('canplay', () => {
+    canplayGuarded.delete(videoEl);
+    if (videoEl.hasAttribute(USER_PAUSED_ATTR)) videoEl.pause();
+  }, { once: true });
 }
 
 /* --- Video lifecycle --- */
 
 function stopVideo(videoEl) {
   if (!videoEl) return;
-  clearEnforceGuard(videoEl);
   if (!videoEl.paused) videoEl.pause();
   videoEl.currentTime = 0;
-  const enforce = () => {
-    try { videoEl.pause(); } catch (_) { /* no-op */ }
-    videoEl.currentTime = 0;
-    requestAnimationFrame(() => syncPausedChrome(videoEl));
-  };
-  enforceGuards.set(videoEl, enforce);
-  videoEl.addEventListener('play', enforce);
-  videoEl.addEventListener('playing', enforce);
-  syncPausedChrome(videoEl);
+  videoEl.setAttribute(USER_PAUSED_ATTR, '');
+  guardCanplay(videoEl);
   if (activeVideoEl === videoEl) activeVideoEl = null;
 }
 
@@ -60,7 +53,7 @@ function stopMappedVideo(audioEl) {
 function playMappedVideo(audioEl) {
   const videoEl = audioToVideo.get(audioEl);
   if (!videoEl) return;
-  clearEnforceGuard(videoEl);
+  videoEl.removeAttribute(USER_PAUSED_ATTR);
   activeVideoEl = videoEl;
   Promise.resolve(videoEl.play()).catch((err) => {
     if (activeVideoEl === videoEl) activeVideoEl = null;
@@ -72,7 +65,7 @@ function pauseMappedVideo(audioEl) {
   const videoEl = audioToVideo.get(audioEl);
   if (!videoEl) return;
   if (!videoEl.paused) videoEl.pause();
-  requestAnimationFrame(() => syncPausedChrome(videoEl));
+  videoEl.setAttribute(USER_PAUSED_ATTR, '');
 }
 
 /* --- Audio-video event sync --- */
@@ -86,29 +79,24 @@ function bindGlobalAudioVideoSync() {
     const audioEl = e?.detail?.el;
     if (!audioEl) return;
     const videoEl = audioToVideo.get(audioEl);
-    if (activeVideoEl && activeVideoEl !== videoEl) {
-      stopVideo(activeVideoEl);
-    }
+    if (activeVideoEl && activeVideoEl !== videoEl) stopVideo(activeVideoEl);
     if (!videoEl || !videoEl.paused) return;
     playMappedVideo(audioEl);
   });
 
   window.addEventListener(EVT.PAUSED, (e) => {
     const audioEl = e?.detail?.el;
-    if (!audioEl) return;
-    pauseMappedVideo(audioEl);
+    if (audioEl) pauseMappedVideo(audioEl);
   });
 
   window.addEventListener(EVT.STOPPED, (e) => {
     const audioEl = e?.detail?.el;
-    if (!audioEl) return;
-    stopMappedVideo(audioEl);
+    if (audioEl) stopMappedVideo(audioEl);
   });
 
   window.addEventListener(EVT.ENDED, (e) => {
     const audioEl = e?.detail?.el;
-    if (!audioEl) return;
-    stopMappedVideo(audioEl);
+    if (audioEl) stopMappedVideo(audioEl);
   });
 }
 
@@ -121,29 +109,22 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
   const container = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
   if (container) {
     container.addEventListener('click', () => {
-      clearEnforceGuard(videoEl);
+      videoEl.removeAttribute(USER_PAUSED_ATTR);
       activeVideoEl = videoEl;
     }, true);
   }
-  videoEl.addEventListener('pause', () => { if (!audioEl.paused) audioEl.pause(); });
+  // Native video events drive both chrome sync and audio sync.
+  // No manual syncVideoChrome calls needed elsewhere.
+  videoEl.addEventListener('pause', () => {
+    syncVideoChrome(videoEl, false);
+    if (!audioEl.paused) audioEl.pause();
+  });
   videoEl.addEventListener('play', () => {
+    if (!videoEl.hasAttribute(USER_PAUSED_ATTR)) syncVideoChrome(videoEl, true);
     if (activeVideoEl !== videoEl) return;
     if (!audioEl.paused) return;
     audioEl.play().catch((err) => window.lana?.log(`Audio play failed: ${err}`, LANA_AUDIO));
   });
-}
-
-function forcePauseVideo(videoEl) {
-  if (!videoEl) return;
-  clearEnforceGuard(videoEl);
-  const enforce = () => {
-    clearEnforceGuard(videoEl);
-    try { videoEl.pause(); } catch (_) { /* no-op */ }
-    requestAnimationFrame(() => syncPausedChrome(videoEl));
-  };
-  enforceGuards.set(videoEl, enforce);
-  videoEl.addEventListener('play', enforce);
-  videoEl.addEventListener('playing', enforce);
 }
 
 /* --- DOM parsing and building --- */
@@ -179,6 +160,14 @@ function buildMediaPanel(items) {
   const panel = createTag('div', { class: 'speech-showcase-media' });
   items.forEach((item, index) => {
     if (!item.mediaEl) return;
+    const videoEl = getVideoEl(item.mediaEl);
+    if (videoEl) {
+      videoEl.removeAttribute('autoplay');
+      videoEl.setAttribute(USER_PAUSED_ATTR, '');
+      guardCanplay(videoEl);
+      if (!videoEl.paused) videoEl.pause();
+      videoEl.currentTime = 0;
+    }
     const slot = createTag('div', {
       class: `speech-showcase-media-slot${index === 0 ? ' is-active' : ''}`,
       'data-blade-id': item.id,
@@ -220,6 +209,4 @@ export default async function init(el) {
 
   foreground.append(mediaPanel, bladesList);
   el.replaceChildren(foreground);
-
-  mediaPanel.querySelectorAll('video').forEach(forcePauseVideo);
 }
