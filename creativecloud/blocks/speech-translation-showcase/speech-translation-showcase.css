@@ -1,5 +1,5 @@
 :root {
-  --speech-section-stack-gap: 44px;
+  --speech-showcase-vertical-spacing: 44px;
 }
 
 .speech-showcase {
@@ -9,6 +9,7 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  padding: var(--speech-showcase-vertical-spacing) 0;
 }
 
 .speech-showcase .foreground {
@@ -65,7 +66,7 @@
 
 @media (max-width: 1199px) {
   .speech-showcase .foreground {
-    gap: var(--speech-section-stack-gap);
+    gap: var(--speech-showcase-vertical-spacing);
     grid-template-areas: "media blades";
     grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
   }
@@ -79,7 +80,7 @@
   .speech-showcase .foreground {
     display: flex;
     flex-direction: column;
-    gap: var(--speech-section-stack-gap);
+    gap: var(--speech-showcase-vertical-spacing);
     width: 100%;
   }
 
