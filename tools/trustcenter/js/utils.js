@@ -130,7 +130,9 @@ function base64UrlSafe(encoded = '') {
 }
 
 async function ensureImsLoaded() {
-  if (window.adobeIMS?.isSignedInUser) return;
+  // Only skip when we already have a usable token — do not bail on isSignedInUser alone,
+  // or loadIms() may never run and getAccessToken() stays empty.
+  if (window.adobeIMS?.getAccessToken?.()?.token) return;
   const { loadIms, setConfig, getConfig } = await import(`${getLibs()}/utils/utils.js`);
   if (!getConfig()?.imsClientId) {
     setConfig({ imsClientId: 'adobedotcom-cc', miloLibs: getLibs() });
@@ -140,6 +142,16 @@ async function ensureImsLoaded() {
     // eslint-disable-next-line no-await-in-loop
     await new Promise((r) => { setTimeout(r, 100); });
   }
+}
+
+/** Decrypt page only: load IMS on startup; if no Bearer token yet, start IMS sign-in immediately. */
+async function eagerDecryptImsSignIn() {
+  if (!DECRYPT_URL_SUBMIT) return;
+  await ensureImsLoaded();
+  const ims = window.adobeIMS;
+  if (ims?.getAccessToken?.()?.token) return;
+  try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+  ims?.signIn?.({ redirect_uri: window.location.href });
 }
 
 // /**
@@ -355,8 +367,12 @@ function initTabs() {
 
 (async function startObserving() {
   if (PROTECT_URL_SUBMIT) onSubmitButtonAdded(PROTECT_URL_SUBMIT);
-  if (DECRYPT_URL_SUBMIT) onDecryptButtonAdded(DECRYPT_URL_SUBMIT);
+  if (DECRYPT_URL_SUBMIT) {
+    onDecryptButtonAdded(DECRYPT_URL_SUBMIT);
+    eagerDecryptImsSignIn().catch(() => {});
+  } else {
+    ensureImsLoaded().catch(() => {});
+  }
   initTabs();
   initCopyButtons();
-  ensureImsLoaded().catch(() => {});
 }());
