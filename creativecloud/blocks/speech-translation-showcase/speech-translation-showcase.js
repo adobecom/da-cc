@@ -130,10 +130,7 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
 /* --- DOM parsing and building --- */
 
 function parseShowcaseItems(el) {
-  const directRows = [...el.querySelectorAll(':scope > div')];
-  const rows = directRows.length === 1
-    ? [...directRows[0].querySelectorAll(':scope > div')]
-    : directRows;
+  const rows = [...el.querySelectorAll(':scope > div')];
 
   return rows.flatMap((row, index) => {
     const cols = [...row.querySelectorAll(':scope > div')];
