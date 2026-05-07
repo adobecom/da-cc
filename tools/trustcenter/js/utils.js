@@ -20,6 +20,16 @@ function clearNonAdobeRedirectTimer() {
   }
 }
 
+/** Pass-through options some IMS builds honor to avoid silent “Welcome back” reuse of wrong account. */
+function imsSignInOptions() {
+  const redirect_uri = window.location.href;
+  return {
+    redirect_uri,
+    reAuthenticate: true,
+    prompt: 'login',
+  };
+}
+
 async function redirectToSignInAfterNonAdobe() {
   try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
   await ensureImsLoaded();
@@ -27,10 +37,10 @@ async function redirectToSignInAfterNonAdobe() {
   try {
     if (typeof ims?.signOut === 'function') await ims.signOut();
   } catch (_) { /* ignore */ }
-  ims?.signIn?.({ redirect_uri: window.location.href });
+  ims?.signIn?.(imsSignInOptions());
 }
 
-/** Clear message, disable form, wait NON_ADOBE_ACCESS_DENIED_MS, then sign out + IMS sign-in (no extra click). */
+/** Clear message, disable form, wait NON_ADOBE_ACCESS_DENIED_MS, then sign out + IMS sign-in */
 function showNonAdobeAccessDeniedWithAutoRedirect() {
   if (!DECRYPT_URL_SUBMIT || !DECRYPTED_URL_ELEMENT) return;
   clearNonAdobeRedirectTimer();
@@ -238,6 +248,9 @@ async function initDecryptImsGate() {
     return;
   }
   const email = await getDecryptActorEmail(ims);
+  if (email && email.endsWith(ADOBE_EMPLOYEE_DOMAIN)) {
+    return;
+  }
   if (email && !email.endsWith(ADOBE_EMPLOYEE_DOMAIN)) {
     showNonAdobeAccessDeniedWithAutoRedirect();
   }
