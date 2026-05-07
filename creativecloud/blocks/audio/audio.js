@@ -38,6 +38,14 @@ function setIcon(svg, isPlaying) {
   svg.querySelector('.audio-icon').innerHTML = isPlaying ? PAUSE_PATH : PLAY_PATH;
 }
 
+// Analytics: keep `daa-ll` aligned with Play vs Pause when audio plays or stops.
+function syncDaaLl(btn, playing) {
+  const ll = btn.getAttribute('daa-ll');
+  if (!ll) return;
+  const label = playing ? 'Pause' : 'Play';
+  btn.setAttribute('daa-ll', ll.replace(/\b(?:play|pause)\b/gi, label));
+}
+
 function updateProgress(svg, ratio) {
   svg.querySelector('.audio-progress').setAttribute('stroke-dashoffset', CIRCUMFERENCE * (1 - ratio));
 }
@@ -74,6 +82,7 @@ function attachAudioListeners(audio, btn, svg) {
     btn.classList.add('is-playing');
     btn.setAttribute('aria-label', ARIA.PAUSE);
     btn.setAttribute('title', ARIA.PAUSE);
+    syncDaaLl(btn, true);
     setIcon(svg, true);
   });
 
@@ -81,6 +90,7 @@ function attachAudioListeners(audio, btn, svg) {
     btn.classList.remove('is-playing');
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
+    syncDaaLl(btn, false);
     setIcon(svg, false);
     if (!stopping && !audio.ended) {
       emit(EVT.PAUSED, { source: ctrl, type: 'audio', el: audio });
@@ -92,6 +102,7 @@ function attachAudioListeners(audio, btn, svg) {
     btn.classList.remove('is-playing');
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
+    syncDaaLl(btn, false);
     setIcon(svg, false);
     updateProgress(svg, 0);
   });
@@ -122,7 +133,7 @@ function buildPlayerSvg() {
   return div.firstElementChild;
 }
 
-function buildAudioPlayer(src) {
+function buildAudioPlayer(src, daaLl) {
   const audio = createTag('audio', { preload: 'metadata', src });
   const svg = buildPlayerSvg();
   const playBtn = createTag('button', {
@@ -131,6 +142,7 @@ function buildAudioPlayer(src) {
     'aria-label': ARIA.PLAY,
     title: ARIA.PLAY,
   });
+  if (daaLl) playBtn.setAttribute('daa-ll', daaLl);
   playBtn.appendChild(svg);
 
   attachAudioListeners(audio, playBtn, svg);
@@ -142,7 +154,7 @@ function buildAudioPlayer(src) {
 
 export default function init(a) {
   try {
-    a.replaceWith(buildAudioPlayer(a.href));
+    a.replaceWith(buildAudioPlayer(a.href, a.getAttribute('daa-ll')));
   } catch (err) {
     window.lana?.log(`Audio link failed to initialize: ${err}`, LANA_OPTIONS);
   }
