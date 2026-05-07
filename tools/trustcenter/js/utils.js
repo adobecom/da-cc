@@ -9,6 +9,48 @@ const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
 const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
 const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
 
+/** Time to show access-denied copy before auto sign-in redirect (ms). */
+const NON_ADOBE_ACCESS_DENIED_MS = 3000;
+let nonAdobeRedirectTimer;
+
+function clearNonAdobeRedirectTimer() {
+  if (nonAdobeRedirectTimer) {
+    clearTimeout(nonAdobeRedirectTimer);
+    nonAdobeRedirectTimer = null;
+  }
+}
+
+async function redirectToSignInAfterNonAdobe() {
+  try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+  await ensureImsLoaded();
+  const ims = window.adobeIMS;
+  try {
+    if (typeof ims?.signOut === 'function') await ims.signOut();
+  } catch (_) { /* ignore */ }
+  ims?.signIn?.({ redirect_uri: window.location.href });
+}
+
+/** Clear message, disable form, wait NON_ADOBE_ACCESS_DENIED_MS, then sign out + IMS sign-in (no extra click). */
+function showNonAdobeAccessDeniedWithAutoRedirect() {
+  if (!DECRYPT_URL_SUBMIT || !DECRYPTED_URL_ELEMENT) return;
+  clearNonAdobeRedirectTimer();
+  hideDecryptSignInMessage();
+  setDecryptFormInteractive(false);
+  const seconds = Math.ceil(NON_ADOBE_ACCESS_DENIED_MS / 1000);
+  const message = [
+    'Access denied',
+    '',
+    'This tool is for Adobe employees only. You must sign in with a corporate Adobe ID (email ending in @adobe.com).',
+    '',
+    `Redirecting to sign in in about ${seconds} seconds…`,
+  ].join('\n');
+  setOutput(DECRYPTED_URL_ELEMENT, message, { isError: true });
+  nonAdobeRedirectTimer = setTimeout(() => {
+    nonAdobeRedirectTimer = null;
+    redirectToSignInAfterNonAdobe().catch(() => {});
+  }, NON_ADOBE_ACCESS_DENIED_MS);
+}
+
 async function createProgressCircle(formComponents) {
   if (!formComponents || formComponents.querySelector('.progress-holder')) return;
   const { createTag } = await import(`${getLibs()}/utils/utils.js`);
@@ -197,9 +239,7 @@ async function initDecryptImsGate() {
   }
   const email = await getDecryptActorEmail(ims);
   if (email && !email.endsWith(ADOBE_EMPLOYEE_DOMAIN)) {
-    setDecryptFormInteractive(false);
-    setOutput(DECRYPTED_URL_ELEMENT, decryptAccessMessage(ERR_NOT_ADOBE), { isError: true });
-    try { ims.signOut?.(); } catch (_) { /* ignore */ }
+    showNonAdobeAccessDeniedWithAutoRedirect();
   }
 }
 
@@ -391,6 +431,8 @@ function onDecryptButtonAdded(node) {
       if (err.message === ERR_SIGN_IN) {
         setOutput(DECRYPTED_URL_ELEMENT, '', { isError: true });
         showDecryptSignInMessage();
+      } else if (err.message === ERR_NOT_ADOBE) {
+        showNonAdobeAccessDeniedWithAutoRedirect();
       } else {
         setOutput(DECRYPTED_URL_ELEMENT, decryptAccessMessage(err.message), { isError: true });
       }
