@@ -144,14 +144,63 @@ async function ensureImsLoaded() {
   }
 }
 
-/** Decrypt page only: load IMS on startup; if no Bearer token yet, start IMS sign-in immediately. */
-async function eagerDecryptImsSignIn() {
+/** Pull email from JWT payload when profile API does not return it. */
+function parseJwtEmail(token) {
+  try {
+    const part = token.split('.')[1];
+    const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
+    const json = JSON.parse(atob(b64));
+    const email = json.email || json.preferred_username || json.username;
+    return email ? String(email).toLowerCase() : '';
+  } catch {
+    return '';
+  }
+}
+
+/** Same rule as server imsAuth: profile email must end with @adobe.com */
+async function getDecryptActorEmail(ims) {
+  if (typeof ims?.getProfile === 'function') {
+    try {
+      const profile = await ims.getProfile();
+      const raw = profile?.email || profile?.primaryEmail;
+      if (raw) return String(raw).toLowerCase();
+    } catch (_) { /* fall through */ }
+  }
+  const token = ims?.getAccessToken?.()?.token;
+  return token ? parseJwtEmail(token) : '';
+}
+
+function setDecryptFormInteractive(enabled) {
+  const input = document.querySelector('#encryptedurl');
+  const btn = DECRYPT_URL_SUBMIT;
+  if (input) {
+    input.disabled = !enabled;
+    input.toggleAttribute('disabled', !enabled);
+  }
+  if (btn) {
+    btn.style.pointerEvents = enabled ? '' : 'none';
+    btn.toggleAttribute('aria-disabled', !enabled);
+    btn.classList.toggle('tc-decrypt-disabled', !enabled);
+  }
+}
+
+/** Decrypt page: IMS load → sign-in if no token → if signed in, deny non-@adobe.com before decrypt. */
+async function initDecryptImsGate() {
   if (!DECRYPT_URL_SUBMIT) return;
   await ensureImsLoaded();
   const ims = window.adobeIMS;
-  if (ims?.getAccessToken?.()?.token) return;
-  try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
-  ims?.signIn?.({ redirect_uri: window.location.href });
+  const token = ims?.getAccessToken?.()?.token;
+  if (!token) {
+    try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+    ims?.signIn?.({ redirect_uri: window.location.href });
+    return;
+  }
+  const email = await getDecryptActorEmail(ims);
+  if (email && !email.endsWith(ADOBE_EMPLOYEE_DOMAIN)) {
+    setDecryptFormInteractive(false);
+    setOutput(DECRYPTED_URL_ELEMENT, decryptAccessMessage(ERR_NOT_ADOBE), { isError: true });
+    try { ims.signOut?.(); } catch (_) { /* ignore */ }
+  }
 }
 
 // /**
@@ -369,7 +418,7 @@ function initTabs() {
   if (PROTECT_URL_SUBMIT) onSubmitButtonAdded(PROTECT_URL_SUBMIT);
   if (DECRYPT_URL_SUBMIT) {
     onDecryptButtonAdded(DECRYPT_URL_SUBMIT);
-    eagerDecryptImsSignIn().catch(() => {});
+    initDecryptImsGate().catch(() => {});
   } else {
     ensureImsLoaded().catch(() => {});
   }

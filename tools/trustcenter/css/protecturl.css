@@ -69,6 +69,11 @@ main > div:nth-of-type(2) {
   justify-content: center;
 }
 
+.tc-tool-plain .con-button.tc-decrypt-disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .tc-tool-plain .con-button {
   width: auto;
   max-width: 100%;
