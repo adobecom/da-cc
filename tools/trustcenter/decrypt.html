@@ -50,10 +50,10 @@
             <div class="form-components">
               <div class="form-item">
                 <label for="encryptedurl">Enter the protected link*</label>
-                <div class="tc-field-hint-row">
-                  <p id="tc-decrypt-field-hint" class="tc-field-hint">Sign in with your Adobe account required for decryption.</p>
+                <p id="tc-decrypt-field-hint-wrap" class="tc-field-hint">
+                  <span id="tc-decrypt-field-hint">Sign in with your Adobe account required for decryption.</span>
                   <button type="button" id="tc-decrypt-sign-out" class="tc-decrypt-sign-out-btn" hidden aria-label="Sign out of Adobe account">Sign out</button>
-                </div>
+                </p>
                 <input type="text" class="cc-form-component" name="encryptedurl" id="encryptedurl"
                   required="required" data-required="required" placeholder="Enter the protected link*">
               </div>
