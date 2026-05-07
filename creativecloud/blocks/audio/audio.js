@@ -39,7 +39,7 @@ function setIcon(svg, isPlaying) {
 }
 
 function updateProgress(svg, ratio) {
-  svg.querySelector('.audio-progress').setAttribute('stroke-dashoffset',  CIRCUMFERENCE * (1 - ratio));
+  svg.querySelector('.audio-progress').setAttribute('stroke-dashoffset', CIRCUMFERENCE * (1 - ratio));
 }
 
 function attachAudioListeners(audio, btn, svg) {
