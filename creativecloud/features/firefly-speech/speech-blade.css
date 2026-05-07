@@ -38,6 +38,10 @@
   transition: opacity 0.15s ease;
 }
 
+.speech-blade .audio-player .audio-play-btn {
+  color: #000000;
+}
+
 .speech-blade:focus-within .audio-player,
 .speech-blade:hover .audio-player,
 .speech-blade.loading .audio-player,
