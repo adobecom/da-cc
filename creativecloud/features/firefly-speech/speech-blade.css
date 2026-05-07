@@ -14,6 +14,7 @@
   gap: var(--spacing-xs);
   max-width: 585px;
   padding: 14px;
+  cursor: pointer;
 }
 
 .speech-blade.selected {
