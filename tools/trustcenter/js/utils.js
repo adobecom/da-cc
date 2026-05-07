@@ -9,8 +9,8 @@ const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
 const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
 const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
 const DECRYPT_FIELD_HINT_DEFAULT = 'Sign in with your Adobe account required for decryption.';
-/** One page load after manual Sign out: skip automatic IMS redirect; show inline Sign in instead. */
-const SESSION_SKIP_IMS_AUTO_ONCE_KEY = 'trustcenter:skipImsAutoOnce';
+/** After peer-tab sign-out reload: use imsSignInOptions() once so IMS shows login instead of silent bounce. */
+const SESSION_PEER_TAB_FRESH_IMS_KEY = 'trustcenter:peerTabFreshIms';
 
 /** Shared across tabs via localStorage: idle and max session for Trust Center utility UX (server still validates tokens). */
 const TRUSTCENTER_IDLE_MS = 30 * 60 * 1000;
@@ -19,7 +19,7 @@ const LS_LAST_ACTIVITY = 'trustcenter:lastActivityAt';
 const LS_SESSION_START = 'trustcenter:utilitySessionStartAt';
 const LS_SIGNOUT_BROADCAST = 'trustcenter:utilitySignOutAt';
 
-
+/** Time to show access-denied copy before auto sign-in redirect (ms). */
 const NON_ADOBE_ACCESS_DENIED_MS = 3000;
 let nonAdobeRedirectTimer;
 
@@ -132,6 +132,9 @@ async function performUtilitySessionTerminated() {
 async function handleCrossTabSignOutEvent() {
   if (handlingPeerSignOut) return;
   handlingPeerSignOut = true;
+  try {
+    sessionStorage.setItem(SESSION_PEER_TAB_FRESH_IMS_KEY, '1');
+  } catch (_) { /* ignore */ }
   try {
     await ensureImsLoaded();
     const ims = window.adobeIMS;
@@ -401,7 +404,8 @@ function getDecryptFieldHintEl() {
 }
 
 
-async function decryptPageSignOutAndPromptSignIn({ manualStayOnPage = false } = {}) {
+/** Same IMS teardown + broadcast; uses imsSignInOptions() so staging IMS is less likely to bounce straight back. */
+async function decryptPageSignOutAndPromptSignIn() {
   broadcastUtilitySignOut();
   try {
     await ensureImsLoaded();
@@ -410,13 +414,6 @@ async function decryptPageSignOutAndPromptSignIn({ manualStayOnPage = false } = 
   } catch (_) { /* ignore */ }
   clearTrustCenterSessionKeys();
   resetDecryptFieldHint();
-  if (manualStayOnPage) {
-    try {
-      sessionStorage.setItem(SESSION_SKIP_IMS_AUTO_ONCE_KEY, '1');
-    } catch (_) { /* ignore */ }
-    window.location.reload();
-    return;
-  }
   try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
   await ensureImsLoaded();
   window.adobeIMS?.signIn?.(imsSignInOptions());
@@ -427,7 +424,7 @@ function initDecryptSignOutButton() {
   if (!btn || btn.dataset.tcBound === '1') return;
   btn.dataset.tcBound = '1';
   btn.addEventListener('click', () => {
-    decryptPageSignOutAndPromptSignIn({ manualStayOnPage: true }).catch(() => {});
+    decryptPageSignOutAndPromptSignIn().catch(() => {});
   });
 }
 
@@ -474,15 +471,15 @@ async function initDecryptImsGate() {
   const ims = window.adobeIMS;
   const token = ims?.getAccessToken?.()?.token;
   if (!token) {
+    try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+    let signInOpts = { redirect_uri: window.location.href };
     try {
-      if (sessionStorage.getItem(SESSION_SKIP_IMS_AUTO_ONCE_KEY) === '1') {
-        sessionStorage.removeItem(SESSION_SKIP_IMS_AUTO_ONCE_KEY);
-        showDecryptSignInMessage();
-        return;
+      if (sessionStorage.getItem(SESSION_PEER_TAB_FRESH_IMS_KEY) === '1') {
+        sessionStorage.removeItem(SESSION_PEER_TAB_FRESH_IMS_KEY);
+        signInOpts = imsSignInOptions();
       }
     } catch (_) { /* ignore */ }
-    try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
-    ims?.signIn?.({ redirect_uri: window.location.href });
+    ims?.signIn?.(signInOpts);
     return;
   }
   const email = await getDecryptActorEmail(ims);
