@@ -9,6 +9,8 @@ const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
 const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
 const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
 const DECRYPT_FIELD_HINT_DEFAULT = 'Sign in with your Adobe account required for decryption.';
+/** One page load after manual Sign out: skip automatic IMS redirect; show inline Sign in instead. */
+const SESSION_SKIP_IMS_AUTO_ONCE_KEY = 'trustcenter:skipImsAutoOnce';
 
 /** Shared across tabs via localStorage: idle and max session for Trust Center utility UX (server still validates tokens). */
 const TRUSTCENTER_IDLE_MS = 30 * 60 * 1000;
@@ -17,7 +19,7 @@ const LS_LAST_ACTIVITY = 'trustcenter:lastActivityAt';
 const LS_SESSION_START = 'trustcenter:utilitySessionStartAt';
 const LS_SIGNOUT_BROADCAST = 'trustcenter:utilitySignOutAt';
 
-/** Time to show access-denied copy before auto sign-in redirect (ms). */
+
 const NON_ADOBE_ACCESS_DENIED_MS = 3000;
 let nonAdobeRedirectTimer;
 
@@ -381,7 +383,7 @@ function parseJwtEmail(token) {
   }
 }
 
-/** Same rule as server imsAuth: profile email must end with @adobe.com */
+
 async function getDecryptActorEmail(ims) {
   if (typeof ims?.getProfile === 'function') {
     try {
@@ -398,8 +400,8 @@ function getDecryptFieldHintEl() {
   return document.querySelector('#tc-decrypt-field-hint');
 }
 
-/** Same IMS teardown + broadcast as session expiry; used by manual Sign out and performUtilitySessionTerminated (decrypt). */
-async function decryptPageSignOutAndPromptSignIn() {
+
+async function decryptPageSignOutAndPromptSignIn({ manualStayOnPage = false } = {}) {
   broadcastUtilitySignOut();
   try {
     await ensureImsLoaded();
@@ -408,9 +410,16 @@ async function decryptPageSignOutAndPromptSignIn() {
   } catch (_) { /* ignore */ }
   clearTrustCenterSessionKeys();
   resetDecryptFieldHint();
+  if (manualStayOnPage) {
+    try {
+      sessionStorage.setItem(SESSION_SKIP_IMS_AUTO_ONCE_KEY, '1');
+    } catch (_) { /* ignore */ }
+    window.location.reload();
+    return;
+  }
   try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
   await ensureImsLoaded();
-  window.adobeIMS?.signIn?.({ redirect_uri: window.location.href });
+  window.adobeIMS?.signIn?.(imsSignInOptions());
 }
 
 function initDecryptSignOutButton() {
@@ -418,11 +427,11 @@ function initDecryptSignOutButton() {
   if (!btn || btn.dataset.tcBound === '1') return;
   btn.dataset.tcBound = '1';
   btn.addEventListener('click', () => {
-    decryptPageSignOutAndPromptSignIn().catch(() => {});
+    decryptPageSignOutAndPromptSignIn({ manualStayOnPage: true }).catch(() => {});
   });
 }
 
-/** After IMS gate confirms @adobe.com employee; uses same email source as getDecryptActorEmail. */
+
 function updateDecryptFieldHintForAdobeEmployee(email) {
   const el = getDecryptFieldHintEl();
   if (!el) return;
@@ -458,13 +467,20 @@ function setDecryptFormInteractive(enabled) {
   }
 }
 
-/** Decrypt page: IMS load → sign-in if no token → if signed in, deny non-@adobe.com before decrypt. */
+
 async function initDecryptImsGate() {
   if (!DECRYPT_URL_SUBMIT) return;
   await ensureImsLoaded();
   const ims = window.adobeIMS;
   const token = ims?.getAccessToken?.()?.token;
   if (!token) {
+    try {
+      if (sessionStorage.getItem(SESSION_SKIP_IMS_AUTO_ONCE_KEY) === '1') {
+        sessionStorage.removeItem(SESSION_SKIP_IMS_AUTO_ONCE_KEY);
+        showDecryptSignInMessage();
+        return;
+      }
+    } catch (_) { /* ignore */ }
     try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
     ims?.signIn?.({ redirect_uri: window.location.href });
     return;
@@ -483,11 +499,6 @@ async function initDecryptImsGate() {
     showNonAdobeAccessDeniedWithAutoRedirect();
   }
 }
-
-// /**
-//  * IMS + @adobe.com gate for decrypt only. Server enforces the same; this avoids pointless calls when profile exposes email.
-//  * @returns {Promise<string>} Bearer token value (no "Bearer " prefix)
-//  */
 async function getDecryptBearerToken() {
   try {
     await ensureImsLoaded();
