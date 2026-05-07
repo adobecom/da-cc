@@ -12,21 +12,8 @@ main > div:nth-of-type(2) {
 }
 
 /* Under-field note (decrypt): below label, above input */
-.tc-field-hint-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 10px 14px;
+.tc-tool-plain #tc-decrypt-field-hint-wrap.tc-field-hint {
   margin: 2px 0 8px;
-}
-
-.tc-field-hint-row .tc-field-hint {
-  margin: 0;
-}
-
-.tc-field-hint {
-  flex: 1 1 auto;
-  min-width: min(100%, 200px);
   font-size: 12px;
   line-height: 1.45;
   color: #666;
@@ -34,33 +21,45 @@ main > div:nth-of-type(2) {
   text-align: left;
 }
 
-.tc-field-hint.tc-field-hint-signed-in {
+.tc-tool-plain #tc-decrypt-field-hint-wrap #tc-decrypt-field-hint.tc-field-hint-signed-in {
   font-size: 11px;
   font-style: normal;
   color: #555;
 }
 
-.tc-decrypt-sign-out-btn {
-  flex: 0 0 auto;
-  margin: 0;
+/* Inline link — overrides cc-forms / Spectrum button rules that style any <button> */
+.tc-tool-plain #tc-decrypt-field-hint-wrap button.tc-decrypt-sign-out-btn {
+  appearance: none;
+  -webkit-appearance: none;
+  display: inline;
+  width: auto;
+  min-width: 0;
+  max-width: none;
+  min-height: 0;
+  height: auto;
+  margin: 0 0 0 10px;
   padding: 0;
   border: none;
-  background: none;
-  font: inherit;
+  border-radius: 0;
+  background: transparent none;
+  box-shadow: none;
+  font-family: inherit;
   font-size: 11px;
   font-weight: 600;
+  line-height: inherit;
   color: #1473e6;
   text-decoration: underline;
   text-underline-offset: 2px;
+  vertical-align: baseline;
   cursor: pointer;
 }
 
-.tc-decrypt-sign-out-btn:hover,
-.tc-decrypt-sign-out-btn:focus-visible {
+.tc-tool-plain #tc-decrypt-field-hint-wrap button.tc-decrypt-sign-out-btn:hover,
+.tc-tool-plain #tc-decrypt-field-hint-wrap button.tc-decrypt-sign-out-btn:focus-visible {
   color: #0d66d0;
 }
 
-.tc-decrypt-sign-out-btn:focus-visible {
+.tc-tool-plain #tc-decrypt-field-hint-wrap button.tc-decrypt-sign-out-btn:focus-visible {
   outline: 2px solid #1473e6;
   outline-offset: 2px;
 }
@@ -88,7 +87,6 @@ main > div:nth-of-type(2) {
   margin-bottom: 6px;
 }
 
-.tc-tool-plain .form-item:has(.tc-field-hint-row) > label,
 .tc-tool-plain .form-item:has(.tc-field-hint) > label {
   margin-bottom: 2px;
 }
