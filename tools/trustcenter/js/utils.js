@@ -8,16 +8,186 @@ const DECRYPTED_URL_ELEMENT = document.querySelector('#decrypted-url');
 const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
 const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
 const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
+const DECRYPT_FIELD_HINT_DEFAULT = 'Sign in with your Adobe account required for decryption.';
+
+/** Shared across tabs via localStorage: idle and max session for Trust Center utility UX (server still validates tokens). */
+const TRUSTCENTER_IDLE_MS = 30 * 60 * 1000;
+const TRUSTCENTER_MAX_SESSION_MS = 8 * 60 * 60 * 1000;
+const LS_LAST_ACTIVITY = 'trustcenter:lastActivityAt';
+const LS_SESSION_START = 'trustcenter:utilitySessionStartAt';
+const LS_SIGNOUT_BROADCAST = 'trustcenter:utilitySignOutAt';
 
 /** Time to show access-denied copy before auto sign-in redirect (ms). */
 const NON_ADOBE_ACCESS_DENIED_MS = 3000;
 let nonAdobeRedirectTimer;
+
+let trustCenterSyncInitialized = false;
+let sessionTerminateInProgress = false;
+let handlingPeerSignOut = false;
 
 function clearNonAdobeRedirectTimer() {
   if (nonAdobeRedirectTimer) {
     clearTimeout(nonAdobeRedirectTimer);
     nonAdobeRedirectTimer = null;
   }
+}
+
+function clearTrustCenterSessionKeys() {
+  try {
+    localStorage.removeItem(LS_LAST_ACTIVITY);
+    localStorage.removeItem(LS_SESSION_START);
+  } catch (_) { /* ignore */ }
+}
+
+function broadcastUtilitySignOut() {
+  try {
+    localStorage.setItem(LS_SIGNOUT_BROADCAST, String(Date.now()));
+  } catch (_) { /* ignore */ }
+}
+
+function touchTrustCenterActivity() {
+  const now = String(Date.now());
+  try {
+    localStorage.setItem(LS_LAST_ACTIVITY, now);
+    if (!localStorage.getItem(LS_SESSION_START)) {
+      localStorage.setItem(LS_SESSION_START, now);
+    }
+  } catch (_) { /* ignore */ }
+}
+
+function parseJwtExpMs(token) {
+  try {
+    const part = token.split('.')[1];
+    const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
+    const json = JSON.parse(atob(b64));
+    if (json.exp) return json.exp * 1000;
+  } catch {
+    return null;
+  }
+  return null;
+}
+
+function isAccessTokenExpiredForUtility(ims) {
+  const t = ims?.getAccessToken?.()?.token;
+  if (!t) return true;
+  const expMs = parseJwtExpMs(t);
+  if (!expMs) return false;
+  return Date.now() >= expMs - 60_000;
+}
+
+function isTrustCenterIdleOrMaxSessionExpired() {
+  const now = Date.now();
+  try {
+    const last = parseInt(localStorage.getItem(LS_LAST_ACTIVITY), 10);
+    const start = parseInt(localStorage.getItem(LS_SESSION_START), 10);
+    if (Number.isFinite(last) && now - last > TRUSTCENTER_IDLE_MS) return true;
+    if (Number.isFinite(start) && now - start > TRUSTCENTER_MAX_SESSION_MS) return true;
+  } catch (_) { /* ignore */ }
+  return false;
+}
+
+function throttle(fn, ms) {
+  let last = 0;
+  let scheduled = null;
+  return (...args) => {
+    const now = Date.now();
+    const run = () => {
+      last = Date.now();
+      fn(...args);
+    };
+    if (now - last >= ms) {
+      if (scheduled) {
+        clearTimeout(scheduled);
+        scheduled = null;
+      }
+      run();
+    } else if (!scheduled) {
+      scheduled = setTimeout(() => {
+        scheduled = null;
+        run();
+      }, ms - (now - last));
+    }
+  };
+}
+
+async function performUtilitySessionTerminated() {
+  if (sessionTerminateInProgress) return;
+  sessionTerminateInProgress = true;
+  if (DECRYPT_URL_SUBMIT) {
+    await decryptPageSignOutAndPromptSignIn();
+    return;
+  }
+  broadcastUtilitySignOut();
+  try {
+    await ensureImsLoaded();
+    const ims = window.adobeIMS;
+    if (typeof ims?.signOut === 'function') await ims.signOut();
+  } catch (_) { /* ignore */ }
+  clearTrustCenterSessionKeys();
+  window.location.reload();
+}
+
+async function handleCrossTabSignOutEvent() {
+  if (handlingPeerSignOut) return;
+  handlingPeerSignOut = true;
+  try {
+    await ensureImsLoaded();
+    const ims = window.adobeIMS;
+    if (typeof ims?.signOut === 'function') await ims.signOut();
+  } catch (_) { /* ignore */ }
+  clearTrustCenterSessionKeys();
+  if (DECRYPT_URL_SUBMIT) resetDecryptFieldHint();
+  window.location.reload();
+}
+
+async function checkTrustCenterSessionShouldExpire() {
+  if (!DECRYPT_URL_SUBMIT && !PROTECT_URL_SUBMIT) return;
+  await ensureImsLoaded();
+  const ims = window.adobeIMS;
+  const token = ims?.getAccessToken?.()?.token;
+  if (!token) return;
+  if (DECRYPT_URL_SUBMIT) {
+    const email = await getDecryptActorEmail(ims);
+    if (!email?.endsWith(ADOBE_EMPLOYEE_DOMAIN)) return;
+  }
+  if (isAccessTokenExpiredForUtility(ims) || isTrustCenterIdleOrMaxSessionExpired()) {
+    await performUtilitySessionTerminated();
+  }
+}
+
+/** Other tabs: IMS signed out elsewhere — reload so UI matches cookies. */
+async function verifyDecryptSignedInStillHasToken() {
+  if (!DECRYPT_URL_SUBMIT) return;
+  const hint = getDecryptFieldHintEl();
+  if (!hint?.classList.contains('tc-field-hint-signed-in')) return;
+  await ensureImsLoaded();
+  const ims = window.adobeIMS;
+  const token = ims?.getAccessToken?.()?.token;
+  if (!token) window.location.reload();
+}
+
+function initTrustCenterCrossTabAndSession() {
+  if (trustCenterSyncInitialized) return;
+  trustCenterSyncInitialized = true;
+
+  window.addEventListener('storage', (e) => {
+    if (e.key !== LS_SIGNOUT_BROADCAST || e.newValue == null) return;
+    handleCrossTabSignOutEvent().catch(() => {});
+  });
+
+  const onInterval = () => {
+    checkTrustCenterSessionShouldExpire().catch(() => {});
+    verifyDecryptSignedInStillHasToken().catch(() => {});
+  };
+  setInterval(onInterval, 60_000);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') onInterval();
+  });
+
+  const onActivity = throttle(() => touchTrustCenterActivity(), 30_000);
+  ['pointerdown', 'keydown', 'scroll'].forEach((evt) => {
+    document.addEventListener(evt, onActivity, { passive: true, capture: true });
+  });
 }
 
 /** Pass-through options some IMS builds honor to avoid silent “Welcome back” reuse of wrong account. */
@@ -32,11 +202,13 @@ function imsSignInOptions() {
 
 async function redirectToSignInAfterNonAdobe() {
   try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+  broadcastUtilitySignOut();
   await ensureImsLoaded();
   const ims = window.adobeIMS;
   try {
     if (typeof ims?.signOut === 'function') await ims.signOut();
   } catch (_) { /* ignore */ }
+  clearTrustCenterSessionKeys();
   ims?.signIn?.(imsSignInOptions());
 }
 
@@ -222,6 +394,56 @@ async function getDecryptActorEmail(ims) {
   return token ? parseJwtEmail(token) : '';
 }
 
+function getDecryptFieldHintEl() {
+  return document.querySelector('#tc-decrypt-field-hint');
+}
+
+/** Same IMS teardown + broadcast as session expiry; used by manual Sign out and performUtilitySessionTerminated (decrypt). */
+async function decryptPageSignOutAndPromptSignIn() {
+  broadcastUtilitySignOut();
+  try {
+    await ensureImsLoaded();
+    const ims = window.adobeIMS;
+    if (typeof ims?.signOut === 'function') await ims.signOut();
+  } catch (_) { /* ignore */ }
+  clearTrustCenterSessionKeys();
+  resetDecryptFieldHint();
+  try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+  await ensureImsLoaded();
+  window.adobeIMS?.signIn?.({ redirect_uri: window.location.href });
+}
+
+function initDecryptSignOutButton() {
+  const btn = document.querySelector('#tc-decrypt-sign-out');
+  if (!btn || btn.dataset.tcBound === '1') return;
+  btn.dataset.tcBound = '1';
+  btn.addEventListener('click', () => {
+    decryptPageSignOutAndPromptSignIn().catch(() => {});
+  });
+}
+
+/** After IMS gate confirms @adobe.com employee; uses same email source as getDecryptActorEmail. */
+function updateDecryptFieldHintForAdobeEmployee(email) {
+  const el = getDecryptFieldHintEl();
+  if (!el) return;
+  const display = email?.trim();
+  el.textContent = display
+    ? `Signed in as ${display}`
+    : 'Signed in with your Adobe corporate account.';
+  el.classList.add('tc-field-hint-signed-in');
+  const signOutBtn = document.querySelector('#tc-decrypt-sign-out');
+  if (signOutBtn) signOutBtn.hidden = false;
+}
+
+function resetDecryptFieldHint() {
+  const el = getDecryptFieldHintEl();
+  if (!el) return;
+  el.textContent = DECRYPT_FIELD_HINT_DEFAULT;
+  el.classList.remove('tc-field-hint-signed-in');
+  const signOutBtn = document.querySelector('#tc-decrypt-sign-out');
+  if (signOutBtn) signOutBtn.hidden = true;
+}
+
 function setDecryptFormInteractive(enabled) {
   const input = document.querySelector('#encryptedurl');
   const btn = DECRYPT_URL_SUBMIT;
@@ -249,6 +471,12 @@ async function initDecryptImsGate() {
   }
   const email = await getDecryptActorEmail(ims);
   if (email && email.endsWith(ADOBE_EMPLOYEE_DOMAIN)) {
+    if (isAccessTokenExpiredForUtility(ims) || isTrustCenterIdleOrMaxSessionExpired()) {
+      await performUtilitySessionTerminated();
+      return;
+    }
+    touchTrustCenterActivity();
+    updateDecryptFieldHintForAdobeEmployee(email);
     return;
   }
   if (email && !email.endsWith(ADOBE_EMPLOYEE_DOMAIN)) {
@@ -381,6 +609,7 @@ function onSubmitButtonAdded(node) {
       }
       setOutput(PROTECTED_URL_ELEMENT, await getEncryptedText(linkUrl));
       hideProgressCircle(formComponents);
+      touchTrustCenterActivity();
     } catch (err) {
       setOutput(PROTECTED_URL_ELEMENT, 'Please enter a valid www.adobe.com asset url', { isError: true });
       hideProgressCircle(formComponents);
@@ -399,6 +628,8 @@ function hideDecryptSignInMessage() {
 }
 
 function showDecryptSignInMessage() {
+  resetDecryptFieldHint();
+  clearTrustCenterSessionKeys();
   const container = getDecryptOutputContainer();
   if (!container) return;
   let overlay = container.querySelector('.tc-signin-msg');
@@ -440,6 +671,7 @@ function onDecryptButtonAdded(node) {
       if (!encryptedText) throw new Error('Cannot have empty encrypted url');
       setOutput(DECRYPTED_URL_ELEMENT, await getDecryptedUrl(encryptedText));
       hideProgressCircle(formComponents);
+      touchTrustCenterActivity();
     } catch (err) {
       if (err.message === ERR_SIGN_IN) {
         setOutput(DECRYPTED_URL_ELEMENT, '', { isError: true });
@@ -470,8 +702,12 @@ function initTabs() {
 }
 
 (async function startObserving() {
+  if (DECRYPT_URL_SUBMIT || PROTECT_URL_SUBMIT) {
+    initTrustCenterCrossTabAndSession();
+  }
   if (PROTECT_URL_SUBMIT) onSubmitButtonAdded(PROTECT_URL_SUBMIT);
   if (DECRYPT_URL_SUBMIT) {
+    initDecryptSignOutButton();
     onDecryptButtonAdded(DECRYPT_URL_SUBMIT);
     initDecryptImsGate().catch(() => {});
   } else {
