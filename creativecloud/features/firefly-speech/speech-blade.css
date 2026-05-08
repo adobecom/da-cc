@@ -28,7 +28,6 @@
 
 .speech-blade:hover {
   background: var(--color-gray-100);
-  border-color: var(--Alias-content-semantic-accent-selected, #274DEA);
 }
 
 .speech-blade .audio-player {
