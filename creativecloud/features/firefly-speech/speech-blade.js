@@ -28,6 +28,16 @@ function buildBladeFlag(flagPicture) {
   return flagWrapper;
 }
 
+function observeBlade(blade, audioSrc) {
+  if (!audioSrc) return;
+  const observer = new IntersectionObserver(([entry]) => {
+    if (entry.isIntersecting) return;
+    const audio = audioSrc.querySelector('audio');
+    if (audio && !audio.paused) audio.pause();
+  }, { threshold: 0 });
+  observer.observe(blade);
+}
+
 export function createSpeechBlade(config, callbacks = {}) {
   const blade = createTag('div', {
     class: `${CLASSES.BLADE} ${config.variant || ''}`.trim(),
@@ -40,6 +50,7 @@ export function createSpeechBlade(config, callbacks = {}) {
 
   if (config.audioSrc) {
     blade.appendChild(config.audioSrc);
+    observeBlade(blade, config.audioSrc);
   }
 
   blade.addEventListener('keydown', (e) => {
