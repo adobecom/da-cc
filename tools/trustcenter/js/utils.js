@@ -8,6 +8,7 @@ const DECRYPTED_URL_ELEMENT = document.querySelector('#decrypted-url');
 const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
 const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
 const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
+const ERR_EMPTY_ENCRYPTED = 'EMPTY_ENCRYPTED_INPUT';
 const DECRYPT_FIELD_HINT_DEFAULT = 'Sign in with your Adobe account required for decryption.';
 /** After peer-tab sign-out reload: use imsSignInOptions() once so IMS shows login instead of silent bounce. */
 const SESSION_PEER_TAB_FRESH_IMS_KEY = 'trustcenter:peerTabFreshIms';
@@ -525,6 +526,9 @@ function decryptAccessMessage(code) {
   if (code === ERR_NOT_ADOBE) {
     return 'Access denied. Decryption is restricted to signed-in Adobe employees (@adobe.com).';
   }
+  if (code === ERR_EMPTY_ENCRYPTED) {
+    return 'Please enter the protected link.';
+  }
   return 'Could not decrypt the provided url. Please check the input and try again.';
 }
 
@@ -676,7 +680,7 @@ function onDecryptButtonAdded(node) {
       await createProgressCircle(formComponents);
       showProgressCircle(formComponents);
       const encryptedText = document.querySelector('#encryptedurl').value.trim();
-      if (!encryptedText) throw new Error('Cannot have empty encrypted url');
+      if (!encryptedText) throw new Error(ERR_EMPTY_ENCRYPTED);
       setOutput(DECRYPTED_URL_ELEMENT, await getDecryptedUrl(encryptedText));
       hideProgressCircle(formComponents);
       touchTrustCenterActivity();
