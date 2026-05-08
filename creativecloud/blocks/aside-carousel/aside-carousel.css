@@ -1,7 +1,6 @@
 .aside-carousel {
   --min-height: 160px;
   --card-height-default: 213px;
-  --card-scale-default: 1.03;
   --track-gap: 16px;
   --peek-size: 20%;
 
@@ -98,6 +97,18 @@
   gap: var(--spacing-s);
   flex-wrap: wrap;
   align-items: center;
+}
+
+.aside-carousel .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* ===== Controls ===== */
@@ -206,9 +217,6 @@
 
 @media screen and (min-width: 1200px) {
   .aside-carousel {
-    --min-height-small: 420px;
-    --min-height-medium: 560px;
-    --min-height-large: 700px;
     --text-inline-margin: 180px;
 
     padding-left: 0;
