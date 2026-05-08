@@ -208,6 +208,8 @@
 @media screen and (min-width: 600px) and (max-width: 1199px) {
   .aside-carousel {
     --peek-size: 10%;
+    --tablet-card-width: calc(300 / 768 * 100vw);
+    --card-height-default: calc(var(--tablet-card-width) * 225 / 300);
   }
 
   .aside-carousel .slide {
