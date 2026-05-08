@@ -230,6 +230,7 @@
     gap: 0;
     transform: none;
     transition: none;
+    will-change: auto;
   }
 
   .aside-carousel .slide {

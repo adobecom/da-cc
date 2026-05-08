@@ -1,5 +1,5 @@
 // One-time block for doodlebug.
-// Combining Milo's aside (desktop) and carousel (mobile) and doodlebug.css theme
+// Combining Milo's aside (desktop) and carousel+editorial_card (mobile) and doodlebug.css theme
 
 import { createTag, getLibs } from '../../scripts/utils.js';
 
@@ -38,7 +38,6 @@ function decorateSlide(el, slide) {
   }
 
   if (textCell) {
-    textCell.classList.add('text');
     const picture = textCell.querySelector('p picture');
     const iconArea = picture ? (picture.closest('p') || createTag('p', null, picture)) : null;
     if (iconArea) {
