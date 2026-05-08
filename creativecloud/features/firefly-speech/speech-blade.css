@@ -17,7 +17,6 @@
   cursor: pointer;
 }
 
-
 .speech-blade.selected {
   backdrop-filter: blur(var(--speech-blade-blur));
   border: 2px solid var(--Alias-content-semantic-accent-selected, #274DEA);
