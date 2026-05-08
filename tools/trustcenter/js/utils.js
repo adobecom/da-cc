@@ -1,4 +1,4 @@
-import { getLibs } from 'https://main--cc--adobecom.aem.live/creativecloud/scripts/utils.js';
+import { getLibs } from '../../../creativecloud/scripts/utils.js';
 
 const PROTECT_URL_SUBMIT = document.querySelector('#generate-protected-link');
 const PROTECTED_URL_ELEMENT = document.querySelector('#protected-url');
@@ -278,15 +278,10 @@ function isNonProd() {
 
 // eslint-disable-next-line consistent-return
 function getEncryptionEndpoint() {
-  if (isNonProd() && window.location.host === 'decrypt-url--da-cc--adobecom.aem.page') {
-    return 'https://14257-trucsi-dev.adobeioruntime.net/api/v1/web/trust-center-sign-integration/encrypturl';
-  }
   const ENCRYPT_STAGE_ENDPOINT = 'https://www.stage.adobe.com/trustcenter/api/encrypturl';
   const ENCRYPT_PROD_ENDPOINT = 'https://www.adobe.com/trustcenter/api/encrypturl';
- 
+
   const allowedStageHosts = [
-    'decrypt-url--da-cc--adobecom.aem.page',
-    'encrypt-url--da-cc--adobecom.aem.page',
     'main--da-cc--adobecom.aem.page',
     'stage--da-cc--adobecom.aem.page',
     'dev--cc--adobecom.aem.page',
@@ -295,11 +290,10 @@ function getEncryptionEndpoint() {
     'main--cc--adobecom.hlx.page',
     'stage--cc--adobecom.hlx.page',
     'stage.adobe.com',
+    'www.stage.adobe.com',
   ];
 
   const allowedProdHosts = [
-    'decrypt-url--da-cc--adobecom.aem.live',
-    'encrypt-url--da-cc--adobecom.aem.live',
     'main--da-cc--adobecom.aem.live',
     'stage--da-cc--adobecom.aem.live',
     'dev--cc--adobecom.aem.live',
@@ -317,15 +311,10 @@ function getEncryptionEndpoint() {
 }
 // eslint-disable-next-line consistent-return
 function getDecryptionEndpoint() {
-  if (isNonProd() && window.location.host === 'decrypt-url--da-cc--adobecom.aem.page') {
-    return 'https://14257-trucsi-dev.adobeioruntime.net/api/v1/web/trust-center-sign-integration/decrypturl';
-  }
   const DECRYPT_STAGE_ENDPOINT = 'https://www.stage.adobe.com/trustcenter/api/decrypturl';
   const DECRYPT_PROD_ENDPOINT = 'https://www.adobe.com/trustcenter/api/decrypturl';
- 
+
   const allowedStageHosts = [
-    'decrypt-url--da-cc--adobecom.aem.page',
-    'encrypt-url--da-cc--adobecom.aem.page',
     'main--da-cc--adobecom.aem.page',
     'stage--da-cc--adobecom.aem.page',
     'dev--cc--adobecom.aem.page',
@@ -334,11 +323,10 @@ function getDecryptionEndpoint() {
     'main--cc--adobecom.hlx.page',
     'stage--cc--adobecom.hlx.page',
     'stage.adobe.com',
+    'www.stage.adobe.com',
   ];
 
   const allowedProdHosts = [
-    'decrypt-url--da-cc--adobecom.aem.live',
-    'encrypt-url--da-cc--adobecom.aem.live',
     'main--da-cc--adobecom.aem.live',
     'stage--da-cc--adobecom.aem.live',
     'dev--cc--adobecom.aem.live',
@@ -387,7 +375,6 @@ function parseJwtEmail(token) {
   }
 }
 
-
 async function getDecryptActorEmail(ims) {
   if (typeof ims?.getProfile === 'function') {
     try {
@@ -403,7 +390,6 @@ async function getDecryptActorEmail(ims) {
 function getDecryptFieldHintEl() {
   return document.querySelector('#tc-decrypt-field-hint');
 }
-
 
 /** Same IMS teardown + broadcast; uses imsSignInOptions() so staging IMS is less likely to bounce straight back. */
 async function decryptPageSignOutAndPromptSignIn() {
@@ -428,7 +414,6 @@ function initDecryptSignOutButton() {
     decryptPageSignOutAndPromptSignIn().catch(() => {});
   });
 }
-
 
 function updateDecryptFieldHintForAdobeEmployee(email) {
   const el = getDecryptFieldHintEl();
@@ -464,7 +449,6 @@ function setDecryptFormInteractive(enabled) {
     btn.classList.toggle('tc-decrypt-disabled', !enabled);
   }
 }
-
 
 async function initDecryptImsGate() {
   if (!DECRYPT_URL_SUBMIT) return;
@@ -699,20 +683,6 @@ function onDecryptButtonAdded(node) {
   });
 }
 
-function initTabs() {
-  const tabs = document.querySelectorAll('.tc-tab');
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      tabs.forEach((t) => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-    });
-  });
-}
-
 (async function startObserving() {
   if (DECRYPT_URL_SUBMIT || PROTECT_URL_SUBMIT) {
     initTrustCenterCrossTabAndSession();
@@ -725,6 +695,5 @@ function initTabs() {
   } else {
     ensureImsLoaded().catch(() => {});
   }
-  initTabs();
   initCopyButtons();
 }());
