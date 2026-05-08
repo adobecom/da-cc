@@ -9,11 +9,15 @@ const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
 const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
 const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
 const ERR_EMPTY_ENCRYPTED = 'EMPTY_ENCRYPTED_INPUT';
-const DECRYPT_FIELD_HINT_DEFAULT = 'Sign in with your Adobe account required for decryption.';
-/** After peer-tab sign-out reload: use imsSignInOptions() once so IMS shows login instead of silent bounce. */
+const DECRYPT_FIELD_HINT_DEFAULT = (
+  'Sign in with your Adobe account required for decryption.'
+);
+/** After peer-tab sign-out reload: imsSignInOptions() once so IMS shows login */
+/** instead of silent bounce. */
 const SESSION_PEER_TAB_FRESH_IMS_KEY = 'trustcenter:peerTabFreshIms';
 
-/** Shared across tabs via localStorage: idle and max session for Trust Center utility UX (server still validates tokens). */
+/** Shared localStorage: idle + max session for Trust Center utility UX */
+/** (server still validates tokens). */
 const TRUSTCENTER_IDLE_MS = 30 * 60 * 1000;
 const TRUSTCENTER_MAX_SESSION_MS = 8 * 60 * 60 * 1000;
 const LS_LAST_ACTIVITY = 'trustcenter:lastActivityAt';
@@ -113,6 +117,165 @@ function throttle(fn, ms) {
   };
 }
 
+/** Pass-through options some IMS builds honor (avoid silent wrong-account reuse). */
+function imsSignInOptions() {
+  const redirectUri = window.location.href;
+  return {
+    redirect_uri: redirectUri,
+    reAuthenticate: true,
+    prompt: 'login',
+  };
+}
+
+async function ensureImsLoaded() {
+  // Only skip when we already have a usable token — do not bail on
+  // isSignedInUser alone, or loadIms() may never run and getAccessToken stays empty.
+  if (window.adobeIMS?.getAccessToken?.()?.token) return;
+  const { loadIms, setConfig, getConfig } = await import(`${getLibs()}/utils/utils.js`);
+  if (!getConfig()?.imsClientId) {
+    setConfig({ imsClientId: 'adobedotcom-cc', miloLibs: getLibs() });
+  }
+  await loadIms();
+  for (let i = 0; i < 50 && typeof window.adobeIMS?.isSignedInUser !== 'function'; i += 1) {
+    // eslint-disable-next-line no-await-in-loop
+    await new Promise((r) => { setTimeout(r, 100); });
+  }
+}
+
+/** Pull email from JWT payload when profile API does not return it. */
+function parseJwtEmail(token) {
+  try {
+    const part = token.split('.')[1];
+    const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
+    const json = JSON.parse(atob(b64));
+    const email = json.email || json.preferred_username || json.username;
+    return email ? String(email).toLowerCase() : '';
+  } catch {
+    return '';
+  }
+}
+
+async function getDecryptActorEmail(ims) {
+  if (typeof ims?.getProfile === 'function') {
+    try {
+      const profile = await ims.getProfile();
+      const raw = profile?.email || profile?.primaryEmail;
+      if (raw) return String(raw).toLowerCase();
+    } catch (_) { /* fall through */ }
+  }
+  const token = ims?.getAccessToken?.()?.token;
+  return token ? parseJwtEmail(token) : '';
+}
+
+function getDecryptFieldHintEl() {
+  return document.querySelector('#tc-decrypt-field-hint');
+}
+
+function resetDecryptFieldHint() {
+  const el = getDecryptFieldHintEl();
+  if (!el) return;
+  el.textContent = DECRYPT_FIELD_HINT_DEFAULT;
+  el.classList.remove('tc-field-hint-signed-in');
+  const signOutBtn = document.querySelector('#tc-decrypt-sign-out');
+  if (signOutBtn) signOutBtn.hidden = true;
+}
+
+function updateDecryptFieldHintForAdobeEmployee(email) {
+  const el = getDecryptFieldHintEl();
+  if (!el) return;
+  const display = email?.trim();
+  el.textContent = display
+    ? `Signed in as ${display}`
+    : 'Signed in with your Adobe corporate account.';
+  el.classList.add('tc-field-hint-signed-in');
+  const signOutBtn = document.querySelector('#tc-decrypt-sign-out');
+  if (signOutBtn) signOutBtn.hidden = false;
+}
+
+const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18" focusable="false" aria-hidden="true"><rect height="1" rx="0.25" width="1" x="16" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="9" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="7" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="5" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="3" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="14" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="12" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="10" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="8" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="3" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="5" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="7" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="9" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="8" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="10" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="12" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="14" y="11" class="fill"/><path d="M5,6H1.5a.5.5,0,0,0-.5.5v10a.5.5,0,0,0,.5.5h10a.5.5,0,0,0,.5-.5V13H5.5a.5.5,0,0,1-.5-.5Z" class="fill"/></svg>';
+const CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18" focusable="false" aria-hidden="true"><path class="fill" d="M15.656,3.8625l-.1815-.1875a.75.75,0,0,0-1.0605,0L6.7275,11.55,3.4915,8.31a.75.75,0,0,0-1.0605,0l-.1845.1875a.75.75,0,0,0,0,1.0605l3.952,3.9555a.75.75,0,0,0,1.0605,0l8.3925-8.391A.75.75,0,0,0,15.656,3.8625Z"/></svg>';
+
+function setOutput(element, value, { isError = false } = {}) {
+  element.value = value;
+  element.classList.toggle('has-error', isError);
+  const copyBtn = document.querySelector(`.tc-copy-btn[data-copy-target="${element.id}"]`);
+  if (copyBtn) {
+    copyBtn.classList.remove('copied');
+    copyBtn.innerHTML = COPY_ICON;
+    copyBtn.setAttribute('aria-label', `Copy ${element.id === 'protected-url' ? 'encrypted' : 'decrypted'} URL`);
+  }
+}
+
+function getDecryptOutputContainer() {
+  return DECRYPTED_URL_ELEMENT?.closest('.tc-output');
+}
+
+function hideDecryptSignInMessage() {
+  const overlay = getDecryptOutputContainer()?.querySelector('.tc-signin-msg');
+  if (overlay) overlay.hidden = true;
+}
+
+function showDecryptSignInMessage() {
+  resetDecryptFieldHint();
+  clearTrustCenterSessionKeys();
+  const container = getDecryptOutputContainer();
+  if (!container) return;
+  let overlay = container.querySelector('.tc-signin-msg');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'tc-signin-msg';
+    const inner = document.createElement('span');
+    inner.className = 'tc-signin-msg-inner';
+    const link = document.createElement('button');
+    link.type = 'button';
+    link.className = 'tc-signin-link';
+    link.textContent = 'Sign in';
+    link.addEventListener('click', async () => {
+      try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+      await ensureImsLoaded();
+      window.adobeIMS?.signIn?.({ redirect_uri: window.location.href });
+    });
+    inner.appendChild(link);
+    inner.appendChild(document.createTextNode(' '));
+    const rest = document.createElement('span');
+    rest.className = 'tc-signin-msg-rest';
+    rest.textContent = 'with your Adobe account to use decryption.';
+    inner.appendChild(rest);
+    overlay.appendChild(inner);
+    container.appendChild(overlay);
+  }
+  overlay.hidden = false;
+}
+
+function setDecryptFormInteractive(enabled) {
+  const input = document.querySelector('#encryptedurl');
+  const btn = DECRYPT_URL_SUBMIT;
+  if (input) {
+    input.disabled = !enabled;
+    input.toggleAttribute('disabled', !enabled);
+  }
+  if (btn) {
+    btn.style.pointerEvents = enabled ? '' : 'none';
+    btn.toggleAttribute('aria-disabled', !enabled);
+    btn.classList.toggle('tc-decrypt-disabled', !enabled);
+  }
+}
+
+/** IMS teardown + broadcast; imsSignInOptions() reduces staging IMS bounce-back. */
+async function decryptPageSignOutAndPromptSignIn() {
+  broadcastUtilitySignOut();
+  try {
+    await ensureImsLoaded();
+    const ims = window.adobeIMS;
+    if (typeof ims?.signOut === 'function') await ims.signOut();
+  } catch (_) { /* ignore */ }
+  clearTrustCenterSessionKeys();
+  resetDecryptFieldHint();
+  try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
+  await ensureImsLoaded();
+  window.adobeIMS?.signIn?.(imsSignInOptions());
+}
+
 async function performUtilitySessionTerminated() {
   if (sessionTerminateInProgress) return;
   sessionTerminateInProgress = true;
@@ -194,16 +357,6 @@ function initTrustCenterCrossTabAndSession() {
   ['pointerdown', 'keydown', 'scroll'].forEach((evt) => {
     document.addEventListener(evt, onActivity, { passive: true, capture: true });
   });
-}
-
-/** Pass-through options some IMS builds honor to avoid silent “Welcome back” reuse of wrong account. */
-function imsSignInOptions() {
-  const redirect_uri = window.location.href;
-  return {
-    redirect_uri,
-    reAuthenticate: true,
-    prompt: 'login',
-  };
 }
 
 async function redirectToSignInAfterNonAdobe() {
@@ -305,9 +458,10 @@ function getEncryptionEndpoint() {
     'adobe.com',
   ];
 
-  if (!isNonProd() && allowedProdHosts.includes(window.location.host)) return ENCRYPT_PROD_ENDPOINT;
-  if (isNonProd() && allowedProdHosts.includes(window.location.host)) return ENCRYPT_STAGE_ENDPOINT;
-  if (allowedStageHosts.includes(window.location.host)) return ENCRYPT_STAGE_ENDPOINT;
+  const { host } = window.location;
+  if (!isNonProd() && allowedProdHosts.includes(host)) return ENCRYPT_PROD_ENDPOINT;
+  if (isNonProd() && allowedProdHosts.includes(host)) return ENCRYPT_STAGE_ENDPOINT;
+  if (allowedStageHosts.includes(host)) return ENCRYPT_STAGE_ENDPOINT;
 }
 // eslint-disable-next-line consistent-return
 function getDecryptionEndpoint() {
@@ -338,72 +492,14 @@ function getDecryptionEndpoint() {
     'adobe.com',
   ];
 
-  if (!isNonProd() && allowedProdHosts.includes(window.location.host)) return DECRYPT_PROD_ENDPOINT;
-  if (isNonProd() && allowedProdHosts.includes(window.location.host)) return DECRYPT_STAGE_ENDPOINT;
-  if (allowedStageHosts.includes(window.location.host)) return DECRYPT_STAGE_ENDPOINT;
+  const { host } = window.location;
+  if (!isNonProd() && allowedProdHosts.includes(host)) return DECRYPT_PROD_ENDPOINT;
+  if (isNonProd() && allowedProdHosts.includes(host)) return DECRYPT_STAGE_ENDPOINT;
+  if (allowedStageHosts.includes(host)) return DECRYPT_STAGE_ENDPOINT;
 }
 
 function base64UrlSafe(encoded = '') {
   return encoded.replace(/\+/g, '-').replace(/\//g, '_');
-}
-
-async function ensureImsLoaded() {
-  // Only skip when we already have a usable token — do not bail on isSignedInUser alone,
-  // or loadIms() may never run and getAccessToken() stays empty.
-  if (window.adobeIMS?.getAccessToken?.()?.token) return;
-  const { loadIms, setConfig, getConfig } = await import(`${getLibs()}/utils/utils.js`);
-  if (!getConfig()?.imsClientId) {
-    setConfig({ imsClientId: 'adobedotcom-cc', miloLibs: getLibs() });
-  }
-  await loadIms();
-  for (let i = 0; i < 50 && typeof window.adobeIMS?.isSignedInUser !== 'function'; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await new Promise((r) => { setTimeout(r, 100); });
-  }
-}
-
-/** Pull email from JWT payload when profile API does not return it. */
-function parseJwtEmail(token) {
-  try {
-    const part = token.split('.')[1];
-    const b64 = part.replace(/-/g, '+').replace(/_/g, '/');
-    const json = JSON.parse(atob(b64));
-    const email = json.email || json.preferred_username || json.username;
-    return email ? String(email).toLowerCase() : '';
-  } catch {
-    return '';
-  }
-}
-
-async function getDecryptActorEmail(ims) {
-  if (typeof ims?.getProfile === 'function') {
-    try {
-      const profile = await ims.getProfile();
-      const raw = profile?.email || profile?.primaryEmail;
-      if (raw) return String(raw).toLowerCase();
-    } catch (_) { /* fall through */ }
-  }
-  const token = ims?.getAccessToken?.()?.token;
-  return token ? parseJwtEmail(token) : '';
-}
-
-function getDecryptFieldHintEl() {
-  return document.querySelector('#tc-decrypt-field-hint');
-}
-
-/** Same IMS teardown + broadcast; uses imsSignInOptions() so staging IMS is less likely to bounce straight back. */
-async function decryptPageSignOutAndPromptSignIn() {
-  broadcastUtilitySignOut();
-  try {
-    await ensureImsLoaded();
-    const ims = window.adobeIMS;
-    if (typeof ims?.signOut === 'function') await ims.signOut();
-  } catch (_) { /* ignore */ }
-  clearTrustCenterSessionKeys();
-  resetDecryptFieldHint();
-  try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
-  await ensureImsLoaded();
-  window.adobeIMS?.signIn?.(imsSignInOptions());
 }
 
 function initDecryptSignOutButton() {
@@ -413,41 +509,6 @@ function initDecryptSignOutButton() {
   btn.addEventListener('click', () => {
     decryptPageSignOutAndPromptSignIn().catch(() => {});
   });
-}
-
-function updateDecryptFieldHintForAdobeEmployee(email) {
-  const el = getDecryptFieldHintEl();
-  if (!el) return;
-  const display = email?.trim();
-  el.textContent = display
-    ? `Signed in as ${display}`
-    : 'Signed in with your Adobe corporate account.';
-  el.classList.add('tc-field-hint-signed-in');
-  const signOutBtn = document.querySelector('#tc-decrypt-sign-out');
-  if (signOutBtn) signOutBtn.hidden = false;
-}
-
-function resetDecryptFieldHint() {
-  const el = getDecryptFieldHintEl();
-  if (!el) return;
-  el.textContent = DECRYPT_FIELD_HINT_DEFAULT;
-  el.classList.remove('tc-field-hint-signed-in');
-  const signOutBtn = document.querySelector('#tc-decrypt-sign-out');
-  if (signOutBtn) signOutBtn.hidden = true;
-}
-
-function setDecryptFormInteractive(enabled) {
-  const input = document.querySelector('#encryptedurl');
-  const btn = DECRYPT_URL_SUBMIT;
-  if (input) {
-    input.disabled = !enabled;
-    input.toggleAttribute('disabled', !enabled);
-  }
-  if (btn) {
-    btn.style.pointerEvents = enabled ? '' : 'none';
-    btn.toggleAttribute('aria-disabled', !enabled);
-    btn.classList.toggle('tc-decrypt-disabled', !enabled);
-  }
 }
 
 async function initDecryptImsGate() {
@@ -551,20 +612,6 @@ async function getDecryptedUrl(encryptedText) {
   return responseJson.decryptedUrl;
 }
 
-const COPY_ICON = '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18" focusable="false" aria-hidden="true"><rect height="1" rx="0.25" width="1" x="16" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="9" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="7" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="5" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="3" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="14" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="12" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="10" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="8" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="3" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="5" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="7" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="9" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="8" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="10" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="12" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="14" y="11" class="fill"/><path d="M5,6H1.5a.5.5,0,0,0-.5.5v10a.5.5,0,0,0,.5.5h10a.5.5,0,0,0,.5-.5V13H5.5a.5.5,0,0,1-.5-.5Z" class="fill"/></svg>';
-const CHECK_ICON = '<svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18" focusable="false" aria-hidden="true"><path class="fill" d="M15.656,3.8625l-.1815-.1875a.75.75,0,0,0-1.0605,0L6.7275,11.55,3.4915,8.31a.75.75,0,0,0-1.0605,0l-.1845.1875a.75.75,0,0,0,0,1.0605l3.952,3.9555a.75.75,0,0,0,1.0605,0l8.3925-8.391A.75.75,0,0,0,15.656,3.8625Z"/></svg>';
-
-function setOutput(element, value, { isError = false } = {}) {
-  element.value = value;
-  element.classList.toggle('has-error', isError);
-  const copyBtn = document.querySelector(`.tc-copy-btn[data-copy-target="${element.id}"]`);
-  if (copyBtn) {
-    copyBtn.classList.remove('copied');
-    copyBtn.innerHTML = COPY_ICON;
-    copyBtn.setAttribute('aria-label', `Copy ${element.id === 'protected-url' ? 'encrypted' : 'decrypted'} URL`);
-  }
-}
-
 function initCopyButtons() {
   document.querySelectorAll('.tc-copy-btn').forEach((btn) => {
     btn.addEventListener('click', async () => {
@@ -614,45 +661,18 @@ function onSubmitButtonAdded(node) {
   });
 }
 
-function getDecryptOutputContainer() {
-  return DECRYPTED_URL_ELEMENT?.closest('.tc-output');
-}
-
-function hideDecryptSignInMessage() {
-  const overlay = getDecryptOutputContainer()?.querySelector('.tc-signin-msg');
-  if (overlay) overlay.hidden = true;
-}
-
-function showDecryptSignInMessage() {
-  resetDecryptFieldHint();
-  clearTrustCenterSessionKeys();
-  const container = getDecryptOutputContainer();
-  if (!container) return;
-  let overlay = container.querySelector('.tc-signin-msg');
-  if (!overlay) {
-    overlay = document.createElement('div');
-    overlay.className = 'tc-signin-msg';
-    const inner = document.createElement('span');
-    inner.className = 'tc-signin-msg-inner';
-    const link = document.createElement('button');
-    link.type = 'button';
-    link.className = 'tc-signin-link';
-    link.textContent = 'Sign in';
-    link.addEventListener('click', async () => {
-      try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
-      await ensureImsLoaded();
-      window.adobeIMS?.signIn?.({ redirect_uri: window.location.href });
+function initTabs() {
+  const tabs = document.querySelectorAll('.tc-tab');
+  tabs.forEach((tab) => {
+    tab.addEventListener('click', () => {
+      tabs.forEach((t) => {
+        t.classList.remove('active');
+        t.setAttribute('aria-selected', 'false');
+      });
+      tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
     });
-    inner.appendChild(link);
-    inner.appendChild(document.createTextNode(' '));
-    const rest = document.createElement('span');
-    rest.className = 'tc-signin-msg-rest';
-    rest.textContent = 'with your Adobe account to use decryption.';
-    inner.appendChild(rest);
-    overlay.appendChild(inner);
-    container.appendChild(overlay);
-  }
-  overlay.hidden = false;
+  });
 }
 
 function onDecryptButtonAdded(node) {
@@ -695,5 +715,6 @@ function onDecryptButtonAdded(node) {
   } else {
     ensureImsLoaded().catch(() => {});
   }
+  initTabs();
   initCopyButtons();
 }());
