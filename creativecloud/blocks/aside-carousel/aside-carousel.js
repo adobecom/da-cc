@@ -14,17 +14,6 @@ const ARROW_SVG = `<svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" wi
 <path d="M19.2214 10.8918C19.3516 10.5773 19.3516 10.2226 19.2214 9.90808C19.1562 9.75098 19.0621 9.60895 18.9435 9.49041L12.9241 3.47092C12.4226 2.96819 11.6076 2.96819 11.1061 3.47092C10.604 3.97239 10.604 4.78743 11.1061 5.2889L14.9312 9.11399H2.4314C1.72109 9.11399 1.146 9.69036 1.146 10.4C1.146 11.1097 1.72109 11.6861 2.4314 11.6861H14.9312L11.1061 15.5112C10.604 16.0126 10.604 16.8277 11.1061 17.3291C11.3568 17.5805 11.6863 17.7062 12.0151 17.7062C12.3439 17.7062 12.6733 17.5805 12.9241 17.3291L18.9436 11.3097C19.0622 11.1911 19.1562 11.0491 19.2214 10.8918Z"/>
 </svg>`;
 
-export function handleImageLoad(el, image) {
-  if (image && !image.complete) {
-    el.style.visibility = 'hidden';
-    image.addEventListener('load', () => { el.style.visibility = 'visible'; });
-    image.addEventListener('error', () => {
-      image.style.visibility = 'hidden';
-      el.style.visibility = 'visible';
-    });
-  }
-}
-
 function decorateSlide(el, slide) {
   slide.classList.add('slide');
   const textCell = slide.querySelector('h1, h2, h3, h4, h5, h6, p')?.closest('div');
@@ -38,14 +27,6 @@ function decorateSlide(el, slide) {
   }
 
   if (textCell) {
-    const picture = textCell.querySelector('p picture');
-    const iconArea = picture ? (picture.closest('p') || createTag('p', null, picture)) : null;
-    if (iconArea) {
-      const iconVariant = el.className.match(/-(avatar|lockup)/);
-      const iconClass = iconVariant ? `${iconVariant[1]}-area` : 'icon-area';
-      iconArea.classList.add(iconClass);
-      handleImageLoad(slide, iconArea.querySelector('img'));
-    }
     decorateBlockText(textCell, DEFAULT_TEXT_SIZES);
   }
 
@@ -151,7 +132,7 @@ function initControls(el, slides) {
       goTo(track, slides, current);
       updateBtnStates(prev, next, current, slides.length, visibleCount);
       setAriaState(slides, current, visibleCount);
-    }, 200);
+    }, 100);
   });
 }
 
