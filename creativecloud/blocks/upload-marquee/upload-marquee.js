@@ -153,13 +153,10 @@ function getViewportClasses(el) {
   return [...el.classList].filter((cls) => VIEWPORTS.includes(cls));
 }
 
-function isVideoDropZoneMedia(media) {
-  return Boolean(media?.matches?.('.video-container.video-holder'));
-}
-
 function buildDropZoneIcon(media) {
-  const isVideo = isVideoDropZoneMedia(media);
-  const src = isVideo ? DEFAULT_DROPZONE_ICON_VIDEO : DEFAULT_DROPZONE_ICON_IMAGE;
+  const src = media?.matches?.('.video-container.video-holder')
+    ? DEFAULT_DROPZONE_ICON_VIDEO
+    : DEFAULT_DROPZONE_ICON_IMAGE;
   const defaultIcon = createTag('p', { class: 'drop-zone-default-icon' });
   const image = createTag('img', { src, alt: '' });
   defaultIcon.setAttribute('aria-hidden', 'true');
