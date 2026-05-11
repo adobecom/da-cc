@@ -19,7 +19,7 @@
 
 .speech-blade.selected {
   backdrop-filter: blur(var(--speech-blade-blur));
-  border: 2px solid var(--Alias-content-semantic-accent-selected, #274DEA);
+  border: 2px solid var(--link-color);
   box-shadow:
     0 23.362px 15.186px 0 rgb(0 0 0 / 9%),
     0 9.518px 7.614px 0 rgb(0 0 0 / 7%),
@@ -46,7 +46,7 @@
 }
 
 .speech-blade .audio-player .audio-play-btn {
-  color: #000000;
+  color: var(--color-black);
 }
 
 .speech-blade:focus-within .audio-player,
