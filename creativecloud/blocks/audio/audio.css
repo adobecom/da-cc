@@ -32,6 +32,14 @@
   border-radius: 50%;
 }
 
+.audio-track {
+  stroke-opacity: 1;
+}
+
+.audio-play-btn.is-playing .audio-track {
+  stroke-opacity: 0.2;
+}
+
 .audio-progress {
   transition: stroke-dashoffset 0.25s linear;
 }
