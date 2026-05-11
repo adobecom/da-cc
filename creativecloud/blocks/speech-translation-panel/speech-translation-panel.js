@@ -18,7 +18,7 @@ function parseBlades(el) {
   });
 }
 
-export default async function init(el) {
+export default function init(el) {
   const blades = parseBlades(el);
   const list = initSpeechBlades(blades);
   if (list) el.replaceChildren(list);

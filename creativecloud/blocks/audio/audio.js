@@ -14,11 +14,13 @@ function emit(name, detail) {
 }
 
 function on(name, handler) {
-  window.addEventListener(name, (e) => {
+  const wrapped = (e) => {
     try { handler(e.detail); } catch (err) {
       window.lana?.log(`Audio handler failed for "${name}": ${err}`, LANA_OPTIONS);
     }
-  });
+  };
+  window.addEventListener(name, wrapped);
+  return () => window.removeEventListener(name, wrapped);
 }
 
 const SIZE = 40;

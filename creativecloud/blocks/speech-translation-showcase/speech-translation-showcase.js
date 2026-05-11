@@ -51,7 +51,7 @@ function playMappedVideo(audioEl) {
   if (!videoEl) return;
   videoEl.removeAttribute(USER_PAUSED_ATTR);
   activeVideoEl = videoEl;
-  Promise.resolve(videoEl.play()).catch((err) => {
+  videoEl.play().catch((err) => {
     if (activeVideoEl === videoEl) activeVideoEl = null;
     window.lana?.log(`Error playing video: ${err}`, LANA_VIDEO);
   });
@@ -186,7 +186,7 @@ function buildBladesList(items, root) {
   return list;
 }
 
-export default async function init(el) {
+export default function init(el) {
   el.classList.add('speech-showcase');
   const items = parseShowcaseItems(el);
   if (!items.length) return;
