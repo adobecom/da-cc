@@ -26,6 +26,13 @@
     0 2.163px 3.677px 0 rgb(0 0 0 / 5%);
 }
 
+/* Keyboard: outer focus ring when already selected */
+.speech-blade.selected:focus-visible {
+  border-radius: 25px;
+  outline: 2px solid #147af3;
+  outline-offset: 3px;
+}
+
 .speech-blade:hover {
   background: var(--color-gray-100);
 }
