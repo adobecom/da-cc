@@ -2,7 +2,8 @@ import { createTag, getLibs, getScreenSizeCategory } from '../../scripts/utils.j
 
 const miloLibs = getLibs('/libs');
 const VIEWPORTS = ['mobile-up', 'tablet-up', 'desktop-up'];
-const DEFAULT_DROPZONE_ICON = '/cc-shared/assets/svg/s2-icon-default-image-20-n.svg';
+const DEFAULT_DROPZONE_ICON_IMAGE = '/cc-shared/assets/svg/s2-icon-default-image-20-n.svg';
+const DEFAULT_DROPZONE_ICON_VIDEO = '/cc-shared/assets/svg/s2-icon-default-video-20-n.svg';
 const AnalyticsKeys = {
   uploadAssetCTA: 'Upload asset CTA|UnityWidget',
   editPhotosCTA: 'Edit Photos CTA|UnityWidget',
@@ -152,9 +153,18 @@ function getViewportClasses(el) {
   return [...el.classList].filter((cls) => VIEWPORTS.includes(cls));
 }
 
-function buildDropZoneIcon() {
-  const defaultIcon = createTag('p', { class: 'drop-zone-default-icon' });
-  const image = createTag('img', { src: DEFAULT_DROPZONE_ICON, alt: '' });
+function isVideoDropZoneMedia(media) {
+  return Boolean(media?.matches?.('.video-container.video-holder'));
+}
+
+function buildDropZoneIcon(media) {
+  const isVideo = isVideoDropZoneMedia(media);
+  const src = isVideo ? DEFAULT_DROPZONE_ICON_VIDEO : DEFAULT_DROPZONE_ICON_IMAGE;
+  const className = isVideo
+    ? 'drop-zone-default-icon drop-zone-default-icon--video'
+    : 'drop-zone-default-icon drop-zone-default-icon--image';
+  const defaultIcon = createTag('p', { class: className });
+  const image = createTag('img', { src, alt: '' });
   defaultIcon.setAttribute('aria-hidden', 'true');
   defaultIcon.append(image);
   return defaultIcon;
@@ -230,7 +240,7 @@ async function buildDropZone(uploadParts, columnId) {
     columnId,
   );
   wireDropZoneAccessibility(dropZone, fileInput);
-  dropZone.append(buildDropZoneIcon(), ...uploadParts.contentParagraphs);
+  dropZone.append(buildDropZoneIcon(uploadParts.media), ...uploadParts.contentParagraphs);
   return dropZone;
 }
 
