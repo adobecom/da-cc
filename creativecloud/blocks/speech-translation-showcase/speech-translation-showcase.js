@@ -7,8 +7,6 @@ const LANA_VIDEO = { errorType: 'i', tags: 'speech-video' };
 const MEDIA_SELECTOR = 'picture, .video-container.video-holder, video';
 const USER_PAUSED_ATTR = 'data-user-paused';
 
-/* --- Video state --- */
-
 let activeVideoEl = null;
 const audioToVideo = new WeakMap();
 
@@ -34,8 +32,6 @@ function guardCanplay(videoEl) {
     if (videoEl.hasAttribute(USER_PAUSED_ATTR)) videoEl.pause();
   }, { once: true });
 }
-
-/* --- Video lifecycle --- */
 
 function stopVideo(videoEl) {
   if (!videoEl) return;
@@ -67,8 +63,6 @@ function pauseMappedVideo(audioEl) {
   if (!videoEl.paused) videoEl.pause();
   videoEl.setAttribute(USER_PAUSED_ATTR, '');
 }
-
-/* --- Audio-video event sync --- */
 
 let audioSyncBound = false;
 function bindGlobalAudioVideoSync() {
@@ -113,8 +107,7 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
       activeVideoEl = videoEl;
     }, true);
   }
-  // Native video events drive both chrome sync and audio sync.
-  // No manual syncVideoChrome calls needed elsewhere.
+
   videoEl.addEventListener('pause', () => {
     syncVideoChrome(videoEl, false);
     if (!audioEl.paused) audioEl.pause();
@@ -126,8 +119,6 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
     audioEl.play().catch((err) => window.lana?.log(`Audio play failed: ${err}`, LANA_AUDIO));
   });
 }
-
-/* --- DOM parsing and building --- */
 
 function parseShowcaseItems(el) {
   const rows = [...el.querySelectorAll(':scope > div')];
