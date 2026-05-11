@@ -160,10 +160,7 @@ function isVideoDropZoneMedia(media) {
 function buildDropZoneIcon(media) {
   const isVideo = isVideoDropZoneMedia(media);
   const src = isVideo ? DEFAULT_DROPZONE_ICON_VIDEO : DEFAULT_DROPZONE_ICON_IMAGE;
-  const className = isVideo
-    ? 'drop-zone-default-icon drop-zone-default-icon--video'
-    : 'drop-zone-default-icon drop-zone-default-icon--image';
-  const defaultIcon = createTag('p', { class: className });
+  const defaultIcon = createTag('p', { class: 'drop-zone-default-icon' });
   const image = createTag('img', { src, alt: '' });
   defaultIcon.setAttribute('aria-hidden', 'true');
   defaultIcon.append(image);
