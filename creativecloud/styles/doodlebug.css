@@ -276,8 +276,16 @@
 
     /* ---- Hero Marquee ---- */
     @media screen and (max-width: 1199px) {
+        .hero-marquee.center {
+            align-items: flex-start;
+        }
+
         .hero-marquee .main-copy :is(h1, p) {
             text-align: start;
+        }
+
+        .hero-marquee.center .lockup-area {
+            justify-content: start;
         }
     }
 
