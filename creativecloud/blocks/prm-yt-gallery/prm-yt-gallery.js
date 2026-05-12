@@ -517,7 +517,7 @@ const setupCardInteractions = (card) => {
   // Mobile/Tablet: expand on click, Desktop: expand on hover
   if (getScreenSizeCategory(CONFIG.VIEWPORT) === 'mobile' || getScreenSizeCategory(CONFIG.VIEWPORT) === 'tablet') {
     card.addEventListener('click', () => {
-      trackEvent(`${templateId}:video plays`);
+      trackEvent(`Template ${templateId}:video plays`);
       expandCard(card, video);
     });
   } else {
