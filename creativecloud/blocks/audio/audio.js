@@ -2,6 +2,27 @@ import { createTag } from '../../scripts/utils.js';
 
 const LANA_OPTIONS = { tags: 'audio', errorType: 'i' };
 
+export const EVT = {
+  PLAYED: 'audio-played',
+  PAUSED: 'audio-paused',
+  ENDED: 'audio-ended',
+  STOPPED: 'audio-stopped',
+};
+
+function emit(name, detail) {
+  window.dispatchEvent(new CustomEvent(name, { detail }));
+}
+
+function on(name, handler) {
+  const wrapped = (e) => {
+    try { handler(e.detail); } catch (err) {
+      window.lana?.log(`Audio handler failed for "${name}": ${err}`, LANA_OPTIONS);
+    }
+  };
+  window.addEventListener(name, wrapped);
+  return () => window.removeEventListener(name, wrapped);
+}
+
 const SIZE = 40;
 const RING_RADIUS = 16;
 const CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
@@ -19,11 +40,37 @@ function setIcon(svg, isPlaying) {
   svg.querySelector('.audio-icon').innerHTML = isPlaying ? PAUSE_PATH : PLAY_PATH;
 }
 
+// Analytics: keep `daa-ll` aligned with Play vs Pause when audio plays or stops.
+function syncDaaLl(btn, playing) {
+  const ll = btn.getAttribute('daa-ll');
+  if (!ll) return;
+  const label = playing ? 'Pause' : 'Play';
+  btn.setAttribute('daa-ll', ll.replace(/\b(?:play|pause)\b/gi, label));
+}
+
 function updateProgress(svg, ratio) {
-  svg.querySelector('.audio-progress').setAttribute('stroke-dashoffset', CIRCUMFERENCE * ratio);
+  svg.querySelector('.audio-progress').setAttribute('stroke-dashoffset', CIRCUMFERENCE * (1 - ratio));
 }
 
 function attachAudioListeners(audio, btn, svg) {
+  let stopping = false;
+  const ctrl = {
+    pause() { if (!audio.paused) audio.pause(); },
+    stop() {
+      const wasPlaying = !audio.paused;
+      stopping = true;
+      if (wasPlaying) audio.pause();
+      audio.currentTime = 0;
+      stopping = false;
+      if (wasPlaying) emit(EVT.STOPPED, { source: ctrl, type: 'audio', el: audio });
+    },
+  };
+
+  on(EVT.PLAYED, (payload) => {
+    if (!payload || payload.source === ctrl) return;
+    ctrl.stop();
+  });
+
   btn.addEventListener('click', () => {
     if (audio.paused) {
       audio.play().catch((err) => window.lana?.log(`Audio play failed: ${err}`, LANA_OPTIONS));
@@ -33,20 +80,31 @@ function attachAudioListeners(audio, btn, svg) {
   });
 
   audio.addEventListener('play', () => {
+    emit(EVT.PLAYED, { source: ctrl, type: 'audio', el: audio });
+    btn.classList.add('is-playing');
     btn.setAttribute('aria-label', ARIA.PAUSE);
     btn.setAttribute('title', ARIA.PAUSE);
+    syncDaaLl(btn, true);
     setIcon(svg, true);
   });
 
   audio.addEventListener('pause', () => {
+    btn.classList.remove('is-playing');
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
+    syncDaaLl(btn, false);
     setIcon(svg, false);
+    if (!stopping && !audio.ended) {
+      emit(EVT.PAUSED, { source: ctrl, type: 'audio', el: audio });
+    }
   });
 
   audio.addEventListener('ended', () => {
+    emit(EVT.ENDED, { source: ctrl, type: 'audio', el: audio });
+    btn.classList.remove('is-playing');
     btn.setAttribute('aria-label', ARIA.PLAY);
     btn.setAttribute('title', ARIA.PLAY);
+    syncDaaLl(btn, false);
     setIcon(svg, false);
     updateProgress(svg, 0);
   });
@@ -56,22 +114,28 @@ function attachAudioListeners(audio, btn, svg) {
       updateProgress(svg, audio.currentTime / audio.duration);
     }
   });
+
+  audio.addEventListener('error', () => {
+    window.lana?.log(`Audio failed to load: ${audio.currentSrc || audio.src}`, LANA_OPTIONS);
+  });
+
+  return ctrl;
 }
 
 function buildPlayerSvg() {
   const div = document.createElement('div');
   div.innerHTML = `<svg viewBox="0 0 ${SIZE} ${SIZE}" width="${SIZE}" height="${SIZE}" fill="none" aria-hidden="true">
-    <circle cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}" stroke="currentColor" stroke-opacity="0.01" stroke-width="3"/>
+    <circle class="audio-track" cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}" stroke="currentColor" stroke-opacity="0.2" stroke-width="3"/>
     <circle class="audio-progress" cx="${CENTER}" cy="${CENTER}" r="${RING_RADIUS}"
       stroke="currentColor" stroke-width="3" stroke-linecap="round"
-      stroke-dasharray="${CIRCUMFERENCE}" stroke-dashoffset="0"
+      stroke-dasharray="${CIRCUMFERENCE}" stroke-dashoffset="${CIRCUMFERENCE}"
       transform="rotate(-90 ${CENTER} ${CENTER})"/>
     <g class="audio-icon">${PLAY_PATH}</g>
   </svg>`;
   return div.firstElementChild;
 }
 
-function buildAudioPlayer(src) {
+function buildAudioPlayer(src, daaLl) {
   const audio = createTag('audio', { preload: 'metadata', src });
   const svg = buildPlayerSvg();
   const playBtn = createTag('button', {
@@ -80,6 +144,7 @@ function buildAudioPlayer(src) {
     'aria-label': ARIA.PLAY,
     title: ARIA.PLAY,
   });
+  if (daaLl) playBtn.setAttribute('daa-ll', daaLl);
   playBtn.appendChild(svg);
 
   attachAudioListeners(audio, playBtn, svg);
@@ -91,7 +156,7 @@ function buildAudioPlayer(src) {
 
 export default function init(a) {
   try {
-    a.replaceWith(buildAudioPlayer(a.href));
+    a.replaceWith(buildAudioPlayer(a.href, a.getAttribute('daa-ll')));
   } catch (err) {
     window.lana?.log(`Audio link failed to initialize: ${err}`, LANA_OPTIONS);
   }

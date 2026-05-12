@@ -274,6 +274,19 @@
         }
     }
 
+    /* ---- Hero Marquee ---- */
+    @media screen and (max-width: 1199px) {
+        .hero-marquee .main-copy :is(h1, p) {
+            text-align: start;
+        }
+    }
+
+    @media screen and (min-width: 1200px) {
+        .hero-marquee .main-copy :is(h1, p) {
+            text-align: center;
+        }
+    }
+
     /* ---- Editorial Card ---- */
     .editorial-card.l-shadow {
         box-shadow: 0 5px 20px 10px #0000000F;
@@ -645,4 +658,11 @@ TODO: Can use &[dir="rtl"] above also, & is supported by modern browsers, done t
     background: url('/cc-shared/assets/svg/s2-icon-openin-20-n.svg') no-repeat center;
     background-size: contain;
   }
+}
+
+:root[lang="hi"]:has(meta[name='theme'][content='doodlebug']) {
+    .aside .foreground.container .text [class*="heading-"],
+    h1 {
+        line-height: 116%;
+    }
 }
