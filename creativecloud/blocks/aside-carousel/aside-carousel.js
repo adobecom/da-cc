@@ -128,8 +128,13 @@ function initControls(el, slides) {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
       visibleCount = getVisibleCount(track, slides);
-      current = Math.min(current, Math.max(0, slides.length - visibleCount));
-      goTo(track, slides, current);
+      if (visibleCount >= slides.length) {
+        track.style.transform = '';
+        current = 0;
+      } else {
+        current = Math.min(current, Math.max(0, slides.length - visibleCount));
+        goTo(track, slides, current);
+      }
       updateBtnStates(prev, next, current, slides.length, visibleCount);
       setAriaState(slides, current, visibleCount);
     }, 100);
