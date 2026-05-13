@@ -123,18 +123,20 @@ function initControls(el, slides) {
 
   el.append(ariaLive, controls);
 
+  const desktopMQ = window.matchMedia('(min-width: 1200px)');
+
   let resizeTimer;
   window.addEventListener('resize', () => {
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      visibleCount = getVisibleCount(track, slides);
-      if (visibleCount >= slides.length) {
+      if (desktopMQ.matches) {
         track.style.transform = '';
         current = 0;
-      } else {
-        current = Math.min(current, Math.max(0, slides.length - visibleCount));
-        goTo(track, slides, current);
+        return;
       }
+      visibleCount = getVisibleCount(track, slides);
+      current = Math.min(current, Math.max(0, slides.length - visibleCount));
+      goTo(track, slides, current);
       updateBtnStates(prev, next, current, slides.length, visibleCount);
       setAriaState(slides, current, visibleCount);
     }, 100);
