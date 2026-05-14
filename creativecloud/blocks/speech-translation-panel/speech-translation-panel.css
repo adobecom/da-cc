@@ -32,19 +32,6 @@
   width: 100%;
 }
 
-/* 1024–1199px: two blades per row (e.g. iPad Pro) */
-/* @media screen and (min-width: 1024px) and (max-width: 1199px) {
-  .speech-translation-panel .speech-blades {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .speech-translation-panel .speech-blade {
-    max-width: none;
-  }
-} */
-
 @media screen and (min-width: 1200px) {
   .speech-translation-panel .speech-blades {
     grid-template-columns: repeat(3, minmax(0, 1fr));
