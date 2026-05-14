@@ -113,24 +113,24 @@
 
 @media (max-width: 767px) {
   .speech-blade {
-    gap: 8px;
+    gap: var(--spacing-xxs);
     padding: 12px 48px 12px 12px;
     position: relative;
   }
 
   .speech-blade-flag {
-    border-radius: 8px;
-    height: 56px;
+    border-radius: var(--spacing-xxs);
+    height: var(--icon-size-l);
     width: 96px;
   }
 
   .speech-blade-flag:has(picture img[src*=".svg"]) {
-    height: 40px;
-    width: 40px;
+    height: var(--icon-size-m);
+    width: var(--icon-size-m);
   }
 
   .speech-blade .audio-player {
-    inset-inline-end: 12px;
+    inset-inline-end: var(--spacing-xs);
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
