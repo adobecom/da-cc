@@ -42,7 +42,6 @@ export function createSpeechBlade(config, callbacks = {}) {
   const blade = createTag('div', {
     class: `${CLASSES.BLADE} ${config.variant || ''}`.trim(),
     'data-blade-id': config.id || '',
-    role: 'button',
     tabindex: '0',
   });
 

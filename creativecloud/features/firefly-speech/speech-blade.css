@@ -1,5 +1,5 @@
 :root {
-  --speech-blade-blur: 30px;
+  --speech-blade-blur: 32px;
 }
 
 .speech-blade {
@@ -22,17 +22,17 @@
   backdrop-filter: blur(var(--speech-blade-blur));
   border: 2px solid var(--link-color);
   box-shadow:
-    0 23.362px 15.186px 0 rgb(0 0 0 / 9%),
-    0 9.518px 7.614px 0 rgb(0 0 0 / 7%),
-    0 2.163px 3.677px 0 rgb(0 0 0 / 5%);
+    0 24px 16px 0 rgb(0 0 0 / 9%),
+    0 8px 8px 0 rgb(0 0 0 / 7%),
+    0 4px 4px 0 rgb(0 0 0 / 5%);
 }
 
 /* Keyboard: double ring whenever the blade has tab focus */
 .speech-blade:focus-visible {
+  border-color: var(--link-color);
   border-radius: 25px;
   outline: 2px solid #147af3;
-  outline-offset: 3px;
-  border-color: var(--link-color);
+  outline-offset: 4px;
 }
 
 .speech-blade:hover {
@@ -43,7 +43,7 @@
   flex-shrink: 0;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.15s ease;
+  transition: opacity 0.2s ease;
 }
 
 .speech-blade .audio-player .audio-play-btn {
