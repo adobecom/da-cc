@@ -72,7 +72,15 @@
   }
 
   .speech-showcase .foreground .speech-showcase-blades {
+    justify-self: center;
     margin-inline-end: 0;
+    max-width: 640px;
+    width: 100%;
+  }
+  
+  .speech-showcase .speech-blade {
+    max-width: 640px;
+    width: 100%;
   }
 }
 
@@ -87,19 +95,18 @@
   .speech-showcase .foreground .speech-showcase-blades {
     gap: var(--spacing-s);
     margin: 0 auto;
-    max-width: 680px;
+    max-width: 640px;
     width: 100%;
   }
 
   .speech-showcase .foreground .speech-showcase-media {
     margin: 0 auto;
-    max-width: 680px;
+    max-width: 640px;
     width: 100%;
   }
 
-  /* Stacked tablet: blades match media width (override global blade max-width) */
   .speech-showcase .foreground .speech-showcase-blades .speech-blade {
-    max-width: none;
+    max-width: 640px;
     width: 100%;
   }
 
@@ -107,6 +114,12 @@
     background: var(--background-color);
     box-sizing: border-box;
     padding: var(--spacing-l) var(--spacing-s);
+  }
+}
+
+@media (min-width: 1200px) {
+  .speech-showcase .speech-blade {
+    max-width: 585px;
   }
 }
 

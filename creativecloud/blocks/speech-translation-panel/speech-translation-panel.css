@@ -3,7 +3,7 @@
 }
 
 .speech-translation-panel {
-  align-items: center;
+  align-items: stretch;
   background: var(--background-color);
   box-sizing: border-box;
   display: flex;
@@ -18,32 +18,48 @@
   display: grid;
   gap: var(--spacing-s);
   grid-template-columns: 1fr;
-  max-width: 1806px;
+  margin-inline: auto;
+  max-width: 640px;
+  min-width: 0;
   width: 100%;
-}
-
-@media screen and (min-width: 768px) {
-  .speech-translation-panel .speech-blades {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media screen and (min-width: 1200px) {
-  .speech-translation-panel .speech-blades {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 .speech-translation-panel .speech-blade {
   box-sizing: border-box;
-  justify-self: center;
-  max-width: 585px;
+  justify-self: stretch;
+  max-width: 640px;
+  min-width: 0;
   width: 100%;
+}
+
+/* 1024–1199px: two blades per row (e.g. iPad Pro) */
+/* @media screen and (min-width: 1024px) and (max-width: 1199px) {
+  .speech-translation-panel .speech-blades {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .speech-translation-panel .speech-blade {
+    max-width: none;
+  }
+} */
+
+@media screen and (min-width: 1200px) {
+  .speech-translation-panel .speech-blades {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 1806px;
+  }
+
+  .speech-translation-panel .speech-blade {
+    max-width: 585px;
+  }
 }
 
 @media screen and (max-width: 767px) {
   .speech-translation-panel {
     gap: var(--spacing-m);
     padding: var(--spacing-l) var(--spacing-s);
+    max-width: 100%;
   }
 }

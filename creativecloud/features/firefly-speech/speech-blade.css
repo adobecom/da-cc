@@ -9,12 +9,13 @@
   border: 2px solid var(--color-gray-200);
   border-radius: 20px;
   box-sizing: border-box;
+  cursor: pointer;
   display: flex;
   flex-direction: row;
   gap: var(--spacing-xs);
   max-width: 585px;
+  min-width: 0;
   padding: 14px;
-  cursor: pointer;
 }
 
 .speech-blade.selected {
@@ -83,10 +84,11 @@
 
 .speech-blade-info {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .speech-blade-language {
@@ -107,4 +109,30 @@
   font-weight: 400;
   letter-spacing: -0.48px;
   line-height: 98%; /* 15.68px */
+}
+
+@media (max-width: 767px) {
+  .speech-blade {
+    gap: 8px;
+    padding: 12px 48px 12px 12px;
+    position: relative;
+  }
+
+  .speech-blade-flag {
+    border-radius: 8px;
+    height: 56px;
+    width: 96px;
+  }
+
+  .speech-blade-flag:has(picture img[src*=".svg"]) {
+    height: 40px;
+    width: 40px;
+  }
+
+  .speech-blade .audio-player {
+    inset-inline-end: 12px;
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+  }
 }
