@@ -114,8 +114,12 @@
 @media (max-width: 767px) {
   .speech-blade {
     gap: var(--spacing-xxs);
-    padding: 12px 48px 12px 12px;
+    padding: 12px;
     position: relative;
+  }
+
+  .speech-blade-info {
+    margin-inline-end: 52px;
   }
 
   .speech-blade-flag {
