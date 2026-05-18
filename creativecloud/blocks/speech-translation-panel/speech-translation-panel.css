@@ -18,7 +18,7 @@
   display: grid;
   gap: var(--spacing-s);
   grid-template-columns: 1fr;
-  max-width: 1806px;
+  max-width: 1804px;
   width: 100%;
 }
 
@@ -37,7 +37,7 @@
 .speech-translation-panel .speech-blade {
   box-sizing: border-box;
   justify-self: center;
-  max-width: 585px;
+  max-width: 584px;
   width: 100%;
 }
 
