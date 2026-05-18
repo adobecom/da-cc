@@ -55,7 +55,7 @@
   (function () {
     var searchParams = new URLSearchParams(location.search);
     if ((searchParams.get('daRenderingApp') === 'stream') || searchParams.get('darenderingapp') === 'stream') {
-      var streamOrigin = searchParams.get('mapperSource') || searchParams.get('mappersource') || 'https://prod--stream-mapper--adobecom.aem.live';
+      var streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
       var s = document.createElement('script');
       s.type = 'module';
       s.src = `{streamOrigin}/streamlibs/standalone/html-review.js`
