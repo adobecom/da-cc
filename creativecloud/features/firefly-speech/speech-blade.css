@@ -66,6 +66,7 @@
   flex: 0 0 auto;
   flex-shrink: 0;
   height: 88px;
+  overflow: hidden;
   width: 160px;
 }
 
@@ -76,6 +77,7 @@
 
 .speech-blade-flag picture,
 .speech-blade-flag img {
+  border-radius: inherit;
   display: block;
   height: 100%;
   object-fit: cover;
@@ -112,26 +114,15 @@
 }
 
 @media (max-width: 767px) {
-  .speech-blade {
-    gap: var(--spacing-xxs);
-    padding: 12px;
-    position: relative;
-  }
 
   .speech-blade-info {
     margin-inline-end: 52px;
   }
 
   .speech-blade-flag {
-    border-radius: var(--spacing-xxs);
-    height: var(--icon-size-l);
-    width: 96px;
+    width: 110px;
   }
 
-  .speech-blade-flag:has(picture img[src*=".svg"]) {
-    height: var(--icon-size-m);
-    width: var(--icon-size-m);
-  }
 
   .speech-blade .audio-player {
     inset-inline-end: var(--spacing-xs);
