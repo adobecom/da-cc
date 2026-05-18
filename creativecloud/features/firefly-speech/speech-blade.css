@@ -1,5 +1,6 @@
 :root {
   --speech-blade-blur: 32px;
+  --speech-blade-max-width: 640px;
 }
 
 /* Mobile-first */
