@@ -15,6 +15,10 @@
   color: var(--color-white);
 }
 
+.aside-carousel.no-clip-left {
+  clip-path: none;
+}
+
 /* ===== Slides track ===== */
 
 .aside-carousel .slides-track {
