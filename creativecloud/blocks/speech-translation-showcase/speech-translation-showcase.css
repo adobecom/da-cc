@@ -2,38 +2,48 @@
   --speech-showcase-vertical-spacing: 44px;
 }
 
+/* Mobile-first */
 .speech-showcase {
-  display: flex;
-  width: 100%;
-  position: relative;
   align-items: center;
+  background: var(--background-color);
+  box-sizing: border-box;
+  display: flex;
   justify-content: center;
   overflow: hidden;
-  padding: var(--speech-showcase-vertical-spacing) 0;
+  padding: var(--spacing-l) var(--spacing-s);
+  position: relative;
+  width: 100%;
 }
 
 .speech-showcase .foreground {
   align-items: center;
-  display: grid;
-  gap: 165px;
-  grid-template-areas: "media blades";
-  grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
-  justify-content: center;
-  width: 85%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--speech-showcase-vertical-spacing);
+  width: 100%;
 }
 
 .speech-showcase .foreground .speech-showcase-media {
   aspect-ratio: var(--aspect-ratio-standard);
-  grid-area: media;
+  margin: 0 auto;
+  max-width: 640px;
   min-width: 0;
   position: relative;
+  width: 100%;
 }
 
 .speech-showcase .foreground .speech-showcase-blades {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-s);
-  margin-inline-end: 120px;
+  margin: 0 auto;
+  max-width: 640px;
+  width: 100%;
+}
+
+.speech-showcase .speech-blade {
+  max-width: 640px;
+  width: 100%;
 }
 
 .speech-showcase .foreground .speech-showcase-media picture,
@@ -64,55 +74,60 @@
   visibility: visible;
 }
 
-@media (max-width: 1199px) {
+/* Tablet */
+@media screen and (min-width: 900px) {
+  .speech-showcase {
+    box-sizing: border-box;
+    padding: var(--speech-showcase-vertical-spacing) 0;
+  }
+
   .speech-showcase .foreground {
+    display: grid;
     gap: var(--speech-showcase-vertical-spacing);
     grid-template-areas: "media blades";
     grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
+    justify-content: center;
+    width: 85%;
+  }
+
+  .speech-showcase .foreground .speech-showcase-media {
+    grid-area: media;
+    margin: 0;
+    max-width: none;
+    width: 100%;
   }
 
   .speech-showcase .foreground .speech-showcase-blades {
     justify-self: center;
+    margin: 0;
     margin-inline-end: 0;
     max-width: 640px;
     width: 100%;
   }
-  
+
   .speech-showcase .speech-blade {
     max-width: 640px;
     width: 100%;
   }
 }
 
-@media (max-width: 900px) {
+/* Desktop */
+@media screen and (min-width: 1200px) {
   .speech-showcase .foreground {
-    display: flex;
-    flex-direction: column;
-    gap: var(--speech-showcase-vertical-spacing);
-    width: 100%;
+    gap: 165px;
   }
 
   .speech-showcase .foreground .speech-showcase-blades {
-    gap: var(--spacing-s);
-    margin: 0 auto;
+    justify-self: stretch;
+    margin: 0;
+    margin-inline-end: 120px;
+    max-width: none;
+    width: auto;
   }
 
-  .speech-showcase .foreground .speech-showcase-media {
-    margin: 0 auto;
-    max-width: 640px;
-    width: 100%;
-  }
-
-  .speech-showcase {
-    background: var(--background-color);
-    box-sizing: border-box;
-    padding: var(--spacing-l) var(--spacing-s);
-  }
-}
-
-@media (min-width: 1200px) {
   .speech-showcase .speech-blade {
     max-width: 585px;
+    width: unset;
   }
 }
 
