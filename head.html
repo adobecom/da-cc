@@ -58,7 +58,7 @@
       var streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
       var s = document.createElement('script');
       s.type = 'module';
-      s.src = `${streamOrigin}/streamlibs/standalone/html-review.js`
+      s.src = `${streamOrigin}/streamlibs/previewer.js`
       s.async = true;
       document.head.appendChild(s);
     }
