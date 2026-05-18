@@ -2,6 +2,7 @@
   --speech-blade-blur: 32px;
 }
 
+/* Mobile-first */
 .speech-blade {
   align-items: center;
   backdrop-filter: blur(var(--speech-blade-blur));
@@ -41,8 +42,12 @@
 
 .speech-blade .audio-player {
   flex-shrink: 0;
+  inset-inline-end: var(--spacing-xs);
   opacity: 0;
   pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   transition: opacity 0.2s ease;
 }
 
@@ -67,7 +72,7 @@
   flex-shrink: 0;
   height: 88px;
   overflow: hidden;
-  width: 160px;
+  width: 110px;
 }
 
 .speech-blade-flag:has(picture img[src*=".svg"]) {
@@ -89,6 +94,7 @@
   flex: 1 1 0;
   flex-direction: column;
   gap: 4px;
+  margin-inline-end: 52px;
   min-width: 0;
   overflow-wrap: break-word;
 }
@@ -113,19 +119,19 @@
   line-height: 98%; /* 15.68px */
 }
 
-@media (max-width: 767px) {
-  .speech-blade-info {
-    margin-inline-end: 52px;
+/* Tablet and Desktop */
+@media screen and (min-width: 768px) {
+  .speech-blade-flag {
+    width: 160px;
   }
 
-  .speech-blade-flag {
-    width: 110px;
+  .speech-blade-info {
+    margin-inline-end: 0;
   }
 
   .speech-blade .audio-player {
-    inset-inline-end: var(--spacing-xs);
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    inset-inline-end: auto;
+    position: static;
+    transform: none;
   }
 }
