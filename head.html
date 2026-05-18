@@ -51,11 +51,9 @@
     }
   }
 </style>
-<!-- Stream HTML Review bootstrap. No-op unless ?streamHtmlReview=1 is in the URL. -->
 <script>
   (function () {
     var searchParams = new URLSearchParams(location.search);
-    debugger
     if ((searchParams.get('daRenderingApp') === 'stream') || searchParams.get('darenderingapp') === 'stream') {
       var streamOrigin = p.get('mapperSource') || p.get('mappersource') || 'https://prod--stream-mapper--adobecom.aem.live';
       var s = document.createElement('script');
