@@ -1,5 +1,8 @@
 const HEADER_HEIGHT = 64;
-const LANA_OPTIONS = { tags: 'firefly-gallery', errorType: 'i' };
+const LANA_OPTIONS = {
+  tags: 'firefly-gallery',
+  severity: 'error',
+};
 
 let lastActiveCount = 0;
 
