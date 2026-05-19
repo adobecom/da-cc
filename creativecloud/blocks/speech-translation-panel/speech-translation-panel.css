@@ -21,7 +21,7 @@
   gap: var(--spacing-s);
   grid-template-columns: 1fr;
   margin-inline: auto;
-  max-width: var(--speech-blade-max-width);
+  max-width: var(--speech-section-max-width);
   min-width: 0;
   width: 100%;
 }
@@ -29,7 +29,7 @@
 .speech-translation-panel .speech-blade {
   box-sizing: border-box;
   justify-self: stretch;
-  max-width: var(--speech-blade-max-width);
+  max-width: var(--speech-section-max-width);
   min-width: 0;
   width: 100%;
 }

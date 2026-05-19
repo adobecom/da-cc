@@ -26,7 +26,7 @@
 .speech-showcase .foreground .speech-showcase-media {
   aspect-ratio: var(--aspect-ratio-standard);
   margin: 0 auto;
-  max-width: var(--speech-blade-max-width);
+  max-width: var(--speech-section-max-width);
   min-width: 0;
   position: relative;
   width: 100%;
@@ -37,12 +37,12 @@
   flex-direction: column;
   gap: var(--spacing-s);
   margin: 0 auto;
-  max-width: var(--speech-blade-max-width);
+  max-width: var(--speech-section-max-width);
   width: 100%;
 }
 
 .speech-showcase .speech-blade {
-  max-width: var(--speech-blade-max-width);
+  max-width: var(--speech-section-max-width);
   width: 100%;
 }
 
@@ -100,13 +100,12 @@
   .speech-showcase .foreground .speech-showcase-blades {
     justify-self: center;
     margin: 0;
-    margin-inline-end: 0;
-    max-width: var(--speech-blade-max-width);
+    max-width: var(--speech-section-max-width);
     width: 100%;
   }
 
   .speech-showcase .speech-blade {
-    max-width: var(--speech-blade-max-width);
+    max-width: var(--speech-section-max-width);
     width: 100%;
   }
 }

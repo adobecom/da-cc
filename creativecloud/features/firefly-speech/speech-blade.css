@@ -1,6 +1,7 @@
 :root {
   --speech-blade-blur: 32px;
-  --speech-blade-max-width: 640px;
+  --speech-blade-player-space: calc(var(--audio-btn-size, 40px) + var(--spacing-xs));
+  --speech-section-max-width: 640px;
 }
 
 /* Mobile-first */
@@ -18,6 +19,7 @@
   max-width: 585px;
   min-width: 0;
   padding: 14px;
+  position: relative;
 }
 
 .speech-blade.selected {
@@ -95,7 +97,7 @@
   flex: 1 1 0;
   flex-direction: column;
   gap: 4px;
-  margin-inline-end: 52px;
+  margin-inline-end: var(--speech-blade-player-space);
   min-width: 0;
   overflow-wrap: break-word;
 }
