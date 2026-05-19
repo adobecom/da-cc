@@ -4,7 +4,7 @@ import { debounce } from '../../scripts/action.js';
 import { createTag, getLibs } from '../../scripts/utils.js';
 
 // Configuration constants
-const LANA_OPTIONS = { tags: 'animated-slot-text', errorType: 'i' };
+const LANA_OPTIONS = { tags: 'animated-slot-text', severity: 'error' };
 
 const DEFAULTS = {
   // MATH: 7000ms total / 3 transitions (4 items) = ~2333ms per step.

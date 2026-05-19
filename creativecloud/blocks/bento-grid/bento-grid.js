@@ -1,6 +1,6 @@
 import { createTag } from '../../scripts/utils.js';
 
-const LANA_OPTIONS = { tags: 'animated-slot-text', errorType: 'i' };
+const LANA_OPTIONS = { tags: 'animated-slot-text', severity: 'error' };
 
 const VIEW_TYPES = ['mobile', 'tablet', 'desktop'];
 const MIN_ITEMS_TARGET = 15;

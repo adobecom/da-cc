@@ -1,6 +1,9 @@
 import { createTag } from '../../scripts/utils.js';
 
-const LANA_OPTIONS = { tags: 'audio', errorType: 'i' };
+const LANA_OPTIONS = {
+  tags: 'audio',
+  severity: 'error',
+};
 
 export const EVT = {
   PLAYED: 'audio-played',

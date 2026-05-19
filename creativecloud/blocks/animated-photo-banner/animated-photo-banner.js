@@ -27,7 +27,7 @@ const CONFIG = {
   },
 };
 
-const LANA_OPTIONS = { tags: 'animated-photo-banner', errorType: 'i' };
+const LANA_OPTIONS = { tags: 'animated-photo-banner', severity: 'error' };
 const DETECTED_VIEWPORT = getScreenSizeCategory({ mobile: 599, tablet: 1199 });
 
 // ===== UTILITY FUNCTIONS =====
