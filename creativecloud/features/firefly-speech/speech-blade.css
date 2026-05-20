@@ -1,7 +1,10 @@
 :root {
   --speech-blade-blur: 32px;
+  --speech-blade-player-space: calc(var(--audio-btn-size, 40px) + var(--spacing-xs));
+  --speech-section-max-width: 640px;
 }
 
+/* Mobile-first */
 .speech-blade {
   align-items: center;
   backdrop-filter: blur(var(--speech-blade-blur));
@@ -13,8 +16,10 @@
   display: flex;
   flex-direction: row;
   gap: var(--spacing-xs);
-  max-width: 584px;
+  max-width: 585px;
+  min-width: 0;
   padding: 14px;
+  position: relative;
 }
 
 .speech-blade.selected {
@@ -40,8 +45,12 @@
 
 .speech-blade .audio-player {
   flex-shrink: 0;
+  inset-inline-end: var(--spacing-xs);
   opacity: 0;
   pointer-events: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
   transition: opacity 0.2s ease;
 }
 
@@ -65,7 +74,8 @@
   flex: 0 0 auto;
   flex-shrink: 0;
   height: 88px;
-  width: 160px;
+  overflow: hidden;
+  width: 110px;
 }
 
 .speech-blade-flag:has(picture img[src*=".svg"]) {
@@ -75,6 +85,7 @@
 
 .speech-blade-flag picture,
 .speech-blade-flag img {
+  border-radius: inherit;
   display: block;
   height: 100%;
   object-fit: cover;
@@ -83,10 +94,12 @@
 
 .speech-blade-info {
   display: flex;
-  flex: 1 1 auto;
+  flex: 1 1 0;
   flex-direction: column;
   gap: 4px;
+  margin-inline-end: var(--speech-blade-player-space);
   min-width: 0;
+  overflow-wrap: break-word;
 }
 
 .speech-blade-language {
@@ -107,4 +120,21 @@
   font-weight: 400;
   letter-spacing: -0.48px;
   line-height: 98%; /* 15.68px */
+}
+
+/* Tablet */
+@media screen and (min-width: 768px) {
+  .speech-blade-flag {
+    width: 160px;
+  }
+
+  .speech-blade-info {
+    margin-inline-end: 0;
+  }
+
+  .speech-blade .audio-player {
+    inset-inline-end: auto;
+    position: static;
+    transform: none;
+  }
 }
