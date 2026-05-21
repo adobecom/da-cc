@@ -2,14 +2,16 @@
   --speech-section-stack-gap: 44px;
 }
 
+/* Mobile-first */
 .speech-translation-panel {
-  align-items: center;
+  align-items: stretch;
   background: var(--background-color);
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  gap: var(--speech-section-stack-gap);
-  padding: 55px 57px;
+  gap: var(--spacing-m);
+  max-width: 100%;
+  padding: var(--spacing-l) var(--spacing-s);
   width: 100%;
 }
 
@@ -18,32 +20,37 @@
   display: grid;
   gap: var(--spacing-s);
   grid-template-columns: 1fr;
-  max-width: 1804px;
+  margin-inline: auto;
+  max-width: var(--speech-section-max-width);
+  min-width: 0;
   width: 100%;
-}
-
-@media screen and (min-width: 768px) {
-  .speech-translation-panel .speech-blades {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media screen and (min-width: 1200px) {
-  .speech-translation-panel .speech-blades {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 }
 
 .speech-translation-panel .speech-blade {
   box-sizing: border-box;
-  justify-self: center;
-  max-width: 584px;
+  justify-self: stretch;
+  max-width: var(--speech-section-max-width);
+  min-width: 0;
   width: 100%;
 }
 
-@media screen and (max-width: 767px) {
+/* Tablet */
+@media screen and (min-width: 768px) {
   .speech-translation-panel {
-    gap: var(--spacing-m);
-    padding: var(--spacing-l) var(--spacing-s);
+    gap: var(--speech-section-stack-gap);
+    max-width: none;
+    padding: 55px 57px;
+  }
+}
+
+/* Desktop */
+@media screen and (min-width: 1200px) {
+  .speech-translation-panel .speech-blades {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-width: 1806px;
+  }
+
+  .speech-translation-panel .speech-blade {
+    max-width: 585px;
   }
 }
