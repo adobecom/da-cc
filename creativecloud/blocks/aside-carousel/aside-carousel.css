@@ -280,10 +280,6 @@
     object-fit: unset;
   }
 
-  .aside-carousel .slide.media-right .image {
-    order: 1;
-  }
-
   .aside-carousel .carousel-controls {
     display: none;
   }

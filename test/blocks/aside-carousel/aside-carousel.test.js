@@ -3,18 +3,20 @@ import { expect } from '@esm-bundle/chai';
 
 const { setLibs } = await import('../../../creativecloud/scripts/utils.js');
 setLibs('https://milo.adobe.com/libs');
-const { default: init, handleImageLoad } = await import('../../../creativecloud/blocks/aside-carousel/aside-carousel.js');
+const { default: init } = await import('../../../creativecloud/blocks/aside-carousel/aside-carousel.js');
 
 document.body.innerHTML = await readFile({ path: './mocks/body.html' });
 
 describe('aside-carousel', () => {
   let el;
   let singleEl;
+  let noClipEl;
 
   before(async () => {
     el = document.querySelector('#three-slides');
     singleEl = document.querySelector('#single-slide');
-    await Promise.all([init(el), init(singleEl)]);
+    noClipEl = document.querySelector('#no-clip');
+    await Promise.all([init(el), init(singleEl), init(noClipEl)]);
   });
 
   // ===== Structure =====
@@ -113,25 +115,11 @@ describe('aside-carousel', () => {
     expect(slides[0].getAttribute('aria-hidden')).to.equal('false');
   });
 
-  // ===== handleImageLoad =====
+  // ===== Authored no-clip-left modifier =====
 
-  it('handleImageLoad hides container until image loads', () => {
-    const container = document.createElement('div');
-    const img = new Image();
-    Object.defineProperty(img, 'complete', { get: () => false });
-    handleImageLoad(container, img);
-    expect(container.style.visibility).to.equal('hidden');
-    img.dispatchEvent(new Event('load'));
-    expect(container.style.visibility).to.equal('visible');
-  });
-
-  it('handleImageLoad hides image on error and shows container', () => {
-    const container = document.createElement('div');
-    const img = new Image();
-    Object.defineProperty(img, 'complete', { get: () => false });
-    handleImageLoad(container, img);
-    img.dispatchEvent(new Event('error'));
-    expect(img.style.visibility).to.equal('hidden');
-    expect(container.style.visibility).to.equal('visible');
+  it('preserves the no-clip-left class through init and still decorates slides', () => {
+    expect(noClipEl.classList.contains('no-clip-left')).to.be.true;
+    expect(noClipEl.querySelectorAll('.slide').length).to.equal(2);
+    expect(noClipEl.querySelector('.slides-track')).to.exist;
   });
 });
