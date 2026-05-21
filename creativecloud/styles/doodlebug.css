@@ -289,12 +289,6 @@
         }
     }
 
-    @media screen and (min-width: 1200px) {
-        .hero-marquee .main-copy :is(h1, p) {
-            text-align: center;
-        }
-    }
-
     /* ---- Editorial Card ---- */
     .editorial-card.l-shadow {
         box-shadow: 0 5px 20px 10px #0000000F;
