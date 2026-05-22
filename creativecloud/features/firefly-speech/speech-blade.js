@@ -71,7 +71,7 @@ export function createSpeechBlade(config, callbacks = {}) {
   return blade;
 }
 
-export default function init(blades = []) {
+export default function init(blades = [], { onSelect } = {}) {
   if (!Array.isArray(blades) || !blades.length) return null;
 
   const wrapper = createTag('div', { class: CLASSES.BLADES });
@@ -80,7 +80,10 @@ export default function init(blades = []) {
       b.classList.toggle('selected', b.dataset.bladeId === id);
     });
   };
-  blades.forEach((cfg) => wrapper.appendChild(createSpeechBlade(cfg, { onSelect: setSelected })));
+  const selectFn = onSelect ?? setSelected;
+
+  blades.forEach((cfg) => wrapper.appendChild(createSpeechBlade(cfg, { onSelect: selectFn })));
+  if (blades[0]?.id) setSelected(blades[0].id);
 
   return wrapper;
 }

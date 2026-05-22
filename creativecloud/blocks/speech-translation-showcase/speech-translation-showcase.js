@@ -1,6 +1,6 @@
 import { createTag } from '../../scripts/utils.js';
 import { EVT } from '../audio/audio.js';
-import { createSpeechBlade } from '../../features/firefly-speech/speech-blade.js';
+import initSpeechBlades from '../../features/firefly-speech/speech-blade.js';
 
 const LANA_AUDIO = { errorType: 'i', tags: 'speech-audio' };
 const LANA_VIDEO = { errorType: 'i', tags: 'speech-video' };
@@ -176,12 +176,11 @@ function setActiveBlade(root, id) {
 }
 
 function buildBladesList(items, root) {
-  const list = createTag('div', { class: 'speech-showcase-blades' });
-  items.forEach((item) => {
-    const { mediaEl, ...bladeConfig } = item;
-    const blade = createSpeechBlade(bladeConfig, { onSelect: (id) => setActiveBlade(root, id) });
-    if (bladeConfig.audioSrc && mediaEl) bindVideoToAudio(bladeConfig.audioSrc, mediaEl);
-    list.appendChild(blade);
+  const bladeConfigs = items.map(({ mediaEl, ...cfg }) => cfg);
+  const list = initSpeechBlades(bladeConfigs, { onSelect: (id) => setActiveBlade(root, id) });
+  list.className = 'speech-showcase-blades';
+  items.forEach(({ audioSrc, mediaEl }) => {
+    if (audioSrc && mediaEl) bindVideoToAudio(audioSrc, mediaEl);
   });
   return list;
 }
@@ -197,4 +196,5 @@ export default function init(el) {
 
   foreground.append(mediaPanel, bladesList);
   el.replaceChildren(foreground);
+  if (items[0]?.id) setActiveBlade(el, items[0].id);
 }
