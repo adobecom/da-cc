@@ -9,6 +9,31 @@ const ADOBE_EMPLOYEE_DOMAIN = '@adobe.com';
 const ERR_SIGN_IN = 'SIGN_IN_REQUIRED';
 const ERR_NOT_ADOBE = 'NOT_ADOBE_EMPLOYEE';
 const ERR_EMPTY_ENCRYPTED = 'EMPTY_ENCRYPTED_INPUT';
+/** Decrypt UI + API only on da-cc Edge preview (*.aem.page), per internal policy. */
+const ERR_DECRYPT_HOST_DISALLOWED = 'DECRYPT_HOST_DISALLOWED';
+
+/**
+ * Decrypt utility is allowed only on da-cc *.aem.page previews (e.g. stage--da-cc--adobecom.aem.page).
+ * Not on .aem.live, www, or other hosts — avoids treating preview CDN as the canonical internal surface.
+ */
+function isDecryptUtilityPageHostAllowed() {
+  const { hostname } = window.location;
+  return hostname.endsWith('--da-cc--adobecom.aem.page');
+}
+
+const DECRYPT_HOST_DISALLOWED_MESSAGE = (
+  'This decryption tool is only available on internal da-cc preview (*.adobecom.aem.page), for example '
+  + 'https://stage--da-cc--adobecom.aem.page/tools/trustcenter/decrypt.html — not on .aem.live or www.adobe.com.'
+);
+
+function applyDecryptUtilityHostLock() {
+  if (!DECRYPT_URL_SUBMIT) return;
+  setDecryptFormInteractive(false);
+  if (DECRYPTED_URL_ELEMENT) {
+    setOutput(DECRYPTED_URL_ELEMENT, DECRYPT_HOST_DISALLOWED_MESSAGE, { isError: true });
+  }
+}
+
 const DECRYPT_FIELD_HINT_DEFAULT = (
   'Sign in with your Adobe account required for decryption.'
 );
@@ -311,6 +336,7 @@ async function handleCrossTabSignOutEvent() {
 
 async function checkTrustCenterSessionShouldExpire() {
   if (!DECRYPT_URL_SUBMIT && !PROTECT_URL_SUBMIT) return;
+  if (DECRYPT_URL_SUBMIT && !isDecryptUtilityPageHostAllowed()) return;
   await ensureImsLoaded();
   const ims = window.adobeIMS;
   const token = ims?.getAccessToken?.()?.token;
@@ -327,6 +353,7 @@ async function checkTrustCenterSessionShouldExpire() {
 /** Other tabs: IMS signed out elsewhere — reload so UI matches cookies. */
 async function verifyDecryptSignedInStillHasToken() {
   if (!DECRYPT_URL_SUBMIT) return;
+  if (!isDecryptUtilityPageHostAllowed()) return;
   const hint = getDecryptFieldHintEl();
   if (!hint?.classList.contains('tc-field-hint-signed-in')) return;
   await ensureImsLoaded();
@@ -513,6 +540,10 @@ function initDecryptSignOutButton() {
 
 async function initDecryptImsGate() {
   if (!DECRYPT_URL_SUBMIT) return;
+  if (!isDecryptUtilityPageHostAllowed()) {
+    applyDecryptUtilityHostLock();
+    return;
+  }
   await ensureImsLoaded();
   const ims = window.adobeIMS;
   const token = ims?.getAccessToken?.()?.token;
@@ -574,6 +605,9 @@ function decryptAccessMessage(code) {
   if (code === ERR_EMPTY_ENCRYPTED) {
     return 'Please enter the protected link.';
   }
+  if (code === ERR_DECRYPT_HOST_DISALLOWED) {
+    return DECRYPT_HOST_DISALLOWED_MESSAGE;
+  }
   return 'Could not decrypt the provided url. Please check the input and try again.';
 }
 
@@ -589,6 +623,9 @@ async function getEncryptedText(linkUrl) {
 }
 
 async function getDecryptedUrl(encryptedText) {
+  if (!isDecryptUtilityPageHostAllowed()) {
+    throw new Error(ERR_DECRYPT_HOST_DISALLOWED);
+  }
   const token = await getDecryptBearerToken();
   const options = {
     method: 'POST',
@@ -694,6 +731,8 @@ function onDecryptButtonAdded(node) {
         showDecryptSignInMessage();
       } else if (err.message === ERR_NOT_ADOBE) {
         showNonAdobeAccessDeniedWithAutoRedirect();
+      } else if (err.message === ERR_DECRYPT_HOST_DISALLOWED) {
+        applyDecryptUtilityHostLock();
       } else {
         setOutput(DECRYPTED_URL_ELEMENT, decryptAccessMessage(err.message), { isError: true });
       }
@@ -710,8 +749,12 @@ function onDecryptButtonAdded(node) {
   if (PROTECT_URL_SUBMIT) onSubmitButtonAdded(PROTECT_URL_SUBMIT);
   if (DECRYPT_URL_SUBMIT) {
     initDecryptSignOutButton();
-    onDecryptButtonAdded(DECRYPT_URL_SUBMIT);
-    initDecryptImsGate().catch(() => {});
+    if (!isDecryptUtilityPageHostAllowed()) {
+      applyDecryptUtilityHostLock();
+    } else {
+      onDecryptButtonAdded(DECRYPT_URL_SUBMIT);
+      initDecryptImsGate().catch(() => {});
+    }
   } else {
     ensureImsLoaded().catch(() => {});
   }
