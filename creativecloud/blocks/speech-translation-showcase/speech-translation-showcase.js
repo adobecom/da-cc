@@ -134,7 +134,7 @@ function parseShowcaseItems(el) {
     if (!flagImg && !mediaEl) return [];
 
     return [{
-      id: `blade-${index}`,
+      id: `speech-showcase-blade-${index}`,
       language,
       country,
       flagPicture: flagImg,

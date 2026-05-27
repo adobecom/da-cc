@@ -31,8 +31,15 @@
     0 4px 4px 0 rgb(0 0 0 / 5%);
 }
 
-/* Keyboard: double ring whenever the blade has tab focus */
-.speech-blade:focus-visible {
+/* Full-card ring while keyboard focus is on the play button */
+.speech-blade:has(.speech-blade-control:focus-visible) {
+  border-color: var(--link-color);
+  border-radius: 25px;
+  outline: 2px solid #147af3;
+  outline-offset: 4px;
+}
+
+.speech-blade[role="button"]:focus-visible {
   border-color: var(--link-color);
   border-radius: 25px;
   outline: 2px solid #147af3;
@@ -43,6 +50,25 @@
   background: var(--color-gray-100);
 }
 
+/* Single tab stop: transparent button covering the card */
+.speech-blade-control {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  position: absolute;
+  z-index: 1;
+}
+
+.speech-blade-control:focus,
+.speech-blade-control:focus-visible {
+  box-shadow: none;
+  outline: none;
+}
+
+/* Decorative player: above overlay visually, clicks pass through to control */
 .speech-blade .audio-player {
   flex-shrink: 0;
   inset-inline-end: var(--spacing-xs);
@@ -58,13 +84,16 @@
   color: var(--color-black);
 }
 
-.speech-blade:focus-within .audio-player,
-.speech-blade:hover .audio-player,
-.speech-blade.loading .audio-player,
-.speech-blade.paused .audio-player,
-.speech-blade.playing .audio-player,
-.speech-blade.selected .audio-player,
-.speech-blade.error .audio-player {
+.speech-blade .audio-play-btn:hover {
+  opacity: 1;
+}
+
+.speech-blade .audio-play-btn:focus,
+.speech-blade .audio-play-btn:focus-visible {
+  outline: none;
+}
+
+.speech-blade:is(:hover, :focus-within, .selected, :has(.audio-play-btn.is-playing)) .audio-player {
   opacity: 1;
   pointer-events: auto;
 }
