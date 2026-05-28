@@ -80,7 +80,10 @@ export default function init(blades = [], { onSelect } = {}) {
       b.classList.toggle('selected', b.dataset.bladeId === id);
     });
   };
-  const selectFn = onSelect ?? setSelected;
+  const selectFn = (id) => {
+    setSelected(id);
+    onSelect?.(id);
+  };
 
   blades.forEach((cfg) => wrapper.appendChild(createSpeechBlade(cfg, { onSelect: selectFn })));
   if (blades[0]?.id) setSelected(blades[0].id);

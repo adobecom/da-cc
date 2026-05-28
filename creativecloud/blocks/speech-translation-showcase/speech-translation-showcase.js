@@ -178,7 +178,8 @@ function setActiveBlade(root, id) {
 function buildBladesList(items, root) {
   const bladeConfigs = items.map(({ mediaEl, ...cfg }) => cfg);
   const list = initSpeechBlades(bladeConfigs, { onSelect: (id) => setActiveBlade(root, id) });
-  list.className = 'speech-showcase-blades';
+  if (!list) return null;
+  list.classList.add('speech-showcase-blades');
   items.forEach(({ audioSrc, mediaEl }) => {
     if (audioSrc && mediaEl) bindVideoToAudio(audioSrc, mediaEl);
   });
