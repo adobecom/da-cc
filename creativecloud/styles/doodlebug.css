@@ -39,6 +39,13 @@
         content: none;
     }
 
+    .accordion .descr-term button:focus-visible {
+        position: relative;
+        outline: 2px solid var(--focus-color, #1473e6);
+        outline-offset: 1px;
+        z-index: 1;
+    }
+
     @media (max-width: 1199px) {
         .accordion .descr-term:not(:first-of-type) {
             margin-top: 10px;
