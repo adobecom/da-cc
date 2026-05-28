@@ -180,10 +180,13 @@ async function populateGalleryCells(parentElem, jsonUrl) {
     }
 
     const aiModelName = asset.ai_model;
-    const cellIconElem = createTag('div', { class: `gallery-cell-icon bg-${aiModelName}` });
-    cellIconElem.insertAdjacentHTML('afterbegin', getGalleryIcon(aiModelName));
+    const iconSvg = getGalleryIcon(aiModelName);
     cell.appendChild(galleryMedia);
-    cell.appendChild(cellIconElem);
+    if (iconSvg) {
+      const cellIconElem = createTag('div', { class: `gallery-cell-icon bg-${aiModelName}` });
+      cellIconElem.insertAdjacentHTML('afterbegin', iconSvg);
+      cell.appendChild(cellIconElem);
+    }
   });
 }
 
