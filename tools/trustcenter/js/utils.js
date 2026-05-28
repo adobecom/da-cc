@@ -12,10 +12,7 @@ const ERR_EMPTY_ENCRYPTED = 'EMPTY_ENCRYPTED_INPUT';
 /** Decrypt UI + API only on da-cc Edge preview (*.aem.page), per internal policy. */
 const ERR_DECRYPT_HOST_DISALLOWED = 'DECRYPT_HOST_DISALLOWED';
 
-/**
- * Decrypt utility is allowed only on da-cc *.aem.page previews (e.g. stage--da-cc--adobecom.aem.page).
- * Not on .aem.live, www, or other hosts — avoids treating preview CDN as the canonical internal surface.
- */
+/** Decrypt only on da-cc *.aem.page (e.g. stage--da-cc--adobecom.aem.page). Not .aem.live/www. */
 function isDecryptUtilityPageHostAllowed() {
   const { hostname } = window.location;
   return hostname.endsWith('--da-cc--adobecom.aem.page');
@@ -25,14 +22,6 @@ const DECRYPT_HOST_DISALLOWED_MESSAGE = (
   'This decryption tool is only available on internal da-cc preview (*.adobecom.aem.page), for example '
   + 'https://stage--da-cc--adobecom.aem.page/tools/trustcenter/decrypt.html — not on .aem.live or www.adobe.com.'
 );
-
-function applyDecryptUtilityHostLock() {
-  if (!DECRYPT_URL_SUBMIT) return;
-  setDecryptFormInteractive(false);
-  if (DECRYPTED_URL_ELEMENT) {
-    setOutput(DECRYPTED_URL_ELEMENT, DECRYPT_HOST_DISALLOWED_MESSAGE, { isError: true });
-  }
-}
 
 const DECRYPT_FIELD_HINT_DEFAULT = (
   'Sign in with your Adobe account required for decryption.'
@@ -283,6 +272,14 @@ function setDecryptFormInteractive(enabled) {
     btn.style.pointerEvents = enabled ? '' : 'none';
     btn.toggleAttribute('aria-disabled', !enabled);
     btn.classList.toggle('tc-decrypt-disabled', !enabled);
+  }
+}
+
+function applyDecryptUtilityHostLock() {
+  if (!DECRYPT_URL_SUBMIT) return;
+  setDecryptFormInteractive(false);
+  if (DECRYPTED_URL_ELEMENT) {
+    setOutput(DECRYPTED_URL_ELEMENT, DECRYPT_HOST_DISALLOWED_MESSAGE, { isError: true });
   }
 }
 
