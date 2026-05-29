@@ -456,7 +456,7 @@ export const scriptInit = async () => {
   const isDaAppRendering = (searchParams.get('daRenderingApp') === 'stream') || (searchParams.get('darenderingapp') === 'stream');
   if (isDaAppRendering) {
     const streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
-    const { daAppRenderingLoadDaHtml, daAppRenderingInitializePreviewer } = await import(`${streamOrigin}/streamlibs/previewer.js`);
+    const { daAppRenderingLoadDaHtml } = await import(`${streamOrigin}/streamlibs/previewer.js`);
     await daAppRenderingLoadDaHtml();
   }
   const isSignedInHomepage = window.location.pathname.includes(CHINA_SIGNED_IN_HOME_PATH);
@@ -490,5 +490,8 @@ export const scriptInit = async () => {
     await loadArea();
   }
   loadPage();
-  if (isDaAppRendering) await daAppRenderingInitializePreviewer();
+  if (isDaAppRendering) {
+    const { daAppRenderingInitializePreviewer } = await import(`${streamOrigin}/streamlibs/previewer.js`);
+    await daAppRenderingInitializePreviewer();
+  }
 };
