@@ -452,11 +452,12 @@ const CONFIG = {
 };
 
 export const scriptInit = async () => {
-  var searchParams = new URLSearchParams(location.search);
+  const searchParams = new URLSearchParams(location.search);
   if ((searchParams.get('daRenderingApp') === 'stream') || searchParams.get('darenderingapp') === 'stream') {
-  var streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
-  const { daAppRendering } = await import(`${streamOrigin}/streamlibs/previewer.js`);
-  await daAppRendering();
+    const streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
+    const { daAppRendering } = await import(`${streamOrigin}/streamlibs/previewer.js`);
+    await daAppRendering();
+  }
   const isSignedInHomepage = window.location.pathname.includes(CHINA_SIGNED_IN_HOME_PATH);
   const trialsCheck = document.querySelector('head > meta[name="trialsims"]');
   if (trialsCheck && trialsCheck.content.toLowerCase() === 'on') {
