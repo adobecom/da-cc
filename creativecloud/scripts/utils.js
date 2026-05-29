@@ -491,7 +491,6 @@ export const scriptInit = async () => {
   }
   loadPage();
   
-  const searchParams = new URLSearchParams(location.search);
   if (isDaAppRendering) {
     await daAppRenderingInitializePreviewer();
   }
