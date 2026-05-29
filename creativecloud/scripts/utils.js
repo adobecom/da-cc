@@ -454,8 +454,8 @@ const CONFIG = {
 export const scriptInit = async () => {
   const searchParams = new URLSearchParams(location.search);
   const isDaAppRendering = (searchParams.get('daRenderingApp') === 'stream') || (searchParams.get('darenderingapp') === 'stream');
+  const streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
   if (isDaAppRendering) {
-    const streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
     const { daAppRenderingLoadDaHtml } = await import(`${streamOrigin}/streamlibs/previewer.js`);
     await daAppRenderingLoadDaHtml();
   }
