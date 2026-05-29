@@ -452,6 +452,11 @@ const CONFIG = {
 };
 
 export const scriptInit = async () => {
+  var searchParams = new URLSearchParams(location.search);
+  if ((searchParams.get('daRenderingApp') === 'stream') || searchParams.get('darenderingapp') === 'stream') {
+  var streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
+  const { daAppRendering } = await import(`${streamOrigin}/streamlibs/previewer.js`);
+  await daAppRendering();
   const isSignedInHomepage = window.location.pathname.includes(CHINA_SIGNED_IN_HOME_PATH);
   const trialsCheck = document.querySelector('head > meta[name="trialsims"]');
   if (trialsCheck && trialsCheck.content.toLowerCase() === 'on') {
@@ -483,11 +488,4 @@ export const scriptInit = async () => {
     await loadArea();
   }
   loadPage();
-
-  // DA Live Preview
-  (async function loadDa() {
-    if (!new URL(window.location.href).searchParams.get('dapreview')) return;
-    // eslint-disable-next-line import/no-unresolved
-    import('https://da.live/scripts/dapreview.js').then(({ default: daPreview }) => daPreview(loadPage));
-  }());
 };
