@@ -453,10 +453,11 @@ const CONFIG = {
 
 export const scriptInit = async () => {
   const searchParams = new URLSearchParams(location.search);
-  if ((searchParams.get('daRenderingApp') === 'stream') || searchParams.get('darenderingapp') === 'stream') {
+  const isDaAppRendering = searchParams.get('daRenderingApp') === 'stream') || searchParams.get('darenderingapp') === 'stream'
+  if (isDaAppRendering) {
     const streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
-    const { daAppRendering } = await import(`${streamOrigin}/streamlibs/previewer.js`);
-    await daAppRendering();
+    const { daAppRenderingLoadDaHtml, daAppRenderingInitializePreviewer } = await import(`${streamOrigin}/streamlibs/previewer.js`);
+    await daAppRenderingLoadDaHtml();
   }
   const isSignedInHomepage = window.location.pathname.includes(CHINA_SIGNED_IN_HOME_PATH);
   const trialsCheck = document.querySelector('head > meta[name="trialsims"]');
@@ -489,4 +490,9 @@ export const scriptInit = async () => {
     await loadArea();
   }
   loadPage();
+  
+  const searchParams = new URLSearchParams(location.search);
+  if (isDaAppRendering) {
+    await daAppRenderingInitializePreviewer();
+  }
 };
