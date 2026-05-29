@@ -453,7 +453,7 @@ const CONFIG = {
 
 export const scriptInit = async () => {
   const searchParams = new URLSearchParams(location.search);
-  const isDaAppRendering = searchParams.get('daRenderingApp') === 'stream') || searchParams.get('darenderingapp') === 'stream'
+  const isDaAppRendering = (searchParams.get('daRenderingApp') === 'stream') || (searchParams.get('darenderingapp') === 'stream');
   if (isDaAppRendering) {
     const streamOrigin = searchParams.get('mapperOrigin') || searchParams.get('mapperorigin') || 'https://prod--stream-mapper--adobecom.aem.live';
     const { daAppRenderingLoadDaHtml, daAppRenderingInitializePreviewer } = await import(`${streamOrigin}/streamlibs/previewer.js`);
@@ -490,8 +490,5 @@ export const scriptInit = async () => {
     await loadArea();
   }
   loadPage();
-  
-  if (isDaAppRendering) {
-    await daAppRenderingInitializePreviewer();
-  }
+  if (isDaAppRendering) await daAppRenderingInitializePreviewer();
 };
