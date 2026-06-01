@@ -523,7 +523,7 @@ const setupCardInteractions = (card) => {
   } else {
     // Desktop: expand on hover
     card.addEventListener('mouseenter', () => {
-      trackEvent(`${templateId}:video plays`);
+      trackEvent(`Template ${templateId}:video plays`);
       expandCard(card, video);
     });
     card.addEventListener('mouseleave', () => collapseCard(card, video));
