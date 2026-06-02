@@ -178,6 +178,14 @@ function createAnimationControls({ container, getFederatedContentRoot, logoConta
   });
 }
 
+function getAuthorLogoLabel(logo) {
+  const container = logo.closest('p, li, div');
+  if (!container) return '';
+  const labels = [...(container.textContent || '').matchAll(/\|\s*([^|]+)/g)].map((m) => m[1].trim());
+  const idx = [...container.querySelectorAll('span.icon')].indexOf(logo);
+  return labels[idx] || '';
+}
+
 export default async function init(el) {
   const { decorateBlockBg } = await import(`${miloLibs}/utils/decorate.js`);
   const { getFederatedContentRoot, getFedsPlaceholderConfig } = await import(`${miloLibs}/utils/utils.js`);
@@ -208,9 +216,25 @@ export default async function init(el) {
 
   logoRowContent.classList.add('logo-row');
   const logos = logoRowContent.querySelectorAll('span.icon');
+  const logoLabels = [...logos].map((logo) => getAuthorLogoLabel(logo));
   logoRowContent.innerHTML = '';
   // TODO: cut down 1 level of DOM nesting
   const { logoContainer, addScrolling } = createRollingLogos(logos);
+
+  // Add programmatically-accessible logo labels only when authored (Option 2).
+  // Each label is its own node so NVDA browse/arrow navigation can announce each item.
+  const authoredLabels = logoLabels.filter(Boolean);
+  if (authoredLabels.length > 0) {
+    const list = createTag('ul', { class: 'logo-row-sr-list' });
+    authoredLabels.forEach((label) => list.append(createTag('li', {}, label)));
+    logoRowContent.append(list);
+  }
+
+  // Only hide the animated logos from screen readers if *every* logo has an authored label.
+  // If some logos are missing text, keep current behavior for those (do not hide).
+  const allLabeled = logoLabels.length > 0 && logoLabels.every((l) => l);
+  if (allLabeled) logoContainer.setAttribute('aria-hidden', 'true');
+
   createAnimationControls({ container: logoRowContent, getFederatedContentRoot, logoContainer });
   logoRowContent.append(logoContainer);
   new IntersectionObserver(([{ isIntersecting }], ob) => {
