@@ -221,8 +221,6 @@ export default async function init(el) {
   // TODO: cut down 1 level of DOM nesting
   const { logoContainer, addScrolling } = createRollingLogos(logos);
 
-  // Add programmatically-accessible logo labels only when authored (Option 2).
-  // Each label is its own node so NVDA browse/arrow navigation can announce each item.
   const authoredLabels = logoLabels.filter(Boolean);
   if (authoredLabels.length > 0) {
     const list = createTag('ul', { class: 'logo-row-sr-list' });
@@ -230,13 +228,11 @@ export default async function init(el) {
     logoRowContent.append(list);
   }
 
-  // Only hide the animated logos from screen readers if *every* logo has an authored label.
-  // If some logos are missing text, keep current behavior for those (do not hide).
   const allLabeled = logoLabels.length > 0 && logoLabels.every((l) => l);
   if (allLabeled) logoContainer.setAttribute('aria-hidden', 'true');
 
-  createAnimationControls({ container: logoRowContent, getFederatedContentRoot, logoContainer });
   logoRowContent.append(logoContainer);
+  createAnimationControls({ container: logoRowContent, getFederatedContentRoot, logoContainer });
   new IntersectionObserver(([{ isIntersecting }], ob) => {
     if (!isIntersecting) return;
     ob.disconnect();
