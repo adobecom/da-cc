@@ -4,6 +4,12 @@ import { createTag, getLibs } from '../../scripts/utils.js';
 const GNAV_HEIGHT = 64;
 const LANA_OPTIONS = { tags: 'firefly-model-showcase', errorType: 'i' };
 const GALLERY_FALLBACK_URL = '/cc-shared/ff-gallery-assets.json';
+const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
+const animationLabels = {
+  playMotion: 'Play motion',
+  pauseMotion: 'Pause motion',
+};
+
 const CHICKET_ICONS = [
   {
     name: 'adobe',
@@ -60,38 +66,34 @@ function getGalleryIcon(name) {
 
 function getTransformedPath(assetUrl) {
   try {
-    const { pathname } = new URL(assetUrl);
-    return `${window.origin}${pathname}`;
+    const url = new URL(assetUrl, window.location.origin);
+    return `${window.origin}${url.pathname}${url.search || ''}`;
   } catch (err) {
     window.lana?.log(`Error transforming path: ${err}`, LANA_OPTIONS);
-    // return non-transformed path
     return assetUrl;
   }
 }
 
 function createResponsiveImage(imageUrl, altText) {
-  // Create picture element
   const picture = createTag('picture', {});
   // Add WebP sources for different screen sizes
   const sourceWebpLarge = createTag('source', {
     type: 'image/webp',
-    srcset: `${imageUrl}?width=1000&format=webply&optimize=medium`,
+    srcset: `${imageUrl}?width=1000&format=webp&optimize=medium`,
     media: '(min-width: 600px)',
   });
 
   const sourceWebpSmall = createTag('source', {
     type: 'image/webp',
-    srcset: `${imageUrl}?width=500&format=webply&optimize=medium`,
+    srcset: `${imageUrl}?width=500&format=webp&optimize=medium`,
   });
 
-  // JPEG fallback
   const sourceJpegLarge = createTag('source', {
     type: 'image/jpeg',
     srcset: `${imageUrl}?width=1000&format=jpg&optimize=medium`,
     media: '(min-width: 600px)',
   });
 
-  // img fallback
   const img = createTag('img', {
     src: `${imageUrl}?width=500&format=jpg&optimize=medium`,
     alt: altText,
@@ -109,55 +111,141 @@ function createResponsiveImage(imageUrl, altText) {
   return picture;
 }
 
-function createResponsiveVideo(videoUrl, imageUrl, altText) {
+function updateMotionButtonState(button, isPlaying) {
+  const label = isPlaying ? animationLabels.pauseMotion : animationLabels.playMotion;
+  button.setAttribute('aria-label', label);
+  button.setAttribute('title', label);
+  button.setAttribute('aria-pressed', isPlaying ? 'true' : 'false');
+  button.dataset.state = isPlaying ? 'playing' : 'paused';
+}
+
+function createResponsiveVideo(videoUrl, imageUrl) {
   const isDesktop = window.matchMedia('(min-width: 900px)');
+  const reducedMotionQuery = window.matchMedia(REDUCED_MOTION_QUERY);
+  const wrapper = createTag('div', { class: 'gallery-cell-media-wrapper' });
+
+  const posterUrl = `${imageUrl}?width=${isDesktop.matches ? 1000 : 500}&format=jpg&optimize=medium`;
+
   const video = createTag('video', {
     src: videoUrl,
-    poster: `${imageUrl}?width=${isDesktop.matches ? 1000 : 500}&format=jpg&optimize=medium`,
-    alt: altText,
+    poster: posterUrl,
     class: 'gallery-cell-asset',
-    autoplay: '',
     muted: '',
     loop: '',
     playsinline: '',
-    preload: 'auto',
-    loading: 'eager',
+    preload: 'metadata',
     tabindex: '-1',
+    'aria-hidden': 'true',
+  });
+  video.addEventListener('error', () => {
+    window.lana?.log(`Video failed to load: ${videoUrl}`, LANA_OPTIONS);
   });
 
-  // Play video as soon as it's loaded
   video.addEventListener('loadeddata', () => {
-    video.muted = true;
-    video.play().catch((err) => {
-      window.lana?.log(`Error autoplaying video on load: ${err}`, LANA_OPTIONS);
-    });
+    // eslint-disable-next-line no-use-before-define
+    if (!reducedMotionQuery.matches && isVisible && !manuallyPaused) {
+      video.play().catch((err) => {
+        window.lana?.log(`Error playing video: ${err}`, LANA_OPTIONS);
+      });
+    }
   });
 
-  // Handle playing/pausing when video enters/leaves viewport
+  const controls = createTag('div', { class: 'animation-controls' });
+
+  const button = createTag('button', {
+    type: 'button',
+    class: 'pause-play-wrapper',
+    title: animationLabels.pauseMotion,
+    'aria-label': animationLabels.pauseMotion,
+    'aria-pressed': true,
+  });
+
+  const offsetFiller = createTag('span', {
+    class: 'offset-filler',
+    'aria-hidden': 'true',
+  });
+
+  button.append(offsetFiller);
+  controls.append(button);
+
+  let manuallyPaused = false;
+  let isVisible = false;
+
+  updateMotionButtonState(button, false);
+
+  const pauseVideo = () => {
+    if (!video.paused) video.pause();
+    updateMotionButtonState(button, false);
+  };
+
+  const playVideo = async (manual = false) => {
+    if (!manual && (reducedMotionQuery.matches || manuallyPaused || !isVisible)) {
+      pauseVideo();
+      return;
+    }
+
+    try {
+      video.muted = true;
+      await video.play();
+      updateMotionButtonState(button, true);
+    } catch (err) {
+      window.lana?.log(`Error playing video: ${err}`, LANA_OPTIONS);
+      updateMotionButtonState(button, false);
+    }
+  };
+
+  button.addEventListener('click', () => {
+    if (video.paused) {
+      manuallyPaused = false;
+      playVideo(true);
+    } else {
+      manuallyPaused = true;
+      pauseVideo();
+    }
+  });
+
+  video.addEventListener('play', () => {
+    updateMotionButtonState(button, true);
+  });
+
+  video.addEventListener('pause', () => {
+    updateMotionButtonState(button, false);
+  });
+
   const observer = new IntersectionObserver(
     (entries) => {
       entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          if (video.paused) {
-            video.muted = true;
-            video.play().catch((err) => {
-              window.lana?.log(
-                `Error autoplaying video in viewport: ${err}`,
-                LANA_OPTIONS,
-              );
-            });
-          }
-        } else if (!video.paused) {
-          video.pause();
+        isVisible = entry.isIntersecting;
+
+        if (isVisible) {
+          playVideo(false);
+        } else {
+          pauseVideo();
         }
       });
     },
-    { threshold: 0.5 }, // Play with 50% of video is visible
+    { threshold: 0.5 },
   );
 
   observer.observe(video);
 
-  return video;
+  const onReducedMotionChange = (event) => {
+    if (event.matches) {
+      pauseVideo();
+    } else if (isVisible && !manuallyPaused) {
+      playVideo(false);
+    }
+  };
+
+  if (reducedMotionQuery.addEventListener) {
+    reducedMotionQuery.addEventListener('change', onReducedMotionChange);
+  } else if (reducedMotionQuery.addListener) {
+    reducedMotionQuery.addListener(onReducedMotionChange);
+  }
+
+  wrapper.append(video, controls);
+
+  return wrapper;
 }
 
 async function populateGalleryCells(parentElem, jsonUrl) {
@@ -165,12 +253,13 @@ async function populateGalleryCells(parentElem, jsonUrl) {
   const galleryAssets = await fetchGalleryAssets(jsonUrl);
   galleryCells.forEach((cell, index) => {
     const asset = galleryAssets[index];
+    if (!asset) return;
+
     let galleryMedia;
     if (asset.asset_type === 'video') {
       galleryMedia = createResponsiveVideo(
         getTransformedPath(asset.video_url),
         getTransformedPath(asset.img_url),
-        asset.alt_text,
       );
     } else {
       galleryMedia = createResponsiveImage(
@@ -191,10 +280,8 @@ async function populateGalleryCells(parentElem, jsonUrl) {
 }
 
 function buildGalleryOutline(parentElem) {
-  // Gallery will be a masonry grid with 4 columns
   const galleryOutline = createTag('div', { class: 'firefly-model-showcase-gallery' });
 
-  // Create 4 columns
   for (let i = 0; i < 4; i += 1) {
     const column = createTag('div', { class: 'gallery-column' });
 
@@ -229,7 +316,7 @@ export default async function init(el) {
 
   // currently using last row for parallax configs
   const parallaxConfigRow = el.querySelector(':scope > div:last-child');
-  if (parallaxConfigRow.children.length >= 3) parallaxConfigRow.remove();
+  if (parallaxConfigRow?.children.length >= 3) parallaxConfigRow.remove();
 
   const showcaseContentElem = el.querySelector(':scope > div');
   // Add class to container for styling
@@ -242,19 +329,20 @@ export default async function init(el) {
   await decorateButtons(el);
 
   buildGalleryOutline(el);
-  populateGalleryCells(el, galleryJsonUrl);
+  await populateGalleryCells(el, galleryJsonUrl);
 
   new IntersectionObserver(async (entries, ob) => {
     if (entries[0].isIntersecting) {
       ob.disconnect();
       const { default: addParallaxProgress } = await import('../../features/parallax.js');
-      // TODO: Handle optional feds-promo-aside
       addParallaxProgress(el, GNAV_HEIGHT, true, [{ name: 'disable-pointer', threshold: 20, type: 'exit' }]);
     }
   }).observe(el);
-  const configs = Array.from(parallaxConfigRow.children).map(
-    (col) => col.textContent,
-  );
+
+  const configs = parallaxConfigRow
+    ? Array.from(parallaxConfigRow.children).map((col) => col.textContent)
+    : [];
+
   const galleryColumns = [...el.querySelectorAll('.gallery-column')];
   const validKeys = [
     'base-offset',

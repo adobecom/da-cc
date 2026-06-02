@@ -350,6 +350,94 @@
     )
   );
 }
+.firefly-model-showcase {
+  --offset-filler-size: 32px;
+  --pause-icon-width: 2px;
+  --pause-icon-height: 10px;
+  --play-icon-size: 10px;
+}
+
+.firefly-model-showcase .animation-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  position: relative;
+}
+
+.firefly-model-showcase .animation-controls .pause-play-wrapper {
+  position: absolute;
+  top: 169px;
+  left: 167px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: fit-content;
+  border-radius: 50%;
+  z-index: 4;
+  padding: 2px;
+  cursor: pointer;
+  background-color: var(--color-white);
+  margin: 0;
+  border: 0;
+}
+
+.firefly-model-showcase .animation-controls .pause-play-wrapper .offset-filler {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: var(--offset-filler-size);
+  height: var(--offset-filler-size);
+  border-radius: inherit;
+  background: var(--color-gray-800);
+  position: relative;
+}
+
+.firefly-model-showcase .animation-controls .pause-play-wrapper:focus-visible {
+  outline: var(--color-accent-focus-ring) solid 2px;
+}
+
+/* Pause icon */
+.firefly-model-showcase .animation-controls .pause-play-wrapper[data-state='playing'] .offset-filler::before,
+.firefly-model-showcase .animation-controls .pause-play-wrapper[data-state='playing'] .offset-filler::after {
+  content: '';
+  position: absolute;
+  width: var(--pause-icon-width);
+  height: var(--pause-icon-height);
+  background: var(--color-white);
+  border-radius: 1px;
+  top: 50%;
+  left: 50%;
+}
+
+.firefly-model-showcase .animation-controls .pause-play-wrapper[data-state='playing'] .offset-filler::before {
+  transform: translate(calc(-50% - 3px), -50%);
+}
+
+.firefly-model-showcase .animation-controls .pause-play-wrapper[data-state='playing'] .offset-filler::after {
+  transform: translate(calc(-50% + 3px), -50%);
+}
+
+/* Play icon */
+.firefly-model-showcase .animation-controls .pause-play-wrapper[data-state='paused'] .offset-filler::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-top: calc(var(--play-icon-size) / 2) solid transparent;
+  border-bottom: calc(var(--play-icon-size) / 2) solid transparent;
+  border-left: var(--play-icon-size) solid var(--color-white);
+  transform: translate(-35%, -50%);
+}
+
+.firefly-model-showcase .animation-controls .pause-play-wrapper[data-state='paused'] .offset-filler::after {
+  content: none;
+}
+
+
+
 
 @media screen and (min-width: 600px) {
   .firefly-model-showcase-gallery .gallery-column {
