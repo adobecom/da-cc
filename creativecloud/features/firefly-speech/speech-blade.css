@@ -4,6 +4,18 @@
   --speech-section-max-width: 640px;
 }
 
+.speech-blade-control-sr {
+  border: 0;
+  clip: rect(0, 0, 0, 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
 /* Mobile-first */
 .speech-blade {
   align-items: center;
@@ -31,14 +43,8 @@
     0 4px 4px 0 rgb(0 0 0 / 5%);
 }
 
-/* Full-card ring while keyboard focus is on the play button */
-.speech-blade:has(.speech-blade-control:focus-visible) {
-  border-color: var(--link-color);
-  border-radius: 25px;
-  outline: 2px solid #147af3;
-  outline-offset: 4px;
-}
-
+.speech-blade:has(.audio-play-btn:focus-visible),
+.speech-blade:focus-visible,
 .speech-blade[role="button"]:focus-visible {
   border-color: var(--link-color);
   border-radius: 25px;
@@ -46,29 +52,15 @@
   outline-offset: 4px;
 }
 
+.speech-blade .audio-play-btn:focus,
+.speech-blade .audio-play-btn:focus-visible {
+  outline: none;
+}
+
 .speech-blade:hover {
   background: var(--color-gray-100);
 }
 
-/* Single tab stop: transparent button covering the card */
-.speech-blade-control {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  inset: 0;
-  margin: 0;
-  padding: 0;
-  position: absolute;
-  z-index: 1;
-}
-
-.speech-blade-control:focus,
-.speech-blade-control:focus-visible {
-  box-shadow: none;
-  outline: none;
-}
-
-/* Decorative player: above overlay visually, clicks pass through to control */
 .speech-blade .audio-player {
   flex-shrink: 0;
   inset-inline-end: var(--spacing-xs);
@@ -82,15 +74,6 @@
 
 .speech-blade .audio-player .audio-play-btn {
   color: var(--color-black);
-}
-
-.speech-blade .audio-play-btn:hover {
-  opacity: 1;
-}
-
-.speech-blade .audio-play-btn:focus,
-.speech-blade .audio-play-btn:focus-visible {
-  outline: none;
 }
 
 .speech-blade:is(:hover, :focus-within, .selected, :has(.audio-play-btn.is-playing)) .audio-player {

@@ -4,12 +4,12 @@ loadStyle('/creativecloud/features/firefly-speech/speech-blade.css');
 
 const CLASSES = {
   BLADE: 'speech-blade',
-  CONTROL: 'speech-blade-control',
   BLADES: 'speech-blades',
   FLAG: 'speech-blade-flag',
   INFO: 'speech-blade-info',
   LANGUAGE: 'speech-blade-language',
   COUNTRY: 'speech-blade-country',
+  ACTION: 'speech-blade-action',
 };
 
 const SELECTORS = { AUDIO_PLAY_BTN: '.audio-play-btn' };
@@ -27,13 +27,14 @@ function formatBladeName(language = '', country = '') {
 function labelIds(bladeId) {
   const base = bladeId || 'speech-blade';
   return {
+    action: `${base}-action`,
     language: `${base}-language`,
     country: `${base}-country`,
   };
 }
 
 function buildBladeInfo({ language = '', country = '' }, ids) {
-  const info = createTag('div', { class: CLASSES.INFO });
+  const info = createTag('div', { class: CLASSES.INFO, 'aria-hidden': 'true' });
   info.append(
     createTag('span', { id: ids.language, class: CLASSES.LANGUAGE }, language),
     createTag('span', { id: ids.country, class: CLASSES.COUNTRY }, country),
@@ -42,9 +43,9 @@ function buildBladeInfo({ language = '', country = '' }, ids) {
 }
 
 function buildBladeFlag(flagPicture) {
-  const flagWrapper = createTag('div', { class: CLASSES.FLAG });
-  if (flagPicture) flagWrapper.appendChild(flagPicture.cloneNode(true));
-  return flagWrapper;
+  const flag = createTag('div', { class: CLASSES.FLAG });
+  if (flagPicture) flag.appendChild(flagPicture.cloneNode(true));
+  return flag;
 }
 
 function observeBlade(blade, audioSrc) {
@@ -57,25 +58,24 @@ function observeBlade(blade, audioSrc) {
   observer.observe(blade);
 }
 
-function bindBladeA11y(controlBtn, playBtn, audioEl, language, country) {
+function bindBladeA11y(playBtn, audioEl, ids) {
+  const actionLabel = createTag('span', { id: ids.action, class: 'speech-blade-control-sr' }, 'Play');
+  playBtn.prepend(actionLabel);
+  playBtn.setAttribute('aria-labelledby', `${ids.action} ${ids.language} ${ids.country}`);
+
   const sync = () => {
     const playing = !audioEl.paused && !audioEl.ended;
-    const name = formatBladeName(language, country);
-    controlBtn.setAttribute('aria-label', `${playing ? 'Pause' : 'Play'} ${name}`);
-    controlBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
+    actionLabel.textContent = playing ? 'Pause' : 'Play';
+    playBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
     playBtn.removeAttribute('aria-label');
     playBtn.removeAttribute('title');
-    playBtn.removeAttribute('aria-labelledby');
   };
 
   sync();
   audioEl.addEventListener('play', sync);
   audioEl.addEventListener('pause', sync);
   audioEl.addEventListener('ended', sync);
-  controlBtn.addEventListener('click', () => {
-    playBtn.click();
-    queueMicrotask(sync);
-  });
+  playBtn.addEventListener('click', () => queueMicrotask(sync));
 }
 
 export function createSpeechBlade(config, callbacks = {}) {
@@ -89,17 +89,10 @@ export function createSpeechBlade(config, callbacks = {}) {
 
   if (config.audioSrc) {
     blade.appendChild(config.audioSrc);
-    config.audioSrc.setAttribute('aria-hidden', 'true');
     observeBlade(blade, config.audioSrc);
     const playBtn = config.audioSrc.querySelector(SELECTORS.AUDIO_PLAY_BTN);
     const audioEl = config.audioSrc.querySelector('audio');
-    if (playBtn && audioEl) {
-      playBtn.setAttribute('tabindex', '-1');
-      playBtn.setAttribute('aria-hidden', 'true');
-      const controlBtn = createTag('button', { type: 'button', class: CLASSES.CONTROL });
-      blade.append(controlBtn);
-      bindBladeA11y(controlBtn, playBtn, audioEl, config.language, config.country);
-    }
+    if (playBtn && audioEl) bindBladeA11y(playBtn, audioEl, ids);
   } else {
     blade.setAttribute('tabindex', '0');
     blade.setAttribute('role', 'button');
@@ -114,7 +107,7 @@ export function createSpeechBlade(config, callbacks = {}) {
   });
 
   blade.addEventListener('click', (e) => {
-    if (config.audioSrc && !config.audioSrc.contains(e.target) && !e.target.closest(`.${CLASSES.CONTROL}`)) {
+    if (config.audioSrc && !config.audioSrc.contains(e.target)) {
       config.audioSrc.querySelector(SELECTORS.AUDIO_PLAY_BTN)?.click();
     }
     if (callbacks.onSelect) callbacks.onSelect(config.id, blade);
