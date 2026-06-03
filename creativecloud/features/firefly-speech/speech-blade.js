@@ -9,7 +9,6 @@ const CLASSES = {
   INFO: 'speech-blade-info',
   LANGUAGE: 'speech-blade-language',
   COUNTRY: 'speech-blade-country',
-  ACTION: 'speech-blade-action',
 };
 
 const SELECTORS = { AUDIO_PLAY_BTN: '.audio-play-btn' };
