@@ -181,7 +181,9 @@ function createAnimationControls({ container, getFederatedContentRoot, logoConta
 function getAuthorLogoLabel(logo) {
   const container = logo.closest('p, li, div');
   if (!container) return '';
-  const labels = [...(container.textContent || '').matchAll(/\|\s*([^|]+)/g)].map((m) => m[1].trim());
+  // Authoring for loc: ":ff-logo-google: | [Google]"
+  const labels = [...(container.textContent || '').matchAll(/\|\s*\[([^\]]+)\]/g)]
+    .map((m) => m[1].trim());
   const idx = [...container.querySelectorAll('span.icon')].indexOf(logo);
   return labels[idx] || '';
 }
