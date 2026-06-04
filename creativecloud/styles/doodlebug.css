@@ -3,6 +3,7 @@
     --xl-rounded-corners: 20px;
     --glass-border: 3px solid rgba(255 255 255 / 30%);
     --content-margin: 6.51%;
+    --color-accent-focus-ring: #1473e6;
 
     @media (min-width: 600px) {
         --xl-rounded-corners: 32px;
@@ -37,6 +38,13 @@
 
     .accordion .descr-term button[aria-expanded="true"]::before {
         content: none;
+    }
+
+    .accordion .descr-term button:focus-visible {
+        position: relative;
+        outline: 2px solid var(--color-accent-focus-ring, #1473e6);
+        outline-offset: 1px;
+        z-index: 1;
     }
 
     @media (max-width: 1199px) {
