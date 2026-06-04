@@ -245,7 +245,6 @@ function showDecryptSignInMessage() {
     link.className = 'tc-signin-link';
     link.textContent = 'Sign in';
     link.addEventListener('click', async () => {
-      try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
       await ensureImsLoaded();
       window.adobeIMS?.signIn?.({ redirect_uri: window.location.href });
     });
@@ -293,7 +292,6 @@ async function decryptPageSignOutAndPromptSignIn() {
   } catch (_) { /* ignore */ }
   clearTrustCenterSessionKeys();
   resetDecryptFieldHint();
-  try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
   await ensureImsLoaded();
   window.adobeIMS?.signIn?.(imsSignInOptions());
 }
@@ -384,7 +382,6 @@ function initTrustCenterCrossTabAndSession() {
 }
 
 async function redirectToSignInAfterNonAdobe() {
-  try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
   broadcastUtilitySignOut();
   await ensureImsLoaded();
   const ims = window.adobeIMS;
@@ -545,7 +542,6 @@ async function initDecryptImsGate() {
   const ims = window.adobeIMS;
   const token = ims?.getAccessToken?.()?.token;
   if (!token) {
-    try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
     let signInOpts = { redirect_uri: window.location.href };
     try {
       if (sessionStorage.getItem(SESSION_PEER_TAB_FRESH_IMS_KEY) === '1') {
@@ -575,13 +571,11 @@ async function getDecryptBearerToken() {
     await ensureImsLoaded();
     const ims = window.adobeIMS;
     if (typeof ims?.isSignedInUser !== 'function' || !ims.isSignedInUser()) {
-      try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
       ims?.signIn?.({ redirect_uri: window.location.href });
       throw new Error(ERR_SIGN_IN);
     }
     const token = ims.getAccessToken()?.token;
     if (!token) {
-      try { sessionStorage.setItem('trustcenter:returnTo', window.location.href); } catch (_) { /* ignore */ }
       ims.signIn?.({ redirect_uri: window.location.href });
       throw new Error(ERR_SIGN_IN);
     }
@@ -695,20 +689,6 @@ function onSubmitButtonAdded(node) {
   });
 }
 
-function initTabs() {
-  const tabs = document.querySelectorAll('.tc-tab');
-  tabs.forEach((tab) => {
-    tab.addEventListener('click', () => {
-      tabs.forEach((t) => {
-        t.classList.remove('active');
-        t.setAttribute('aria-selected', 'false');
-      });
-      tab.classList.add('active');
-      tab.setAttribute('aria-selected', 'true');
-    });
-  });
-}
-
 function onDecryptButtonAdded(node) {
   node.addEventListener('click', async (e) => {
     const formComponents = node.closest('.form-components');
@@ -755,6 +735,5 @@ function onDecryptButtonAdded(node) {
   } else {
     ensureImsLoaded().catch(() => {});
   }
-  initTabs();
   initCopyButtons();
 }());
