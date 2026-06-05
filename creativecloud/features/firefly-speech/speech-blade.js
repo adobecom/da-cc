@@ -60,14 +60,21 @@ function observeBlade(blade, audioSrc) {
 function bindBladeA11y(playBtn, audioEl, ids) {
   const actionLabel = createTag('span', { id: ids.action, class: 'speech-blade-control-sr' }, 'Play');
   playBtn.prepend(actionLabel);
-  playBtn.setAttribute('aria-labelledby', `${ids.action} ${ids.language} ${ids.country}`);
+  const labelledBy = `${ids.action} ${ids.language} ${ids.country}`;
 
   const sync = () => {
     const playing = !audioEl.paused && !audioEl.ended;
     actionLabel.textContent = playing ? 'Pause' : 'Play';
     playBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
-    playBtn.removeAttribute('aria-label');
     playBtn.removeAttribute('title');
+
+    if (playing) {
+      playBtn.setAttribute('aria-label', 'Pause');
+      playBtn.removeAttribute('aria-labelledby');
+    } else {
+      playBtn.setAttribute('aria-labelledby', labelledBy);
+      playBtn.removeAttribute('aria-label');
+    }
   };
 
   sync();
