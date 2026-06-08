@@ -184,7 +184,9 @@ function getAuthorLogoLabel(logo) {
   // Authoring for loc: ":ff-logo-google: | [Google]"
   const labels = [...(container.textContent || '').matchAll(/\|\s*\[([^\]]+)\]/g)]
     .map((m) => m[1].trim());
-  const idx = [...container.querySelectorAll('span.icon')].indexOf(logo);
+  const icons = container.querySelectorAll('span.icon');
+  if (labels.length !== icons.length) return '';
+  const idx = [...icons].indexOf(logo);
   return labels[idx] || '';
 }
 
@@ -225,8 +227,12 @@ export default async function init(el) {
 
   const authoredLabels = logoLabels.filter(Boolean);
   if (authoredLabels.length > 0) {
-    const list = createTag('ul', { class: 'logo-row-sr-list' });
-    authoredLabels.forEach((label) => list.append(createTag('li', {}, label)));
+    const list = createTag('ul', { class: 'sr-only logo-row-sr-list', role: 'list' });
+    authoredLabels.forEach((label) => {
+      const li = createTag('li');
+      li.textContent = label;
+      list.append(li);
+    });
     logoRowContent.append(list);
   }
 
