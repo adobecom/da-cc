@@ -1,6 +1,8 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
+  <title>Decrypt URL - Adobe Trust Center</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="robots" content="noindex, nofollow">
   <meta name="footer" content="off">
@@ -9,9 +11,10 @@
   <meta name="martech" content="off">
   <meta name="georouting" content="off">
   <style>
-    body {
-      display: none;
-    }
+    body { opacity: 0; }
+    @keyframes reveal { to { opacity: 1; } }
+    body { animation: reveal 0s 3s forwards; }
+    body.ready { animation: none; opacity: 1; }
   </style>
   <script src="/tools/trustcenter/js/utils.js" type="module"></script>
   <script type="module">
@@ -25,6 +28,10 @@
 </head>
 
 <body>
+  <noscript>
+    <style>body { opacity: 1 !important; animation: none !important; }</style>
+    <p>JavaScript is required to use this tool.</p>
+  </noscript>
   <main daa-im="true">
     <div>
       <div class="text center xxl-spacing l-title xxl-heading s-body dark">
@@ -43,7 +50,7 @@
         </div>
       </div>
     </div>
-    <div>
+    <div class="tc-form-section">
       <div class="content">
         <div class="tc-tool-plain" role="region" aria-labelledby="decrypt-the-asset-link">
           <div class="cc-forms default spacing-m">
@@ -58,16 +65,20 @@
                   required="required" data-required="required" placeholder="Enter the protected link*">
               </div>
               <div class="form-item">
-                <a href="#" class="con-button blue button-l cc-form-component submit decrypt-link"
+                <a href="#" class="tc-submit-btn cc-form-component submit decrypt-link"
                   id="decrypt-link" daa-ll="Decrypt Link-1--" data-http-link="true">Generate Decrypted Link</a>
               </div>
               <div class="form-item">
                 <div class="tc-output">
                   <textarea name="decrypted-url" id="decrypted-url" rows="10"
                     placeholder="Decrypted URL will appear here..." readonly></textarea>
-                  <button type="button" class="tc-copy-btn" data-copy-target="decrypted-url" aria-label="Copy decrypted URL" title="Copy">
-                    <svg xmlns="http://www.w3.org/2000/svg" height="18" viewBox="0 0 18 18" width="18" focusable="false" aria-hidden="true"><rect height="1" rx="0.25" width="1" x="16" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="9" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="7" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="5" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="3" class="fill"/><rect height="1" rx="0.25" width="1" x="16" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="14" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="12" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="10" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="8" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="1" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="3" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="5" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="7" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="9" class="fill"/><rect height="1" rx="0.25" width="1" x="6" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="8" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="10" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="12" y="11" class="fill"/><rect height="1" rx="0.25" width="1" x="14" y="11" class="fill"/><path d="M5,6H1.5a.5.5,0,0,0-.5.5v10a.5.5,0,0,0,.5.5h10a.5.5,0,0,0,.5-.5V13H5.5a.5.5,0,0,1-.5-.5Z" class="fill"/></svg>
-                  </button>
+                  <button type="button" class="tc-copy-btn" data-copy-target="decrypted-url" aria-label="Copy decrypted URL" title="Copy"></button>
+                  <div class="tc-signin-msg" hidden>
+                    <span class="tc-signin-msg-inner">
+                      <button type="button" class="tc-signin-link" id="decrypt-signin-btn">Sign in</button>
+                      <span class="tc-signin-msg-rest"> with your Adobe account to use decryption.</span>
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
