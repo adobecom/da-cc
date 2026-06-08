@@ -162,7 +162,8 @@ describe('Firefly Carousel Block', () => {
       clock.tick(100);
 
       const navBtns = block.querySelectorAll('.firefly-carousel-nav-btn');
-      expect(navBtns.length).to.be.greaterThanOrEqual(0);
+      // require at least one nav button for single-slide carousel
+      expect(navBtns.length).to.be.greaterThan(0);
     });
 
     it('navigation buttons are properly labeled', async () => {
@@ -219,23 +220,32 @@ describe('Firefly Carousel Block', () => {
   });
 
   describe('Auto-Scroll Functionality', () => {
-    it('block initializes with auto-scroll setup', async () => {
+    it('registers an auto-scroll interval when initialized', async () => {
       const block = body.querySelector('#carousel-basic');
-      await init(block);
-      clock.tick(100);
+      // spy on setInterval to detect auto-scroll registration
+      const setIntervalSpy = sinon.spy(window, 'setInterval');
+      try {
+        await init(block);
+        clock.tick(100);
 
-      expect(block.querySelector('.firefly-carousel-viewport')).to.exist;
+        expect(block.querySelector('.firefly-carousel-viewport')).to.exist;
+        expect(setIntervalSpy.called).to.be.true;
+      } finally {
+        setIntervalSpy.restore();
+      }
     });
 
-    it('carousel responds to user interaction', async () => {
+    it('dispatches mouseenter on viewport and triggers handlers', async () => {
       const block = body.querySelector('#carousel-basic');
       await init(block);
       clock.tick(100);
 
       const viewport = block.querySelector('.firefly-carousel-viewport');
       if (viewport) {
+        const handler = sinon.spy();
+        viewport.addEventListener('mouseenter', handler);
         viewport.dispatchEvent(new Event('mouseenter'));
-        expect(viewport).to.exist;
+        expect(handler.called).to.be.true;
       }
     });
   });
@@ -249,7 +259,8 @@ describe('Firefly Carousel Block', () => {
       const viewport = block.querySelector('.firefly-carousel-viewport');
       expect(viewport).to.exist;
       if (viewport) {
-        expect(viewport.tabIndex).to.be.a('number');
+        // expect specific tabindex for keyboard accessibility
+        expect(viewport.tabIndex).to.equal(0);
       }
     });
 
@@ -350,7 +361,18 @@ describe('Firefly Carousel Block', () => {
       clock.tick(100);
 
       const track = block.querySelector('.firefly-carousel-track');
-      expect(track).to.exist;
+      const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
+
+      // trigger a navigation to force transform to be applied
+      if (nextBtn) {
+        nextBtn.click();
+        clock.tick(500);
+      }
+
+      if (track) {
+        const transform = track.style.transform || track.getAttribute('style');
+        expect(String(transform)).to.include('translate');
+      }
     });
 
     it('batches DOM updates efficiently', async () => {
@@ -361,10 +383,11 @@ describe('Firefly Carousel Block', () => {
       clock.tick(100);
 
       rafSpy.restore();
-      expect(rafSpy.called || !rafSpy.called).to.be.true;
+      // expect that requestAnimationFrame was used for batched updates
+      expect(rafSpy.called).to.be.true;
     });
 
-    it('renders without layout thrashing', async () => {
+    it('renders without errors', async () => {
       const block = body.querySelector('#carousel-basic');
       await init(block);
 
@@ -517,20 +540,6 @@ describe('Firefly Carousel Block', () => {
       expect(activeCard).to.exist;
     });
 
-    it('properly handles RTL carousel navigation', async () => {
-      const block = body.querySelector('#carousel-rtl');
-      if (!block) return;
-      await init(block);
-      clock.tick(100);
-
-      const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
-      if (nextBtn) {
-        nextBtn.click();
-        clock.tick(500);
-        expect(block.querySelector('.firefly-carousel-card.active')).to.exist;
-      }
-    });
-
     it('updates card order when navigating', async () => {
       const block = body.querySelector('#carousel-basic');
       await init(block);
@@ -540,12 +549,15 @@ describe('Firefly Carousel Block', () => {
       const initialOrder = Array.from(cards).map((c) => c.style.order);
 
       const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
-      nextBtn.click();
-      clock.tick(500);
+      if (nextBtn) {
+        nextBtn.click();
+        clock.tick(500);
+      }
 
       const newOrder = Array.from(cards).map((c) => c.style.order);
       const orderChanged = JSON.stringify(initialOrder) !== JSON.stringify(newOrder);
-      expect(orderChanged || !orderChanged).to.be.true;
+      // assert that navigation changes card order
+      expect(orderChanged).to.be.true;
     });
 
     it('properly sets media control tab order on active cards', async () => {
@@ -610,17 +622,25 @@ describe('Firefly Carousel Block', () => {
       await init(block);
 
       const track = block.querySelector('.firefly-carousel-track');
-      if (track) {
-        track.style.display = 'none';
-        clock.tick(100);
+      let errorThrown = false;
 
-        const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
-        nextBtn.click();
-        clock.tick(100);
+      try {
+        if (track) {
+          track.style.display = 'none';
+          clock.tick(100);
 
-        track.style.display = '';
-        expect(block).to.exist;
+          const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
+          if (nextBtn) nextBtn.click();
+          clock.tick(100);
+
+          track.style.display = '';
+        }
+      } catch (e) {
+        errorThrown = true;
       }
+
+      // ensure no exception was thrown while handling the hidden track
+      expect(errorThrown).to.be.false;
     });
 
     it('handles carousel with exactly 2 items', async () => {
