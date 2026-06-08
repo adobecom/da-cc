@@ -150,50 +150,77 @@ describe('firefly-share block', () => {
       const li = copyButton.closest('li');
       const live = block.querySelector('.aria-live-container');
 
+      // Non-Escape keydown should be a no-op
       copyButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+
+      // Escape should hide tooltip
       copyButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+      expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
+
+      // Focus should show tooltip
       copyButton.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
+      expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.false;
+
+      // Blur should hide tooltip
       copyButton.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+      expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
+
+      // Mouseenter on li should show tooltip
       li.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+      expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.false;
+
+      // Mouseleave should hide tooltip
       li.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
+      expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
 
       const writeTextStub = sinon.stub(navigator.clipboard, 'writeText').resolves();
       const clock = sinon.useFakeTimers();
 
-      copyButton.click();
-      await Promise.resolve();
-      expect(copyButton.classList.contains('copy-to-clipboard-copied')).to.be.true;
-      expect(live.textContent.length).to.be.at.least(1);
+      try {
+        copyButton.click();
+        await Promise.resolve();
+        expect(copyButton.classList.contains('copy-to-clipboard-copied')).to.be.true;
+        expect(live.textContent.length).to.be.at.least(1);
 
-      clock.tick(2000);
-      expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
-
-      clock.restore();
-      writeTextStub.restore();
+        clock.tick(2000);
+        expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
+      } finally {
+        clock.restore();
+        writeTextStub.restore();
+      }
     });
 
-    it('covers heading levels, inline, authored, and manual platform rows', async () => {
-      const openStub = sinon.stub(window, 'open');
-
+    it('sets aria-level from previous h3', async () => {
       const afterH3 = document.querySelector('#share-after-h3');
       await decorate(afterH3);
       expect(afterH3.querySelector('[role="heading"]').getAttribute('aria-level')).to.equal('3');
+    });
 
+    it('removes first row when block has inline class', async () => {
       const inline = document.querySelector('#share-inline');
       await decorate(inline);
       expect(inline.querySelector(':scope > div')).to.be.null;
+    });
 
+    it('uses authored text as heading when provided', async () => {
       const authored = document.querySelector('#share-authored');
       await decorate(authored);
       expect(authored.querySelector('.tracking-header [role="heading"]').textContent.trim()).to.equal('Custom heading');
+    });
 
-      const manual = document.querySelector('#share-manual');
-      await decorate(manual);
-      const shareAnchors = manual.querySelectorAll('a[target="_blank"]');
-      expect(shareAnchors.length).to.equal(2);
-      shareAnchors[0].click();
-      expect(openStub.calledOnce).to.be.true;
-      openStub.restore();
+    it('generates share links from manual anchor elements', async () => {
+      const openStub = sinon.stub(window, 'open');
+
+      try {
+        const manual = document.querySelector('#share-manual');
+        await decorate(manual);
+        const shareAnchors = manual.querySelectorAll('a[target="_blank"]');
+        expect(shareAnchors.length).to.equal(2);
+        shareAnchors[0].click();
+        expect(openStub.calledOnce).to.be.true;
+      } finally {
+        openStub.restore();
+      }
     });
 
     it('returns early when SVG fetch fails', async () => {
@@ -235,7 +262,8 @@ describe('firefly-share block', () => {
           }
         });
         expect(pinterest).to.exist;
-        expect(pinterest.href).to.include(encodeURIComponent(document.defaultView.location.href));
+        const pUrl = new URL(pinterest.href);
+        expect(pUrl.searchParams.get('description')).to.equal(window.location.href);
         block.remove();
       } finally {
         if (desc) {
@@ -249,18 +277,22 @@ describe('firefly-share block', () => {
     it('omits clipboard when navigator.clipboard is unavailable', async () => {
       const prev = navigator.clipboard;
       Object.defineProperty(navigator, 'clipboard', { value: undefined, configurable: true });
-      const block = document.createElement('div');
-      block.innerHTML = '<div></div>';
-      document.body.appendChild(block);
-      await decorate(block);
-      expect(block.querySelector('button.copy-to-clipboard')).to.be.null;
-      block.remove();
-      if (prev !== undefined) {
-        Object.defineProperty(navigator, 'clipboard', { value: prev, configurable: true });
-      } else {
-        delete navigator.clipboard;
+
+      try {
+        const block = document.createElement('div');
+        block.innerHTML = '<div></div>';
+        document.body.appendChild(block);
+        await decorate(block);
+        expect(block.querySelector('button.copy-to-clipboard')).to.be.null;
+        block.remove();
+      } finally {
+        if (prev !== undefined) {
+          Object.defineProperty(navigator, 'clipboard', { value: prev, configurable: true });
+        } else {
+          delete navigator.clipboard;
+        }
+        ensureClipboard();
       }
-      ensureClipboard();
     });
   });
 });
