@@ -5,7 +5,8 @@ const { createTag } = await import(`${miloLibs}/utils/utils.js`);
 
 const LANA_OPTIONS = {
   tags: 'showcase-marquee',
-  severity: 'warning',
+  errorType: 'i',
+  severity: 'error',
 };
 
 const PLACEHOLDER_LABELS = ['pause-motion', 'play-motion', 'pause-icon', 'play-icon'];

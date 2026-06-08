@@ -2,6 +2,7 @@ import { createTag } from '../../scripts/utils.js';
 
 const LANA_OPTIONS = {
   tags: 'audio',
+  errorType: 'i',
   severity: 'error',
 };
 

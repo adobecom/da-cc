@@ -6,6 +6,7 @@ const CONFIG = { CLICK_DRAG_THRESHOLD: 5 };
 
 const LANA_OPTIONS = {
   tags: 'firefly-howto',
+  errorType: 'i',
   severity: 'error',
 };
 
