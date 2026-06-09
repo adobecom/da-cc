@@ -10,7 +10,7 @@ const ICON_PLAY = '<svg width="40" height="40" viewBox="0 0 40 40" fill="none" x
 const LANA_OPTIONS = {
   tags: 'firefly-gallery',
   errorType: 'i',
-  severity: 'warning',
+  severity: 'error',
 };
 
 // Item type thresholds for categorization

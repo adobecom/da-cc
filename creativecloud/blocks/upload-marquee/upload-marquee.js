@@ -92,7 +92,7 @@ function setUploadRowMediaPriority(uploadRow) {
 }
 
 function logUploadMarqueeInfo(message, errorType = 'i') {
-  window.lana?.log(message, { tags: 'upload-marquee', errorType });
+  window.lana?.log(message, { tags: 'upload-marquee', errorType, severity: 'error' });
 }
 
 function nextUploadColumnId() {

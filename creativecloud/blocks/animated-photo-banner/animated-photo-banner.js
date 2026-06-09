@@ -30,7 +30,7 @@ const CONFIG = {
 const LANA_OPTIONS = {
   tags: 'animated-photo-banner',
   errorType: 'i',
-  severity: 'warning',
+  severity: 'error',
 };
 const DETECTED_VIEWPORT = getScreenSizeCategory({ mobile: 599, tablet: 1199 });
 
