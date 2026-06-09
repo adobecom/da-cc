@@ -496,10 +496,10 @@ export const scriptInit = async () => {
   decorateArea();
   (function loadStyles() {
     const paths = [];
-    const stylesPrefix = getCustomMetadata('foundation') === 'c2' ? '/c2' : '';
+    const stylesPrefix = getMetadata('foundation') === 'c2' ? '/c2' : '';
     paths.push(`${miloLibs}${stylesPrefix}/styles/styles.css`);
     if (getMetadata('theme') === 'doodlebug') paths.push('/creativecloud/styles/doodlebug.css');
-    const skin = getCustomMetadata('skin');
+    const skin = getMetadata('skin');
     if (skin) paths.push(`${miloLibs}/styles/skins/${skin}.css`);
     paths.forEach((path) => {
       const link = document.createElement('link');
