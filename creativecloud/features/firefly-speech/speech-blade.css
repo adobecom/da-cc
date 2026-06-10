@@ -4,18 +4,6 @@
   --speech-section-max-width: 640px;
 }
 
-.speech-blade-control-sr {
-  border: 0;
-  clip: rect(0, 0, 0, 0);
-  height: 1px;
-  margin: -1px;
-  overflow: hidden;
-  padding: 0;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
-}
-
 /* Mobile-first */
 .speech-blade {
   align-items: center;
@@ -44,8 +32,7 @@
 }
 
 .speech-blade:has(.audio-play-btn:focus-visible),
-.speech-blade:focus-visible,
-.speech-blade[role="button"]:focus-visible {
+.speech-blade:focus-visible {
   border-color: var(--link-color);
   border-radius: 25px;
   outline: 2px solid #147af3;

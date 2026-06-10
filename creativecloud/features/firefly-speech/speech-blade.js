@@ -58,8 +58,9 @@ function observeBlade(blade, audioSrc) {
 }
 
 function bindBladeA11y(playBtn, audioEl, ids) {
-  const actionLabel = createTag('span', { id: ids.action, class: 'speech-blade-control-sr' }, 'Play');
+  const actionLabel = createTag('span', { id: ids.action, class: 'sr-only' }, 'Play');
   playBtn.prepend(actionLabel);
+  playBtn.dataset.bladeControlled = 'true';
   const labelledBy = `${ids.action} ${ids.language} ${ids.country}`;
 
   const sync = () => {
@@ -81,7 +82,6 @@ function bindBladeA11y(playBtn, audioEl, ids) {
   audioEl.addEventListener('play', sync);
   audioEl.addEventListener('pause', sync);
   audioEl.addEventListener('ended', sync);
-  playBtn.addEventListener('click', () => queueMicrotask(sync));
 }
 
 export function createSpeechBlade(config, callbacks = {}) {
