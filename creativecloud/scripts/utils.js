@@ -501,8 +501,12 @@ export const scriptInit = async () => {
   if (isSignedInHomepage) acomsisCookieHandler();
   decorateArea();
   (function loadStyles() {
-    const paths = [`${miloLibs}/styles/styles.css`];
+    const paths = [];
+    const stylesPrefix = getMetadata('foundation') === 'c2' ? '/c2' : '';
+    paths.push(`${miloLibs}${stylesPrefix}/styles/styles.css`);
     if (getMetadata('theme') === 'doodlebug') paths.push('/creativecloud/styles/doodlebug.css');
+    const skin = getMetadata('skin');
+    if (skin) paths.push(`${miloLibs}/styles/skins/${skin}.css`);
     paths.forEach((path) => {
       const link = document.createElement('link');
       link.setAttribute('rel', 'stylesheet');
