@@ -107,6 +107,7 @@
   cursor: pointer;
   background-color: var(--color-white);
   margin: 0;
+  border: none;
 }
 
 .showcase-marquee .animation-controls .pause-play-wrapper .offset-filler {  
@@ -129,7 +130,7 @@
 }
 
 .showcase-marquee .logo-row {
-    opacity: .3;
+    /* opacity: .3; */
     position: absolute;
     bottom: 0;
     left: 0;
@@ -143,6 +144,7 @@
   gap: var(--logos-gap);
   animation: scroll-left 60s linear infinite;
   width: max-content;
+  opacity: .3;
 }
 
 [dir="rtl"] .showcase-marquee .logo-row .logo-container {
