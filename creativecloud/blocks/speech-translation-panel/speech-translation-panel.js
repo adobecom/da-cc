@@ -9,7 +9,7 @@ function parseBlades(el) {
     const audioLink = columns[3]?.querySelector('.audio-player') || null;
 
     return {
-      id: `blade-${index}`,
+      id: `speech-panel-blade-${index}`,
       language,
       country,
       flagPicture: flagImg,
