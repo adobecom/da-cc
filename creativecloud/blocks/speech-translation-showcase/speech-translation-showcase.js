@@ -102,9 +102,13 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
   audioToVideo.set(audioEl, videoEl);
   const container = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
   if (container) {
-    container.addEventListener('click', () => {
+    const markPlay = () => {
       videoEl.removeAttribute(USER_PAUSED_ATTR);
       activeVideoEl = videoEl;
+    };
+    container.addEventListener('click', markPlay, true);
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') markPlay();
     }, true);
   }
 
