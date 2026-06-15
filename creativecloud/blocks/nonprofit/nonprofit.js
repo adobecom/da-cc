@@ -8,6 +8,12 @@ import { countries, PRODUCT_VALIDATION_CONFIG } from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
 
+const LANA_OPTIONS = {
+  tags: 'nonprofit',
+  errorType: 'i',
+  severity: 'error',
+};
+
 const miloLibs = setLibs('/libs');
 const { createTag, getConfig } = await import(`${miloLibs}/utils/utils.js`);
 
@@ -84,12 +90,12 @@ async function fetchOrganizations(search, countryCode, abortController) {
 
     if (!result._links) {
       nextOrganizationsPageUrl = null;
-      window.lana?.log('No next organization page link provided.');
+      window.lana?.log('No next organization page link provided.', LANA_OPTIONS);
     } else nextOrganizationsPageUrl = result._links.next || null;
     organizationsStore.update(result.data);
   } catch (error) {
     organizationsStore.update((prev) => prev);
-    window.lana?.log(`Could not fetch organizations: ${error}`);
+    window.lana?.log(`Could not fetch organizations: ${error}`, LANA_OPTIONS);
   }
 }
 
@@ -109,7 +115,7 @@ async function fetchNextOrganizations(abortController) {
     organizationsStore.update((prev) => [...prev, ...result.data]);
   } catch (error) {
     organizationsStore.update((prev) => prev);
-    window.lana?.log(`Could not fetch next organizations: ${error}`);
+    window.lana?.log(`Could not fetch next organizations: ${error}`, LANA_OPTIONS);
   }
 }
 
@@ -127,7 +133,7 @@ async function fetchRegistries(countryCode, abortController) {
     registriesStore.update(result.data);
   } catch (error) {
     registriesStore.update((prev) => prev);
-    window.lana?.log(`Could not fetch registries: ${error}`);
+    window.lana?.log(`Could not fetch registries: ${error}`, LANA_OPTIONS);
   }
 }
 
@@ -204,7 +210,7 @@ async function sendOrganizationData(product) {
 
     return true;
   } catch (error) {
-    window.lana?.log(`Could not send organization data: ${error}`);
+    window.lana?.log(`Could not send organization data: ${error}`, LANA_OPTIONS);
     return false;
   }
 }

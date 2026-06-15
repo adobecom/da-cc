@@ -79,7 +79,7 @@ const isIOSDevice = () => {
 };
 
 const logError = (message) => {
-  window.lana?.log(message, { tags: 'prm-yt-gallery' });
+  window.lana?.log(message, { tags: 'prm-yt-gallery', errorType: 'i', severity: 'error' });
 };
 
 const trackEvent = (eventName) => {
