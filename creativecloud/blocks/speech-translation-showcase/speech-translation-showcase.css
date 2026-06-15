@@ -113,7 +113,7 @@
 /* Desktop */
 @media screen and (min-width: 1200px) {
   .speech-showcase .foreground {
-    gap: 165px;
+    --speech-showcase-vertical-spacing: 137px;
   }
 
   .speech-showcase .foreground .speech-showcase-blades {

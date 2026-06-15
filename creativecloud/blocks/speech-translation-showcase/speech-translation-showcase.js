@@ -2,8 +2,16 @@ import { createTag } from '../../scripts/utils.js';
 import { EVT } from '../audio/audio.js';
 import initSpeechBlades from '../../features/firefly-speech/speech-blade.js';
 
-const LANA_AUDIO = { errorType: 'i', tags: 'speech-audio' };
-const LANA_VIDEO = { errorType: 'i', tags: 'speech-video' };
+const LANA_AUDIO = {
+  errorType: 'i',
+  tags: 'speech-audio',
+  severity: 'error',
+};
+const LANA_VIDEO = {
+  errorType: 'i',
+  tags: 'speech-video',
+  severity: 'error',
+};
 const MEDIA_SELECTOR = 'picture, .video-container.video-holder, video';
 const USER_PAUSED_ATTR = 'data-user-paused';
 
@@ -16,11 +24,19 @@ function getVideoEl(mediaEl) {
   return mediaEl.querySelector('video');
 }
 
+function syncVideoDaaLl(host, label) {
+  const wrapper = host?.querySelector('.pause-play-wrapper');
+  const ll = wrapper?.getAttribute('daa-ll');
+  if (!ll) return;
+  wrapper.setAttribute('daa-ll', ll.replace(/\b(?:play|pause)\b/gi, label));
+}
+
 function syncVideoChrome(videoEl, isPlaying) {
   const host = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
   if (!host) return;
   host.querySelector('.offset-filler')?.classList.toggle('is-playing', isPlaying);
   host.querySelector('.pause-play-wrapper')?.setAttribute('aria-pressed', String(isPlaying));
+  syncVideoDaaLl(host, isPlaying ? 'Pause' : 'Play');
 }
 
 const canplayGuarded = new WeakSet();
@@ -30,6 +46,7 @@ function guardCanplay(videoEl) {
   videoEl.addEventListener('canplay', () => {
     canplayGuarded.delete(videoEl);
     if (videoEl.hasAttribute(USER_PAUSED_ATTR)) videoEl.pause();
+    syncVideoChrome(videoEl, !videoEl.paused && !videoEl.ended);
   }, { once: true });
 }
 
@@ -111,6 +128,7 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
       if (e.key === 'Enter' || e.key === ' ') markPlay();
     }, true);
   }
+  syncVideoChrome(videoEl, false);
 
   videoEl.addEventListener('pause', () => {
     syncVideoChrome(videoEl, false);
@@ -122,6 +140,7 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
     if (!audioEl.paused) return;
     audioEl.play().catch((err) => window.lana?.log(`Audio play failed: ${err}`, LANA_AUDIO));
   });
+  videoEl.addEventListener('ended', () => syncVideoChrome(videoEl, false));
 }
 
 function parseShowcaseItems(el) {

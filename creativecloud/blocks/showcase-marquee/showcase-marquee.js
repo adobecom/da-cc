@@ -3,7 +3,11 @@ import { getLibs } from '../../scripts/utils.js';
 const miloLibs = getLibs('/libs');
 const { createTag } = await import(`${miloLibs}/utils/utils.js`);
 
-const LANA_OPTIONS = { tags: 'showcase-marquee', errorType: 'i' };
+const LANA_OPTIONS = {
+  tags: 'showcase-marquee',
+  errorType: 'i',
+  severity: 'error',
+};
 
 const PLACEHOLDER_LABELS = ['pause-motion', 'play-motion', 'pause-icon', 'play-icon'];
 

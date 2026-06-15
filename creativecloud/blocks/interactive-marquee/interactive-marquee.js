@@ -1,5 +1,11 @@
 import { getLibs } from '../../scripts/utils.js';
 
+const LANA_OPTIONS = {
+  tags: 'interactive-marquee',
+  errorType: 'i',
+  severity: 'error',
+};
+
 // [headingSize, bodySize, detailSize, titlesize]
 const typeSizes = ['xxl', 'xl', 'l', 'xs'];
 
@@ -108,7 +114,7 @@ export default async function init(el) {
         const { default: setMultiImageMarquee } = await import('../../features/firefly/firefly-masonry.js');
         await setMultiImageMarquee(el);
       } catch (err) {
-        window.lana?.log(`Failed to load firefly masonry: ${err}`);
+        window.lana?.log(`Failed to load firefly masonry: ${err}`, LANA_OPTIONS);
       }
       break;
     }
