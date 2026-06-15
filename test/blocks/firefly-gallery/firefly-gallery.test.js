@@ -315,6 +315,33 @@ describe('Firefly Gallery', () => {
 
       expect(galleryEl.querySelector('.firefly-gallery-masonry-grid')).to.exist;
     });
+
+    it('should log severity when API fails', async () => {
+      const galleryEl = document.createElement('div');
+      galleryEl.innerHTML = `
+        <div><div>ImageGeneration | TESTSEV</div></div>
+        <div><div>View</div></div>
+      `;
+      document.body.appendChild(galleryEl);
+
+      fetchStub.restore();
+      fetchStub = stub(window, 'fetch').rejects(new Error('API Error'));
+
+      const prevLana = window.lana;
+      const lanaLogStub = stub();
+      try {
+        window.lana = { log: lanaLogStub };
+
+        await init(galleryEl);
+
+        expect(lanaLogStub.called).to.equal(true);
+        const errorCall = lanaLogStub.getCalls().find((c) => c.args[1]?.severity === 'error');
+        expect(errorCall).to.exist;
+        expect(errorCall.args[1]).to.deep.include({ tags: 'firefly-gallery', errorType: 'i', severity: 'error' });
+      } finally {
+        window.lana = prevLana;
+      }
+    });
   });
 
   describe('Responsive Behavior', () => {

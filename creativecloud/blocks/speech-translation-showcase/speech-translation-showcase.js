@@ -2,8 +2,16 @@ import { createTag } from '../../scripts/utils.js';
 import { EVT } from '../audio/audio.js';
 import initSpeechBlades from '../../features/firefly-speech/speech-blade.js';
 
-const LANA_AUDIO = { errorType: 'i', tags: 'speech-audio' };
-const LANA_VIDEO = { errorType: 'i', tags: 'speech-video' };
+const LANA_AUDIO = {
+  errorType: 'i',
+  tags: 'speech-audio',
+  severity: 'error',
+};
+const LANA_VIDEO = {
+  errorType: 'i',
+  tags: 'speech-video',
+  severity: 'error',
+};
 const MEDIA_SELECTOR = 'picture, .video-container.video-holder, video';
 const USER_PAUSED_ATTR = 'data-user-paused';
 
