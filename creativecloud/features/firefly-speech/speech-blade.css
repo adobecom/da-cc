@@ -31,12 +31,17 @@
     0 4px 4px 0 rgb(0 0 0 / 5%);
 }
 
-/* Keyboard: double ring whenever the blade has tab focus */
+.speech-blade:has(.audio-play-btn:focus-visible),
 .speech-blade:focus-visible {
   border-color: var(--link-color);
   border-radius: 25px;
   outline: 2px solid #147af3;
   outline-offset: 4px;
+}
+
+.speech-blade .audio-play-btn:focus,
+.speech-blade .audio-play-btn:focus-visible {
+  outline: none;
 }
 
 .speech-blade:hover {
@@ -58,13 +63,7 @@
   color: var(--color-black);
 }
 
-.speech-blade:focus-within .audio-player,
-.speech-blade:hover .audio-player,
-.speech-blade.loading .audio-player,
-.speech-blade.paused .audio-player,
-.speech-blade.playing .audio-player,
-.speech-blade.selected .audio-player,
-.speech-blade.error .audio-player {
+.speech-blade:is(:hover, :focus-within, .selected, :has(.audio-play-btn.is-playing)) .audio-player {
   opacity: 1;
   pointer-events: auto;
 }
