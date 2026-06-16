@@ -2,7 +2,11 @@ import { createTag, getLibs } from '../../scripts/utils.js';
 
 // Constants
 const GNAV_HEIGHT = 64;
-const LANA_OPTIONS = { tags: 'firefly-model-showcase', errorType: 'i' };
+const LANA_OPTIONS = {
+  tags: 'firefly-model-showcase',
+  errorType: 'i',
+  severity: 'error',
+};
 const GALLERY_FALLBACK_URL = '/cc-shared/ff-gallery-assets.json';
 const CHICKET_ICONS = [
   {

@@ -1,5 +1,11 @@
 import { createTag, localizeLinkAsync, getLibs } from '../../scripts/utils.js';
 
+const LANA_OPTIONS = {
+  tags: 'sidenav',
+  errorType: 'i',
+  severity: 'error',
+};
+
 const CATEGORY_ID_PREFIX = 'categories/';
 const TYPE_ID_PREFIX = 'types/';
 
@@ -206,7 +212,7 @@ const appendFilters = async (root, link, explicitCategoriesElt, typeText) => {
       }
     }
   } catch (e) {
-    window.lana?.log(`unable to properly fetch sidenav data: ${e}`);
+    window.lana?.log(`unable to properly fetch sidenav data: ${e}`, LANA_OPTIONS);
   }
 };
 

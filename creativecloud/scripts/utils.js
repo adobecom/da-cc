@@ -19,6 +19,12 @@ const COOKIE_SIGNED_IN_STAGE = 'acomsis_stage';
 const CHINA_SIGNED_IN_HOME_PATH = '/cn/creativecloud/roc/home';
 const SESSION_CATALOG_POST_ADOBEID_RELOAD = 'cc-catalog-post-adobeid-reload';
 
+const LANA_OPTIONS = {
+  tags: 'utils',
+  errorType: 'i',
+  severity: 'error',
+};
+
 /** True for services.adobe.com and *.services.adobe.com (e.g. adobeid-na1.services.adobe.com). */
 function isAdobeServicesHost(hostname) {
   return hostname === 'services.adobe.com' || hostname.endsWith('.services.adobe.com');
@@ -391,7 +397,7 @@ export async function acomsisCookieHandler() {
         isSignedInUser = true;
       }
     } catch (e) {
-      window.lana?.log('Homepage IMS check failed', e);
+      window.lana?.log('Homepage IMS check failed', { ...LANA_OPTIONS, ...e });
     }
     if (!isSignedInUser) {
       document.getElementById('ims-body-style')?.remove();
