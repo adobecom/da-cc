@@ -123,3 +123,77 @@ describe('aside-carousel', () => {
     expect(noClipEl.querySelector('.slides-track')).to.exist;
   });
 });
+
+describe('aside-carousel — RTL', () => {
+  let rtlEl;
+
+  before(async () => {
+    document.documentElement.dir = 'rtl';
+    rtlEl = document.querySelector('#rtl-three-slides');
+    await init(rtlEl);
+  });
+
+  after(() => {
+    document.documentElement.removeAttribute('dir');
+  });
+
+  it('next (right arrow) is disabled and prev (left arrow) is enabled at start', () => {
+    const prev = rtlEl.querySelector('.carousel-prev');
+    const next = rtlEl.querySelector('.carousel-next');
+    expect(next.disabled).to.be.true;
+    expect(next.classList.contains('disabled')).to.be.true;
+    expect(prev.disabled).to.be.false;
+    expect(prev.classList.contains('disabled')).to.be.false;
+  });
+
+  it('clicking prev (left arrow) advances to slide 2', () => {
+    rtlEl.querySelector('.carousel-prev').click();
+    const slides = rtlEl.querySelectorAll('.slide');
+    expect(slides[0].getAttribute('aria-hidden')).to.equal('true');
+    expect(slides[1].getAttribute('aria-hidden')).to.equal('false');
+  });
+
+  it('aria-live announces new position after RTL advance', () => {
+    expect(rtlEl.querySelector('.sr-only[aria-live]').textContent).to.equal('Slide 2 of 3');
+  });
+
+  it('clicking next (right arrow) goes back to slide 1', () => {
+    rtlEl.querySelector('.carousel-next').click();
+    const slides = rtlEl.querySelectorAll('.slide');
+    expect(slides[0].getAttribute('aria-hidden')).to.equal('false');
+    expect(rtlEl.querySelector('.carousel-next').disabled).to.be.true;
+  });
+
+  it('prev is disabled when all remaining slides are visible in RTL', () => {
+    const prev = rtlEl.querySelector('.carousel-prev');
+    while (!prev.disabled) prev.click();
+    expect(prev.disabled).to.be.true;
+    expect(prev.classList.contains('disabled')).to.be.true;
+    // reset
+    const next = rtlEl.querySelector('.carousel-next');
+    while (!next.disabled) next.click();
+  });
+
+  it('ArrowLeft advances and ArrowRight goes back in RTL', () => {
+    const slides = rtlEl.querySelectorAll('.slide');
+    rtlEl.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true }));
+    expect(slides[1].getAttribute('aria-hidden')).to.equal('false');
+    rtlEl.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    expect(slides[0].getAttribute('aria-hidden')).to.equal('false');
+  });
+
+  it('swipe left advances and swipe right goes back in RTL', () => {
+    const slides = rtlEl.querySelectorAll('.slide');
+    const mkTouch = (x) => new Touch({
+      identifier: 1, target: rtlEl, screenX: x, screenY: 0, clientX: x, clientY: 0, pageX: x, pageY: 0,
+    });
+
+    rtlEl.dispatchEvent(new TouchEvent('touchstart', { touches: [mkTouch(300)] }));
+    rtlEl.dispatchEvent(new TouchEvent('touchend', { changedTouches: [mkTouch(200)] }));
+    expect(slides[1].getAttribute('aria-hidden')).to.equal('false');
+
+    rtlEl.dispatchEvent(new TouchEvent('touchstart', { touches: [mkTouch(200)] }));
+    rtlEl.dispatchEvent(new TouchEvent('touchend', { changedTouches: [mkTouch(300)] }));
+    expect(slides[0].getAttribute('aria-hidden')).to.equal('false');
+  });
+});

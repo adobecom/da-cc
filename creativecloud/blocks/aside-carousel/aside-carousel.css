@@ -208,6 +208,20 @@
   background: #b1b1b1;
 }
 
+/* ===== RTL ===== */
+
+@media screen and (max-width: 1199px) {
+  html[dir="rtl"] .aside-carousel .slides-track {
+    flex-direction: row-reverse;
+  }
+}
+
+html[dir="rtl"] .aside-carousel .carousel-controls {
+  margin-left: 0;
+  margin-right: calc(var(--grid-margins-width, 1.5rem) * -1);
+  direction: ltr;
+}
+
 /* ===== Responsive ===== */
 
 @media screen and (min-width: 600px) and (max-width: 1199px) {

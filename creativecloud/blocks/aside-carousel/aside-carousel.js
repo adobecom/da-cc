@@ -54,12 +54,13 @@ function goTo(track, slides, index) {
   track.style.transform = `translateX(-${index * (slides[0].offsetWidth + gap)}px)`;
 }
 
-function updateBtnStates(prev, next, current, total, visibleCount) {
-  prev.disabled = current === 0;
-  prev.classList.toggle('disabled', current === 0);
-  const atEnd = current + visibleCount >= total;
-  next.disabled = atEnd;
-  next.classList.toggle('disabled', atEnd);
+function updateBtnStates(advance, retreat, current, total, visibleCount) {
+  const retreatDisabled = current === 0;
+  const advanceDisabled = current + visibleCount >= total;
+  advance.disabled = advanceDisabled;
+  advance.classList.toggle('disabled', advanceDisabled);
+  retreat.disabled = retreatDisabled;
+  retreat.classList.toggle('disabled', retreatDisabled);
 }
 
 function initControls(el, slides) {
@@ -82,25 +83,26 @@ function initControls(el, slides) {
 
   let current = 0;
   let visibleCount = getVisibleCount(track, slides);
+  const [advance, retreat] = document.documentElement.dir === 'rtl' ? [prev, next] : [next, prev];
 
   function navigate(index) {
     current = index;
     visibleCount = getVisibleCount(track, slides);
     goTo(track, slides, current);
-    updateBtnStates(prev, next, current, slides.length, visibleCount);
+    updateBtnStates(advance, retreat, current, slides.length, visibleCount);
     setAriaState(slides, current, visibleCount);
     ariaLive.textContent = `Slide ${current + 1} of ${slides.length}`;
   }
 
-  updateBtnStates(prev, next, current, slides.length, visibleCount);
+  updateBtnStates(advance, retreat, current, slides.length, visibleCount);
   setAriaState(slides, current, visibleCount);
 
-  prev.addEventListener('click', () => { if (current > 0) navigate(current - 1); });
-  next.addEventListener('click', () => { if (!next.disabled) navigate(current + 1); });
+  advance.addEventListener('click', () => { if (!advance.disabled) navigate(current + 1); });
+  retreat.addEventListener('click', () => { if (!retreat.disabled) navigate(current - 1); });
 
   el.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft' && current > 0) navigate(current - 1);
-    else if (e.key === 'ArrowRight' && !next.disabled) navigate(current + 1);
+    if (e.key === 'ArrowLeft' && !prev.disabled) prev.click();
+    else if (e.key === 'ArrowRight' && !next.disabled) next.click();
   });
 
   let xStart = 0;
@@ -117,7 +119,7 @@ function initControls(el, slides) {
   el.addEventListener('touchend', (e) => {
     const diff = xStart - e.changedTouches[0].screenX;
     if (Math.abs(diff) < 50) return;
-    if (diff > 0 && !next.disabled) navigate(current + 1);
+    if (diff > 0 && current + visibleCount < slides.length) navigate(current + 1);
     else if (diff < 0 && current > 0) navigate(current - 1);
   });
 
@@ -137,7 +139,7 @@ function initControls(el, slides) {
       visibleCount = getVisibleCount(track, slides);
       current = Math.min(current, Math.max(0, slides.length - visibleCount));
       goTo(track, slides, current);
-      updateBtnStates(prev, next, current, slides.length, visibleCount);
+      updateBtnStates(advance, retreat, current, slides.length, visibleCount);
       setAriaState(slides, current, visibleCount);
     }, 100);
   });
