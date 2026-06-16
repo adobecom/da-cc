@@ -3,6 +3,12 @@
 import { createTag, getConfig } from '../../../scripts/utils.js';
 import defineDeviceByScreenSize from '../../../scripts/decorate.js';
 
+const LANA_OPTIONS = {
+  tags: 'slider-tray',
+  errorType: 'i',
+  severity: 'error',
+};
+
 const CSSRanges = {
   hue: { min: -180, zero: 0, max: 180 },
   saturation: { min: 0, zero: 100, max: 300 },
@@ -54,7 +60,7 @@ function handleInput(option, sliderTray, menu, layer) {
       createUploadPSButton(text, picture, layer);
       break;
     default:
-      window.lana.log(`Unknown input type: ${inputType}`);
+      window.lana.log(`Unknown input type: ${inputType}`, LANA_OPTIONS);
       break;
   }
 }
@@ -195,7 +201,7 @@ function cssToPhotoshop(imgObj, adjustment, value) {
 
 function convertToUnit(adjustment, value, ranges) {
   if (value < ranges[adjustment].min || value > ranges[adjustment].max) {
-    window.lana.log(`value out of range ${adjustment}:${value}`);
+    window.lana.log(`value out of range ${adjustment}:${value}`, LANA_OPTIONS);
   }
 
   if (value < ranges[adjustment].zero) {
@@ -208,7 +214,7 @@ function convertToUnit(adjustment, value, ranges) {
 
 function convertFromUnit(adjustment, value, ranges) {
   if (value < -1 || value > 1) {
-    window.lana.log(`value out of range ${adjustment}:${value}`);
+    window.lana.log(`value out of range ${adjustment}:${value}`, LANA_OPTIONS);
   }
 
   if (value < 0) {

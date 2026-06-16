@@ -138,6 +138,15 @@
    padding: calc(var(--spacing-xl)) 0;
 }
 
+.showcase-marquee .logo-row-sr-list {
+  list-style: none;
+}
+
+.showcase-marquee .logo-row-sr-list > li {
+  margin: 0;
+  padding: 0;
+}
+
 .showcase-marquee .logo-row .logo-container {
   display: flex;
   gap: var(--logos-gap);

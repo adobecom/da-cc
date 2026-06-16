@@ -30,11 +30,17 @@ const Config = {
     hasSignedCookie: 'trustcenter_nda_signed',
   },
 };
+const LANA_OPTIONS = {
+  tags: 'trustcenter-metadata',
+  errorType: 'i',
+  severity: 'error',
+};
 const lanaLog = window.lana.log;
 const unhandledError = (e) => lanaLog({
   message: 'Trust Center - unhandled error',
   errorMessage: e ? e.reason || e.error || e.message : 'Error is not valid',
   sampleRate: 10,
+  ...LANA_OPTIONS,
 });
 window.addEventListener('error', unhandledError);
 window.addEventListener('unhandledrejection', unhandledError);

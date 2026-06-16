@@ -2,8 +2,16 @@ import { createTag } from '../../scripts/utils.js';
 import { EVT } from '../audio/audio.js';
 import initSpeechBlades from '../../features/firefly-speech/speech-blade.js';
 
-const LANA_AUDIO = { errorType: 'i', tags: 'speech-audio' };
-const LANA_VIDEO = { errorType: 'i', tags: 'speech-video' };
+const LANA_AUDIO = {
+  errorType: 'i',
+  tags: 'speech-audio',
+  severity: 'error',
+};
+const LANA_VIDEO = {
+  errorType: 'i',
+  tags: 'speech-video',
+  severity: 'error',
+};
 const MEDIA_SELECTOR = 'picture, .video-container.video-holder, video';
 const USER_PAUSED_ATTR = 'data-user-paused';
 
@@ -102,9 +110,13 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
   audioToVideo.set(audioEl, videoEl);
   const container = videoEl.closest('.video-container.video-holder') || videoEl.parentElement;
   if (container) {
-    container.addEventListener('click', () => {
+    const markPlay = () => {
       videoEl.removeAttribute(USER_PAUSED_ATTR);
       activeVideoEl = videoEl;
+    };
+    container.addEventListener('click', markPlay, true);
+    container.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') markPlay();
     }, true);
   }
 
@@ -134,7 +146,7 @@ function parseShowcaseItems(el) {
     if (!flagImg && !mediaEl) return [];
 
     return [{
-      id: `blade-${index}`,
+      id: `speech-showcase-blade-${index}`,
       language,
       country,
       flagPicture: flagImg,

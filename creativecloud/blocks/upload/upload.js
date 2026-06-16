@@ -1,5 +1,11 @@
 import { createTag } from '../../scripts/utils.js';
 
+const LANA_OPTIONS = {
+  tags: 'upload',
+  errorType: 'i',
+  severity: 'error',
+};
+
 function decorateMultiViewport(foreground) {
   const viewports = ['mobile-up', 'tablet-up', 'desktop-up'];
   foreground.firstElementChild.classList.add('upload-grid');
@@ -51,7 +57,7 @@ function decorateBlockColumns(content) {
   const getUploadPara = [...paras].filter((para) => para?.querySelector('span[class*=icon-share], span[class*=icon-upload], img[src$=".svg"]:not(.video-container img)'))[0];
 
   if (!getUploadPara) {
-    window.lana?.log(`Failed to create upload button. Upload button equals ${getUploadPara}.`);
+    window.lana?.log(`Failed to create upload button. Upload button equals ${getUploadPara}.`, LANA_OPTIONS);
     return;
   }
 

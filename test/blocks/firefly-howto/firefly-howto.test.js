@@ -1,5 +1,6 @@
 import { readFile, sendKeys } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
+import { stub } from 'sinon';
 
 document.body.innerHTML = await readFile({ path: './mocks/body.html' });
 const { setLibs } = await import('../../../creativecloud/scripts/utils.js');
@@ -223,12 +224,19 @@ describe('firefly-howto block', () => {
   });
 
   it('logs to lana when init throws', () => {
-    const logs = [];
+    const logStub = stub();
     const prevLana = window.lana;
     try {
-      window.lana = { log: (msg) => logs.push(String(msg)) };
+      window.lana = { log: logStub };
       init(null);
-      expect(logs.some((m) => m.includes('Firefly accordion init error'))).to.equal(true);
+      expect(logStub.called).to.equal(true);
+      expect(String(logStub.firstCall.args[0])).to.include('Firefly accordion init error');
+      // assert that LANA_OPTIONS with severity is passed
+      expect(logStub.firstCall.args[1]).to.deep.include({
+        tags: 'firefly-howto',
+        errorType: 'i',
+        severity: 'error',
+      });
     } finally {
       window.lana = prevLana;
     }

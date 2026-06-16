@@ -3,7 +3,11 @@ import { getLibs } from '../../scripts/utils.js';
 const miloLibs = getLibs('/libs');
 const { createTag } = await import(`${miloLibs}/utils/utils.js`);
 
-const LANA_OPTIONS = { tags: 'showcase-marquee', errorType: 'i' };
+const LANA_OPTIONS = {
+  tags: 'showcase-marquee',
+  errorType: 'i',
+  severity: 'error',
+};
 
 const PLACEHOLDER_LABELS = ['pause-motion', 'play-motion', 'pause-icon', 'play-icon'];
 
@@ -178,6 +182,18 @@ function createAnimationControls({ container, getFederatedContentRoot, logoConta
   });
 }
 
+function getAuthorLogoLabel(logo) {
+  const container = logo.closest('p, li, div');
+  if (!container) return '';
+  // Authoring for loc: ":ff-logo-google: | [Google]"
+  const labels = [...(container.textContent || '').matchAll(/\|\s*\[([^\]]+)\]/g)]
+    .map((m) => m[1].trim());
+  const icons = container.querySelectorAll('span.icon');
+  if (labels.length !== icons.length) return '';
+  const idx = [...icons].indexOf(logo);
+  return labels[idx] || '';
+}
+
 export default async function init(el) {
   const { decorateBlockBg } = await import(`${miloLibs}/utils/decorate.js`);
   const { getFederatedContentRoot, getFedsPlaceholderConfig } = await import(`${miloLibs}/utils/utils.js`);
@@ -208,11 +224,27 @@ export default async function init(el) {
 
   logoRowContent.classList.add('logo-row');
   const logos = logoRowContent.querySelectorAll('span.icon');
+  const logoLabels = [...logos].map((logo) => getAuthorLogoLabel(logo));
   logoRowContent.innerHTML = '';
   // TODO: cut down 1 level of DOM nesting
   const { logoContainer, addScrolling } = createRollingLogos(logos);
-  createAnimationControls({ container: logoRowContent, getFederatedContentRoot, logoContainer });
+
+  const authoredLabels = logoLabels.filter(Boolean);
+  if (authoredLabels.length > 0) {
+    const list = createTag('ul', { class: 'sr-only logo-row-sr-list', role: 'list' });
+    authoredLabels.forEach((label) => {
+      const li = createTag('li');
+      li.textContent = label;
+      list.append(li);
+    });
+    logoRowContent.append(list);
+  }
+
+  const allLabeled = logoLabels.length > 0 && logoLabels.every((l) => l);
+  if (allLabeled) logoContainer.setAttribute('aria-hidden', 'true');
+
   logoRowContent.append(logoContainer);
+  createAnimationControls({ container: logoRowContent, getFederatedContentRoot, logoContainer });
   new IntersectionObserver(([{ isIntersecting }], ob) => {
     if (!isIntersecting) return;
     ob.disconnect();
