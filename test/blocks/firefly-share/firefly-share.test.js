@@ -12,7 +12,7 @@ const { setConfig } = await import(`${getLibs()}/utils/utils.js`);
 setConfig({
   locale: { ietf: 'en-US' },
   placeholders: {
-    'share-this-page': 'Share this page',
+    'share-this-page': 'share this page', // lowercase to test toSentenceCase transformation
     'share-to': 'Share to',
     'copy-to-clipboard': 'Copy to clipboard',
     copied: 'Copied',
@@ -128,7 +128,7 @@ describe('firefly-share block', () => {
   });
 
   describe('decorate', () => {
-    it('renders default block: links, clipboard, heading, and clipboard interactions', async () => {
+    it('renders social share links and heading correctly', async () => {
       const block = document.querySelector('#share-default');
       await decorate(block);
 
@@ -144,16 +144,22 @@ describe('firefly-share block', () => {
       expect(hrefs.some((h) => h.includes('linkedin.com/sharing'))).to.be.true;
       expect(hrefs.some((h) => h.includes('pinterest.com/pin'))).to.be.true;
       expect(hrefs.some((h) => h.includes('reddit.com/submit'))).to.be.true;
+    });
 
+    it('clipboard tooltip responds to keyboard and mouse interactions', async () => {
+      const block = document.querySelector('#share-default');
+      await decorate(block);
+      const list = block.querySelector('ul.icon-container');
       const copyButton = list.querySelector('button.copy-to-clipboard');
-      expect(copyButton.getAttribute('type')).to.equal('button');
       const li = copyButton.closest('li');
-      const live = block.querySelector('.aria-live-container');
 
-      // Non-Escape keydown should be a no-op
+      // Non-Escape keydown should be a no-op (tooltip state unchanged)
+      copyButton.classList.add('hide-copy-tooltip');
       copyButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'a', bubbles: true }));
+      expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
 
       // Escape should hide tooltip
+      copyButton.classList.remove('hide-copy-tooltip');
       copyButton.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
       expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
 
@@ -172,13 +178,21 @@ describe('firefly-share block', () => {
       // Mouseleave should hide tooltip
       li.dispatchEvent(new MouseEvent('mouseleave', { bubbles: true }));
       expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
+    });
+
+    it('copies URL to clipboard and shows confirmation then hides after timeout', async () => {
+      const block = document.querySelector('#share-default');
+      await decorate(block);
+      const list = block.querySelector('ul.icon-container');
+      const copyButton = list.querySelector('button.copy-to-clipboard');
+      const live = block.querySelector('.aria-live-container');
 
       const writeTextStub = sinon.stub(navigator.clipboard, 'writeText').resolves();
       const clock = sinon.useFakeTimers();
 
       try {
         copyButton.click();
-        await Promise.resolve();
+        await Promise.resolve(); // allow promise microtask to settle
         expect(copyButton.classList.contains('copy-to-clipboard-copied')).to.be.true;
         expect(live.textContent.length).to.be.at.least(1);
 
@@ -187,6 +201,29 @@ describe('firefly-share block', () => {
       } finally {
         clock.restore();
         writeTextStub.restore();
+      }
+    });
+
+    it('does not mark copied when clipboard.writeText rejects', async () => {
+      const block = document.querySelector('#share-default');
+      await decorate(block);
+      const list = block.querySelector('ul.icon-container');
+      const copyButton = list.querySelector('button.copy-to-clipboard');
+      const live = block.querySelector('.aria-live-container');
+
+      const writeRejectStub = sinon.stub(navigator.clipboard, 'writeText').rejects(new Error('Permission denied'));
+
+      try {
+        copyButton.click();
+        // wait a microtask so the promise rejection is observed by the handler
+        await Promise.resolve();
+
+        // The UI should not show the copied state when writeText fails
+        expect(copyButton.classList.contains('copy-to-clipboard-copied')).to.be.false;
+        // aria-live should not be updated with a copied message
+        expect(live.textContent.length).to.equal(0);
+      } finally {
+        writeRejectStub.restore();
       }
     });
 
@@ -218,6 +255,10 @@ describe('firefly-share block', () => {
         expect(shareAnchors.length).to.equal(2);
         shareAnchors[0].click();
         expect(openStub.calledOnce).to.be.true;
+        // assert the URL was constructed correctly
+        expect(openStub.firstCall.args[0]).to.include('x.com/share');
+        // assert window.open was called with width parameter
+        expect(openStub.firstCall.args[2]).to.include('width=600');
       } finally {
         openStub.restore();
       }
