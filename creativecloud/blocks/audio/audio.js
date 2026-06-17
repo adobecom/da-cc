@@ -1,6 +1,10 @@
 import { createTag } from '../../scripts/utils.js';
 
-const LANA_OPTIONS = { tags: 'audio', errorType: 'i' };
+const LANA_OPTIONS = {
+  tags: 'audio',
+  errorType: 'i',
+  severity: 'error',
+};
 
 export const EVT = {
   PLAYED: 'audio-played',
@@ -48,6 +52,12 @@ function syncDaaLl(btn, playing) {
   btn.setAttribute('daa-ll', ll.replace(/\b(?:play|pause)\b/gi, label));
 }
 
+function syncBtnA11y(btn, label) {
+  if (btn.dataset.bladeControlled) return;
+  btn.setAttribute('aria-label', label);
+  btn.setAttribute('title', label);
+}
+
 function updateProgress(svg, ratio) {
   svg.querySelector('.audio-progress').setAttribute('stroke-dashoffset', CIRCUMFERENCE * (1 - ratio));
 }
@@ -82,16 +92,14 @@ function attachAudioListeners(audio, btn, svg) {
   audio.addEventListener('play', () => {
     emit(EVT.PLAYED, { source: ctrl, type: 'audio', el: audio });
     btn.classList.add('is-playing');
-    btn.setAttribute('aria-label', ARIA.PAUSE);
-    btn.setAttribute('title', ARIA.PAUSE);
+    syncBtnA11y(btn, ARIA.PAUSE);
     syncDaaLl(btn, true);
     setIcon(svg, true);
   });
 
   audio.addEventListener('pause', () => {
     btn.classList.remove('is-playing');
-    btn.setAttribute('aria-label', ARIA.PLAY);
-    btn.setAttribute('title', ARIA.PLAY);
+    syncBtnA11y(btn, ARIA.PLAY);
     syncDaaLl(btn, false);
     setIcon(svg, false);
     if (!stopping && !audio.ended) {
@@ -102,8 +110,7 @@ function attachAudioListeners(audio, btn, svg) {
   audio.addEventListener('ended', () => {
     emit(EVT.ENDED, { source: ctrl, type: 'audio', el: audio });
     btn.classList.remove('is-playing');
-    btn.setAttribute('aria-label', ARIA.PLAY);
-    btn.setAttribute('title', ARIA.PLAY);
+    syncBtnA11y(btn, ARIA.PLAY);
     syncDaaLl(btn, false);
     setIcon(svg, false);
     updateProgress(svg, 0);
