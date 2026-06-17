@@ -65,7 +65,7 @@ export const locales = {
   pe: { ietf: 'es-PE', tk: 'oln4yqj.css' },
   '': { ietf: 'en-US', tk: 'hah7vzn.css' },
   // EMEA
-  africa: { ietf: 'en', tk: 'pps7abe.css' },
+  africa: { ietf: 'en', tk: 'pps7abe.css', base: '' },
   be_fr: { ietf: 'fr-BE', tk: 'vrk5vyv.css', base: 'fr' },
   be_en: { ietf: 'en-BE', tk: 'pps7abe.css', base: '' },
   be_nl: { ietf: 'nl-BE', tk: 'cya6bri.css' },
@@ -86,7 +86,7 @@ export const locales = {
   lu_fr: { ietf: 'fr-LU', tk: 'vrk5vyv.css', base: 'fr' },
   hu: { ietf: 'hu-HU', tk: 'aaz7dvd.css' },
   mt: { ietf: 'en-MT', tk: 'pps7abe.css' },
-  mena_en: { ietf: 'en', tk: 'pps7abe.css' },
+  mena_en: { ietf: 'en', tk: 'pps7abe.css', base: '' },
   nl: { ietf: 'nl-NL', tk: 'cya6bri.css' },
   no: { ietf: 'no-NO', tk: 'aaz7dvd.css' },
   pl: { ietf: 'pl-PL', tk: 'aaz7dvd.css' },
@@ -151,7 +151,7 @@ export const locales = {
   vn_en: { ietf: 'en-GB', tk: 'hah7vzn.css', base: '' },
   vn_vi: { ietf: 'vi', tk: 'qxw8hzm.css' },
   cis_ru: { ietf: 'ru', tk: 'qxw8hzm.css' },
-  cis_en: { ietf: 'en', tk: 'pps7abe.css' },
+  cis_en: { ietf: 'en', tk: 'pps7abe.css', base: '' },
 };
 
 const stageDomainsMap = {
