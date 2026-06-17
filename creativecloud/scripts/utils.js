@@ -476,6 +476,7 @@ const CONFIG = {
   autoBlocks: [{ audio: '.mp3' }, { audio: '.m4a' }, { audio: '.aac' }],
   brandConciergeAA: 'cc:app-reco',
   uniqueSiteId: 'da-cc',
+  dynamicNavKey: 'bacom',
   mepLingoCountryToRegion: {
     africa: ['ke', 'mu', 'ng', 'za'],
     la: ['bo', 'cr', 'do', 'ec', 'gt', 'pa', 'pr', 'py', 'sv', 'uy', 've', 'ar', 'co', 'cl', 'mx', 'pe'],
