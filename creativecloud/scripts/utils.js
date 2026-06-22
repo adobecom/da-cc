@@ -249,8 +249,8 @@ function getDecorateAreaFn() {
         el[attr] = `${new URL(`${getConfig().contentRoot}${el.getAttribute(attr).substring(1)}`, window.location).href}`;
       });
     };
-    resetAttributeBase('img', 'src');
     resetAttributeBase('source', 'srcset');
+    resetAttributeBase('img', 'src');
   }
 
   async function loadLCPImage(area = document, { fragmentLink = null } = {}) {
