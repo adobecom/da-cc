@@ -1,16 +1,5 @@
 import { getLibs } from '../../scripts/utils.js';
 
-/*
- * Decrypt block (Trust Center).
- *
- * Page-level auth: .aem.page requires Adobe IMS login at the infrastructure level,
- * so only Adobe employees can reach this page. No client-side employee check needed.
- *
- * API auth: the decrypt API still requires an IMS bearer token (server returns 401
- * without it, 403 for non-Adobe accounts). Token is fetched from the already-loaded
- * IMS session — the user is guaranteed signed in by the time they reach this page.
- */
-
 const FORM_MARKUP = `
   <div class="content">
     <div class="tc-tool-plain" role="region" aria-labelledby="decrypt-the-asset-link">
