@@ -1,7 +1,4 @@
-/* Decrypt block — ported from tools/trustcenter/css/protecturl.css (decrypt parts),
-   scoped under .decrypt so it cannot leak into the rest of the authored page. */
 
-/* Hidden until the block has built its form + resolved the copy icon. */
 .decrypt {
   opacity: 0;
 }
@@ -10,9 +7,8 @@
   opacity: 1;
 }
 
-/* Pull form block up toward gradient (matches main tool page) */
 .decrypt.tc-form-section {
-  margin-top: -40px;
+  margin-top: 40px;
 }
 
 /* Minimal layout: no card chrome */
