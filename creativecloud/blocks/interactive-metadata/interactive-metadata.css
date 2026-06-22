@@ -264,6 +264,11 @@
   background: var(--prompt-btn-fill-light);
 } 
 
+/* WCAG 1.4.11: extra ring outside blue border (keyboard focus only). */
+.interactive-enabled .layer .gray-button:focus-visible {
+  box-shadow: 0 0 0 2px var(--prompt-btn-fill-light);
+}
+
 .interactive-enabled .interactive-link-analytics-text {
   display: none;
 }
@@ -275,11 +280,11 @@
   
   .marquee.large.interactive-enabled.content-top-mobile .text .body-xl {
     order: 1;
+    margin-bottom: var(--spacing-s);
   }
 
   .marquee.large.interactive-enabled.content-top-mobile .text p:not([class]) {
     order: 2;
-    margin-top: var(--spacing-s);
   }
 
   .marquee.large.interactive-enabled.content-top-mobile .text .action-area {
@@ -414,6 +419,10 @@
     box-shadow: 0 10px 10px rgba(0, 0, 0, 32%);
   }
 
+  .interactive-enabled .layer .gray-button:focus-visible {
+    box-shadow: 0 0 0 2px var(--prompt-btn-fill-light), 0 10px 10px rgba(0, 0, 0, 32%);
+  }
+
   .interactive-enabled .layer .gray-button.animated::before {
     width: 56px;
     height: 56px;
@@ -432,11 +441,11 @@
   
   .marquee.large.interactive-enabled .text .body-xl {
     order: 1;
+    margin-bottom: var(--spacing-s);
   }
 
   .marquee.large.interactive-enabled .text p:not([class]) {
     order: 2;
-    margin-top: var(--spacing-s);
   }
 
   .marquee.large.interactive-enabled .text .action-area {

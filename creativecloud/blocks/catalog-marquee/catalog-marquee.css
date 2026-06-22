@@ -136,6 +136,10 @@
     display: block;
     margin: 0 0 var(--spacing-s);
   }
+
+  .catalog-marquee .mnemonic-list .product-list .product-item strong {
+    font-size: var(--type-heading-xs-size);
+  }
 }
 
 @media screen and (min-width: 1600px) {
@@ -156,4 +160,9 @@
 .catalog-marquee a[is="checkout-link"].download:not(:last-of-type),
 .catalog-marquee a[is="checkout-link"].upgrade:not(:last-of-type) {
   display: none;
+}
+
+.catalog-marquee .text .supplemental-text.body-xl {
+  font-size: inherit;
+  line-height: inherit;
 }

@@ -1,0 +1,136 @@
+:root {
+  --speech-showcase-vertical-spacing: 44px;
+}
+
+/* Mobile-first */
+.speech-showcase {
+  align-items: center;
+  background: var(--background-color);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  overflow: hidden;
+  padding: var(--spacing-l) var(--spacing-s);
+  position: relative;
+  width: 100%;
+}
+
+.speech-showcase .foreground {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: var(--speech-showcase-vertical-spacing);
+  width: 100%;
+}
+
+.speech-showcase .foreground .speech-showcase-media {
+  aspect-ratio: var(--aspect-ratio-standard);
+  margin: 0 auto;
+  max-width: var(--speech-section-max-width);
+  min-width: 0;
+  position: relative;
+  width: 100%;
+}
+
+.speech-showcase .foreground .speech-showcase-blades {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-s);
+  margin: 0 auto;
+  max-width: var(--speech-section-max-width);
+  width: 100%;
+}
+
+.speech-showcase .speech-blade {
+  max-width: var(--speech-section-max-width);
+  width: 100%;
+}
+
+.speech-showcase .foreground .speech-showcase-media picture,
+.speech-showcase .foreground .speech-showcase-media picture img,
+.speech-showcase .foreground .speech-showcase-media video,
+.speech-showcase .foreground .speech-showcase-media .video-container,
+.speech-showcase .foreground .speech-showcase-media .video-holder {
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.speech-showcase .foreground .speech-showcase-media :is(img, video) {
+  border: 3px solid rgba(255 255 255 / 30%);
+  border-radius: 20px;
+}
+
+.speech-showcase .foreground .speech-showcase-media-slot {
+  inset: 0;
+  opacity: 0;
+  position: absolute;
+  transition: opacity 0.2s ease;
+  visibility: hidden;
+}
+
+.speech-showcase .foreground .speech-showcase-media-slot.is-active {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* Tablet */
+@media screen and (min-width: 900px) {
+  .speech-showcase {
+    box-sizing: border-box;
+    padding: var(--speech-showcase-vertical-spacing) 0;
+  }
+
+  .speech-showcase .foreground {
+    display: grid;
+    gap: var(--speech-showcase-vertical-spacing);
+    grid-template-areas: "media blades";
+    grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
+    justify-content: center;
+    width: 85%;
+  }
+
+  .speech-showcase .foreground .speech-showcase-media {
+    grid-area: media;
+    margin: 0;
+    max-width: none;
+    width: 100%;
+  }
+
+  .speech-showcase .foreground .speech-showcase-blades {
+    justify-self: center;
+    margin: 0;
+    max-width: var(--speech-section-max-width);
+    width: 100%;
+  }
+
+  .speech-showcase .speech-blade {
+    max-width: var(--speech-section-max-width);
+    width: 100%;
+  }
+}
+
+/* Desktop */
+@media screen and (min-width: 1200px) {
+  .speech-showcase .foreground {
+    --speech-showcase-vertical-spacing: 137px;
+  }
+
+  .speech-showcase .foreground .speech-showcase-blades {
+    justify-self: stretch;
+    margin: 0;
+    margin-inline-end: 120px;
+    max-width: none;
+    width: auto;
+  }
+
+  .speech-showcase .speech-blade {
+    max-width: 585px;
+    width: unset;
+  }
+}
+
+:root:has(meta[name="theme"][content="doodlebug"]) .speech-showcase .video-container .pause-play-wrapper .offset-filler img {
+  border: 2px solid var(--color-white);
+  border-radius: 50%;
+}

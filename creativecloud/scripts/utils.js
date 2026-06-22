@@ -17,13 +17,47 @@
 const COOKIE_SIGNED_IN = 'acomsis';
 const COOKIE_SIGNED_IN_STAGE = 'acomsis_stage';
 const CHINA_SIGNED_IN_HOME_PATH = '/cn/creativecloud/roc/home';
+const SESSION_CATALOG_POST_ADOBEID_RELOAD = 'cc-catalog-post-adobeid-reload';
 
-const locales = {
+const LANA_OPTIONS = {
+  tags: 'utils',
+  errorType: 'i',
+  severity: 'error',
+};
+
+/** True for services.adobe.com and *.services.adobe.com (e.g. adobeid-na1.services.adobe.com). */
+function isAdobeServicesHost(hostname) {
+  return hostname === 'services.adobe.com' || hostname.endsWith('.services.adobe.com');
+}
+
+/**
+ * Reload once when landing on a /catalog URL after the Adobe services auth flow
+ * so IMS-dependent UI can hydrate.
+ * Uses sessionStorage so we do not loop if referrer is still present after reload.
+ */
+export function maybeRefreshCatalogFromAdobeId() {
+  if (!window.location.pathname.includes('/catalog')) return;
+  if (sessionStorage.getItem(SESSION_CATALOG_POST_ADOBEID_RELOAD) === 'true') {
+    sessionStorage.removeItem(SESSION_CATALOG_POST_ADOBEID_RELOAD);
+    return;
+  }
+  try {
+    if (!document.referrer) return;
+    const { hostname } = new URL(document.referrer);
+    if (!isAdobeServicesHost(hostname)) return;
+  } catch {
+    return;
+  }
+  sessionStorage.setItem(SESSION_CATALOG_POST_ADOBEID_RELOAD, 'true');
+  window.location.reload();
+}
+
+export const locales = {
   // Americas
   ar: { ietf: 'es-AR', tk: 'oln4yqj.css' },
   br: { ietf: 'pt-BR', tk: 'inq1xob.css' },
   ca: { ietf: 'en-CA', tk: 'pps7abe.css' },
-  ca_fr: { ietf: 'fr-CA', tk: 'vrk5vyv.css' },
+  ca_fr: { ietf: 'fr-CA', tk: 'vrk5vyv.css', base: 'fr' },
   cl: { ietf: 'es-CL', tk: 'oln4yqj.css' },
   co: { ietf: 'es-CO', tk: 'oln4yqj.css' },
   la: { ietf: 'es-LA', tk: 'oln4yqj.css' },
@@ -32,7 +66,7 @@ const locales = {
   '': { ietf: 'en-US', tk: 'hah7vzn.css' },
   // EMEA
   africa: { ietf: 'en', tk: 'pps7abe.css' },
-  be_fr: { ietf: 'fr-BE', tk: 'vrk5vyv.css' },
+  be_fr: { ietf: 'fr-BE', tk: 'vrk5vyv.css', base: 'fr' },
   be_en: { ietf: 'en-BE', tk: 'pps7abe.css' },
   be_nl: { ietf: 'nl-BE', tk: 'cya6bri.css' },
   cy_en: { ietf: 'en-CY', tk: 'pps7abe.css' },
@@ -49,7 +83,7 @@ const locales = {
   lt: { ietf: 'lt-LT', tk: 'aaz7dvd.css' },
   lu_de: { ietf: 'de-LU', tk: 'vin7zsi.css' },
   lu_en: { ietf: 'en-LU', tk: 'pps7abe.css' },
-  lu_fr: { ietf: 'fr-LU', tk: 'vrk5vyv.css' },
+  lu_fr: { ietf: 'fr-LU', tk: 'vrk5vyv.css', base: 'fr' },
   hu: { ietf: 'hu-HU', tk: 'aaz7dvd.css' },
   mt: { ietf: 'en-MT', tk: 'pps7abe.css' },
   mena_en: { ietf: 'en', tk: 'pps7abe.css' },
@@ -62,7 +96,7 @@ const locales = {
   ch_de: { ietf: 'de-CH', tk: 'vin7zsi.css' },
   si: { ietf: 'sl-SI', tk: 'aaz7dvd.css' },
   sk: { ietf: 'sk-SK', tk: 'aaz7dvd.css' },
-  ch_fr: { ietf: 'fr-CH', tk: 'vrk5vyv.css' },
+  ch_fr: { ietf: 'fr-CH', tk: 'vrk5vyv.css', base: 'fr' },
   fi: { ietf: 'fi-FI', tk: 'aaz7dvd.css' },
   se: { ietf: 'sv-SE', tk: 'fpk1pcd.css' },
   ch_it: { ietf: 'it-CH', tk: 'bbf5pok.css' },
@@ -169,16 +203,14 @@ export const [setLibs, getLibs] = (() => {
         return libs;
       }
       const { hostname } = window.location;
-      if (!hostname.includes('hlx.page')
-        && !hostname.includes('hlx.live')
-        && !hostname.includes('aem.page')
-        && !hostname.includes('aem.live')
-        && !hostname.includes('localhost')) {
+      if (!['.aem.', '.hlx.', '.stage.', 'localhost', '.da.'].some((i) => hostname.includes(i))) {
         libs = prodLibs;
         return libs;
       }
       const branch = new URLSearchParams(window.location.search).get('milolibs') || 'main';
+      if (!/^[a-zA-Z0-9_-]+$/.test(branch)) throw new Error('Invalid branch name.');
       if (branch === 'local') { libs = 'http://localhost:6456/libs'; return libs; }
+      if (branch === 'main' && hostname.includes('.stage.')) { libs = prodLibs; return libs; }
       const env = hostname.includes('.hlx.') ? 'hlx' : 'aem';
       if (branch.indexOf('--') > -1) { libs = `https://${branch}.${env}.live/libs`; return libs; }
       libs = `https://${branch}--milo--adobecom.${env}.live/libs`;
@@ -190,9 +222,20 @@ export const [setLibs, getLibs] = (() => {
 const miloLibs = setLibs('/libs');
 
 // eslint-disable-next-line object-curly-newline
-const { createTag, localizeLink, getConfig, loadStyle, loadLink, loadScript, createIntersectionObserver } = await import(`${miloLibs}/utils/utils.js`);
+const { createTag, localizeLinkAsync, getConfig, getMetadata, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry } = await import(`${miloLibs}/utils/utils.js`);
+
+async function getGeoLocaleInfo() {
+  const { locale } = getConfig();
+  if (!lingoActive() || !Object.keys(locale.regions ?? {}).length) {
+    return locale;
+  }
+  const country = (await getCountry())?.toLowerCase();
+  const geoLocale = Object.entries(locale.regions).find(([, v]) => v.region === country)?.[1];
+  return geoLocale ?? locale;
+}
+
 // eslint-disable-next-line max-len
-export { createTag, loadStyle, loadLink, loadScript, localizeLink, createIntersectionObserver, getConfig };
+export { createTag, loadStyle, loadLink, loadScript, localizeLinkAsync, createIntersectionObserver, getConfig, getGeoLocaleInfo };
 
 function defineDeviceByScreenSize() {
   const DESKTOP_SIZE = 1200;
@@ -215,6 +258,27 @@ export function isSignedInInitialized(interval = 200) {
     }
     poll();
   });
+}
+
+export function getScreenSizeCategory(overridenBreakpoints) {
+  const DEFAULT_BREAKPOINTS = { mobile: 599, tablet: 899 };
+  const { mobile, tablet } = { ...DEFAULT_BREAKPOINTS, ...overridenBreakpoints };
+  const MEDIA_QUERIES = {
+    mobile: window.matchMedia(`(max-width: ${mobile}px)`),
+    tablet: window.matchMedia(`(min-width: ${mobile + 1}px) and (max-width: ${tablet}px)`),
+    desktop: window.matchMedia(`(min-width: ${tablet + 1}px)`),
+  };
+  if (MEDIA_QUERIES.mobile.matches) {
+    return 'mobile';
+  }
+  if (MEDIA_QUERIES.tablet.matches) {
+    return 'tablet';
+  }
+  return 'desktop';
+}
+
+export function prefersReducedMotion() {
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
 function heroForegroundImage(firstBlock) {
@@ -333,7 +397,7 @@ export async function acomsisCookieHandler() {
         isSignedInUser = true;
       }
     } catch (e) {
-      window.lana?.log('Homepage IMS check failed', e);
+      window.lana?.log('Homepage IMS check failed', { ...LANA_OPTIONS, ...e });
     }
     if (!isSignedInUser) {
       document.getElementById('ims-body-style')?.remove();
@@ -367,7 +431,7 @@ const CONFIG = {
   contentRoot: '/cc-shared',
   codeRoot: '/creativecloud',
   imsClientId: 'adobedotcom-cc',
-  iconsExcludeBlocks: ['unity', 'cc-forms', 'interactive-metadata'],
+  iconsExcludeBlocks: ['unity', 'cc-forms', 'interactive-metadata', 'firefly-howto'],
   locales,
   geoRouting: 'on',
   prodDomains: ['www.adobe.com', 'helpx.adobe.com', 'business.adobe.com'],
@@ -385,7 +449,7 @@ const CONFIG = {
     odinEndpoint: 'https://stage-odin.adobe.com/',
   },
   live: {
-    pdfViewerClientId: '9047b46d4bbe4033a0eed98f74d7d9d2',
+    pdfViewerClientId: 'feb0b9f286f14b2480aed397e1d1f055',
     pdfViewerReportSuite: 'adbadobenonacdcqa',
   },
   prod: {
@@ -394,7 +458,7 @@ const CONFIG = {
     psUrl: 'https://photoshop.adobe.com',
     odinEndpoint: 'https://odin.adobe.com/',
   },
-  page: { pdfViewerClientId: '9f6ffa6b76bf4c87a3e09e20b218d439' },
+  page: { pdfViewerClientId: 'c5d622cbd8d64c618c1802587e022e05' },
   hlxPage: { pdfViewerClientId: 'b70362e4031e4fdfb4ad5ce1ffef61a0' },
   hlxLive: { pdfViewerClientId: 'fb748b00ec814d308f5115dbc1daeea5' },
   jarvis: {
@@ -407,11 +471,21 @@ const CONFIG = {
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?go(\/.*)?/,
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?learn(\/.*)?/,
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?benefits(\/.*)?/,
+    /www\.adobe\.com\/(\w\w(_\w\w)?\/)?download(\/.*)?/,
   ],
+  autoBlocks: [{ audio: '.mp3' }, { audio: '.m4a' }, { audio: '.aac' }],
   brandConciergeAA: 'cc:app-reco',
+  uniqueSiteId: 'da-cc',
+  dynamicNavKey: 'bacom',
+  mepLingoCountryToRegion: {
+    africa: ['ke', 'mu', 'ng', 'za'],
+    la: ['bo', 'cr', 'do', 'ec', 'gt', 'pa', 'pr', 'py', 'sv', 'uy', 've', 'ar', 'co', 'cl', 'mx', 'pe'],
+    mena_en: ['bh', 'dz', 'iq', 'ir', 'jo', 'lb', 'ly', 'om', 'ps', 'sy', 'tn', 'ye'],
+  },
 };
 
 export const scriptInit = async () => {
+  maybeRefreshCatalogFromAdobeId();
   const isSignedInHomepage = window.location.pathname.includes(CHINA_SIGNED_IN_HOME_PATH);
   const trialsCheck = document.querySelector('head > meta[name="trialsims"]');
   if (trialsCheck && trialsCheck.content.toLowerCase() === 'on') {
@@ -428,7 +502,12 @@ export const scriptInit = async () => {
   if (isSignedInHomepage) acomsisCookieHandler();
   decorateArea();
   (function loadStyles() {
-    const paths = [`${miloLibs}/styles/styles.css`];
+    const paths = [];
+    const stylesPrefix = getMetadata('foundation') === 'c2' ? '/c2' : '';
+    paths.push(`${miloLibs}${stylesPrefix}/styles/styles.css`);
+    if (getMetadata('theme') === 'doodlebug') paths.push('/creativecloud/styles/doodlebug.css');
+    const skin = getMetadata('skin');
+    if (skin) paths.push(`${miloLibs}/styles/skins/${skin}.css`);
     paths.forEach((path) => {
       const link = document.createElement('link');
       link.setAttribute('rel', 'stylesheet');
@@ -436,8 +515,17 @@ export const scriptInit = async () => {
       document.head.appendChild(link);
     });
   }());
-  (async function loadPage() {
+
+  async function loadPage() {
     loadLana({ clientId: 'cc' });
     await loadArea();
+  }
+  loadPage();
+
+  // DA Live Preview
+  (async function loadDa() {
+    if (!new URL(window.location.href).searchParams.get('dapreview')) return;
+    // eslint-disable-next-line import/no-unresolved
+    import('https://da.live/scripts/dapreview.js').then(({ default: daPreview }) => daPreview(loadPage));
   }());
 };
