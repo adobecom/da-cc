@@ -99,6 +99,7 @@ function getDecryptionEndpoint() {
   if (!isNonProd() && prodHosts.includes(host)) return PROD;
   if (isNonProd() && prodHosts.includes(host)) return STAGE;
   if (stageHosts.includes(host)) return STAGE;
+  if (host.endsWith('--da-cc--adobecom.aem.page') || host.endsWith('--cc--adobecom.aem.page')) return STAGE;
   throw new Error(`Decryption is not supported on host: ${host}`);
 }
 
