@@ -268,3 +268,9 @@
     height: 16px;
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .firefly-carousel .firefly-carousel-track {
+    transition: none !important;
+  }
+}
