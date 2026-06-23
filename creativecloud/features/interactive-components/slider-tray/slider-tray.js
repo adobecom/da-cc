@@ -81,44 +81,20 @@ function observeSliderTray(sliderTray, targets) {
 }
 
 function createSlider(sliderType, details, menu, sliderTray) {
-  const normalizedType = sliderType.toLowerCase();
-  const inputId = `${normalizedType}-slider`;
-  const labelId = `${normalizedType}-slider-label`;
-  const labelText = details.trim();
-
-  const sliderLabel = createTag(
-    'label',
-    {
-      id: labelId,
-      for: inputId,
-    },
-    labelText,
-  );
-
-  const sliderContainer = createTag('div', { class: `sliderContainer ${normalizedType}` });
-
-  const outerCircle = createTag('div', {
-    class: 'outerCircle',
+  const sliderLabel = createTag('label', { for: `${sliderType}` }, details.trim());
+  const sliderContainer = createTag('div', { class: `sliderContainer ${sliderType.toLowerCase()}` });
+  const outerCircle = createTag('div', { class: 'outerCircle', 'aria-hidden': 'true' });
+  const analyticsHolder = createTag('div', {
+    class: 'interactive-link-analytics-text',
     'aria-hidden': 'true',
-  });
-
-  const analyticsHolder = createTag(
-    'div',
-    {
-      class: 'interactive-link-analytics-text',
-      'aria-hidden': 'true',
-    },
-    `Adjust ${labelText} slider`,
-  );
-
+  }, `Adjust ${sliderType} slider`);
   const input = createTag('input', {
-    id: inputId,
+    id: `${sliderType}`,
     type: 'range',
     min: CSSRanges[sliderType].min,
     max: CSSRanges[sliderType].max,
-    class: `options ${normalizedType}-input`,
-    value: sliderType === 'hue' ? '0' : '150',
-    'aria-labelledby': labelId,
+    class: `options ${sliderType.toLowerCase()}-input`,
+    value: `${sliderType === 'hue' ? '0' : '150'}`,
   });
   outerCircle.append(analyticsHolder);
   sliderContainer.append(input, outerCircle);
