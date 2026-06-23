@@ -39,6 +39,17 @@ describe('aside-carousel', () => {
     });
   });
 
+  it('has WAI-ARIA carousel region and slide roles', () => {
+    expect(el.getAttribute('role')).to.equal('region');
+    expect(el.getAttribute('aria-roledescription')).to.equal('carousel');
+    expect(el.getAttribute('aria-label')).to.be.null;
+    const slides = el.querySelectorAll('.slide');
+    expect(slides[0].getAttribute('role')).to.equal('group');
+    expect(slides[0].getAttribute('aria-roledescription')).to.equal('slide');
+    expect(slides[0].getAttribute('aria-label')).to.equal('Slide 1 of 3');
+    expect(slides[2].getAttribute('aria-label')).to.equal('Slide 3 of 3');
+  });
+
   // ===== Single slide — no controls =====
 
   it('does not create controls or track for a single slide', () => {
@@ -115,12 +126,68 @@ describe('aside-carousel', () => {
     expect(slides[0].getAttribute('aria-hidden')).to.equal('false');
   });
 
+  // ===== Touch / swipe =====
+
+  it('swipe left advances and swipe right goes back', () => {
+    const slides = el.querySelectorAll('.slide');
+    const mkTouch = (x) => new Touch({
+      identifier: 1,
+      target: el,
+      screenX: x,
+      screenY: 0,
+      clientX: x,
+      clientY: 0,
+      pageX: x,
+      pageY: 0,
+    });
+
+    el.dispatchEvent(new TouchEvent('touchstart', { touches: [mkTouch(300)] }));
+    el.dispatchEvent(new TouchEvent('touchend', { changedTouches: [mkTouch(200)] }));
+    expect(slides[1].getAttribute('aria-hidden')).to.equal('false');
+
+    el.dispatchEvent(new TouchEvent('touchstart', { touches: [mkTouch(200)] }));
+    el.dispatchEvent(new TouchEvent('touchend', { changedTouches: [mkTouch(300)] }));
+    expect(slides[0].getAttribute('aria-hidden')).to.equal('false');
+  });
+
   // ===== Authored no-clip-left modifier =====
 
   it('preserves the no-clip-left class through init and still decorates slides', () => {
     expect(noClipEl.classList.contains('no-clip-left')).to.be.true;
     expect(noClipEl.querySelectorAll('.slide').length).to.equal(2);
     expect(noClipEl.querySelector('.slides-track')).to.exist;
+  });
+});
+
+describe('aside-carousel — resize handler', () => {
+  let resizeEl;
+  let resizeCb;
+
+  before(async () => {
+    resizeEl = document.querySelector('#resize-test');
+    const origRO = window.ResizeObserver;
+    function MockRO(cb) { resizeCb = cb; }
+    MockRO.prototype.observe = () => {};
+    MockRO.prototype.disconnect = () => {};
+    window.ResizeObserver = MockRO;
+    await init(resizeEl);
+    window.ResizeObserver = origRO;
+  });
+
+  it('crossing to desktop resets aria-hidden on all slides', () => {
+    resizeEl.querySelector('.carousel-next').click();
+    const slides = resizeEl.querySelectorAll('.slide');
+    expect(slides[0].getAttribute('aria-hidden')).to.equal('true');
+    expect(slides[1].getAttribute('aria-hidden')).to.equal('false');
+
+    const origMQ = window.matchMedia;
+    window.matchMedia = () => ({ matches: true });
+    resizeCb([]);
+    window.matchMedia = origMQ;
+
+    slides.forEach((slide) => {
+      expect(slide.getAttribute('aria-hidden')).to.equal('false');
+    });
   });
 });
 
@@ -185,7 +252,14 @@ describe('aside-carousel — RTL', () => {
   it('swipe left advances and swipe right goes back in RTL', () => {
     const slides = rtlEl.querySelectorAll('.slide');
     const mkTouch = (x) => new Touch({
-      identifier: 1, target: rtlEl, screenX: x, screenY: 0, clientX: x, clientY: 0, pageX: x, pageY: 0,
+      identifier: 1,
+      target: rtlEl,
+      screenX: x,
+      screenY: 0,
+      clientX: x,
+      clientY: 0,
+      pageX: x,
+      pageY: 0,
     });
 
     rtlEl.dispatchEvent(new TouchEvent('touchstart', { touches: [mkTouch(300)] }));
