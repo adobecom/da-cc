@@ -81,25 +81,49 @@ function observeSliderTray(sliderTray, targets) {
 }
 
 function createSlider(sliderType, details, menu, sliderTray) {
-  const sliderLabel = createTag('label', { for: `${sliderType}` }, details.trim());
-  const sliderContainer = createTag('div', { class: `sliderContainer ${sliderType.toLowerCase()}` });
-  const outerCircle = createTag('a', { class: 'outerCircle', href: '#', tabindex: '-1', 'aria-label': 'slideRunner' });
-  const analyticsHolder = createTag('div', { class: 'interactive-link-analytics-text' }, `Adjust ${sliderType} slider`);
+  const normalizedType = sliderType.toLowerCase();
+  const inputId = `${normalizedType}-slider`;
+  const labelId = `${normalizedType}-slider-label`;
+  const labelText = details.trim();
+
+  const sliderLabel = createTag(
+    'label',
+    {
+      id: labelId,
+      for: inputId,
+    },
+    labelText,
+  );
+
+  const sliderContainer = createTag('div', { class: `sliderContainer ${normalizedType}` });
+
+  const outerCircle = createTag('div', {
+    class: 'outerCircle',
+    'aria-hidden': 'true',
+  });
+
+  const analyticsHolder = createTag(
+    'div',
+    {
+      class: 'interactive-link-analytics-text',
+      'aria-hidden': 'true',
+    },
+    `Adjust ${labelText} slider`,
+  );
+
   const input = createTag('input', {
+    id: inputId,
     type: 'range',
     min: CSSRanges[sliderType].min,
     max: CSSRanges[sliderType].max,
-    class: `options ${sliderType.toLowerCase()}-input`,
-    'aria-label': 'slider',
-    value: `${sliderType === 'hue' ? '0' : '150'}`,
+    class: `options ${normalizedType}-input`,
+    value: sliderType === 'hue' ? '0' : '150',
+    'aria-labelledby': labelId,
   });
   outerCircle.append(analyticsHolder);
   sliderContainer.append(input, outerCircle);
   menu.append(sliderLabel, sliderContainer);
   sliderTray.append(menu);
-  outerCircle.addEventListener('click', (e) => {
-    e.preventDefault();
-  });
   applyAccessibility(input, outerCircle);
 }
 
