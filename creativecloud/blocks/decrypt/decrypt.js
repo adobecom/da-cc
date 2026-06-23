@@ -117,6 +117,7 @@ async function getDecryptedUrl(encryptedText) {
   if (response.status === 403) throw new Error('NOT_ADOBE_EMPLOYEE');
   if (!response.ok) throw new Error('DECRYPT_FAILED');
   const json = await response.json();
+  if (!json.decryptedUrl) throw new Error('DECRYPT_FAILED');
   return json.decryptedUrl;
 }
 
@@ -195,6 +196,7 @@ function initDecryptButton() {
       if (err.message === ERR_EMPTY_ENCRYPTED) msg = 'Please enter the protected link.';
       else if (err.message === 'NOT_ADOBE_EMPLOYEE') msg = 'Access denied. This tool is for Adobe employees only (@adobe.com).';
       else if (err.message === 'SIGN_IN_REQUIRED') msg = 'Session expired. Please refresh the page and sign in again.';
+      else if (err.message === 'No IMS token available') msg = 'Authentication failed. Please refresh the page and sign in again.';
       else if (err.message?.startsWith('Decryption is not supported on host:')) msg = err.message;
       else msg = 'Could not decrypt the provided url. Please check the input and try again.';
       setOutput(output, msg, { isError: true });
