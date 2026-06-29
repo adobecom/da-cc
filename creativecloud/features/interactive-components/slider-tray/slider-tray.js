@@ -83,23 +83,23 @@ function observeSliderTray(sliderTray, targets) {
 function createSlider(sliderType, details, menu, sliderTray) {
   const sliderLabel = createTag('label', { for: `${sliderType}` }, details.trim());
   const sliderContainer = createTag('div', { class: `sliderContainer ${sliderType.toLowerCase()}` });
-  const outerCircle = createTag('a', { class: 'outerCircle', href: '#', tabindex: '-1', 'aria-label': 'slideRunner' });
-  const analyticsHolder = createTag('div', { class: 'interactive-link-analytics-text' }, `Adjust ${sliderType} slider`);
+  const outerCircle = createTag('div', { class: 'outerCircle', 'aria-hidden': 'true' });
+  const analyticsHolder = createTag('div', {
+    class: 'interactive-link-analytics-text',
+    'aria-hidden': 'true',
+  }, `Adjust ${sliderType} slider`);
   const input = createTag('input', {
+    id: `${sliderType}`,
     type: 'range',
     min: CSSRanges[sliderType].min,
     max: CSSRanges[sliderType].max,
     class: `options ${sliderType.toLowerCase()}-input`,
-    'aria-label': 'slider',
     value: `${sliderType === 'hue' ? '0' : '150'}`,
   });
   outerCircle.append(analyticsHolder);
   sliderContainer.append(input, outerCircle);
   menu.append(sliderLabel, sliderContainer);
   sliderTray.append(menu);
-  outerCircle.addEventListener('click', (e) => {
-    e.preventDefault();
-  });
   applyAccessibility(input, outerCircle);
 }
 
