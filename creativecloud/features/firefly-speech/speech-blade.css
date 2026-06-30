@@ -124,7 +124,6 @@
   line-height: 98%; /* 15.68px */
 }
 
-/* Variants */
 .speech-blade.s-avatar {
   --speech-blade-flag-height: 60px;
   --speech-blade-flag-radius: 128px;
@@ -144,7 +143,7 @@
 
 /* Tablet */
 @media screen and (min-width: 768px) {
-  .speech-blade-flag {
+  .speech-blade {
     --speech-blade-flag-width: 160px;
   }
 
