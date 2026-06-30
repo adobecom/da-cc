@@ -1,5 +1,8 @@
 :root {
   --speech-blade-blur: 32px;
+  --speech-blade-flag-height: 88px;
+  --speech-blade-flag-radius: 6px;
+  --speech-blade-flag-width: 110px;
   --speech-blade-player-space: calc(var(--audio-btn-size, 40px) + var(--spacing-xs));
   --speech-section-max-width: 640px;
 }
@@ -69,12 +72,12 @@
 }
 
 .speech-blade-flag {
-  border-radius: 6px;
+  border-radius: var(--speech-blade-flag-radius);
   flex: 0 0 auto;
   flex-shrink: 0;
-  height: 88px;
+  height: var(--speech-blade-flag-height);
   overflow: hidden;
-  width: 110px;
+  width: var(--speech-blade-flag-width);
 }
 
 .speech-blade-flag:has(picture img[src*=".svg"]) {
@@ -121,10 +124,28 @@
   line-height: 98%; /* 15.68px */
 }
 
+/* Variants */
+.speech-blade.s-avatar {
+  --speech-blade-flag-height: 60px;
+  --speech-blade-flag-radius: 128px;
+  --speech-blade-flag-width: 60px;
+}
+
+.speech-blade.l-avatar {
+  --speech-blade-flag-height: 100px;
+  --speech-blade-flag-radius: 100px;
+  --speech-blade-flag-width: 100px;
+}
+
+.speech-blade.l-square {
+  --speech-blade-flag-height: 100px;
+  --speech-blade-flag-width: 100px;
+}
+
 /* Tablet */
 @media screen and (min-width: 768px) {
   .speech-blade-flag {
-    width: 160px;
+    --speech-blade-flag-width: 160px;
   }
 
   .speech-blade-info {
@@ -135,5 +156,19 @@
     inset-inline-end: auto;
     position: static;
     transform: none;
+  }
+
+  .speech-blade.l-square {
+    --speech-blade-flag-height: 130px;
+    --speech-blade-flag-width: 130px;
+  }
+}
+
+/* Desktop */
+@media screen and (min-width: 1200px) {
+  .speech-blade.l-square {
+    --speech-blade-flag-height: 165px;
+    --speech-blade-flag-radius: 8px;
+    --speech-blade-flag-width: 165px;
   }
 }
