@@ -81,6 +81,7 @@
 }
 
 .speech-blade-flag:has(picture img[src*=".svg"]) {
+  border-radius: 6px;
   height: var(--icon-size-m);
   width: var(--icon-size-m);
 }
