@@ -385,7 +385,7 @@ export default async function init(el) {
   const structure = createCarouselStructure();
   const cards = buildTrack(structure.track, items);
   if (prefersReducedMotion()) {
-    videoUtils = await import(`${getLibs('/libs')}/utils/decorate.js`);
+    videoUtils = await import(`${getLibs()}/utils/decorate.js`);
   }
   const controls = createNavControls(
     structure.track,
