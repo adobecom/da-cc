@@ -264,9 +264,7 @@
   }
 }
 
-/* Desktop — 768px+
-   2 visible cards at 515/1440 width ratio, peeks on both sides.
-   margin = (100% - 2*card - gap) / 2 centers the 2-card group. */
+/* Desktop */
 @media screen and (min-width: 1201px) {
   .testimonial {
     --testimonial-card-gap: 24px;
@@ -290,7 +288,7 @@
   }
 }
 
-/* Large desktop — 1440px+ (typography/padding refinements) */
+/* Large desktop */
 @media screen and (min-width: 1440px) {
   .testimonial-card {
     padding: 64px;
@@ -302,7 +300,7 @@
   }
 }
 
-/* Extra-large desktop — >1440px (card width ratio: 702/1960) */
+/* Extra-large desktop */
 @media screen and (min-width: 1441px) {
   .testimonial-container {
     --testimonial-card-width: 35.82%;
