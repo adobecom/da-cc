@@ -252,9 +252,39 @@ export default async function init(el) {
 
   function jumpTo(index) {
     if (state.isAnimating) return;
-    state.hasScrolled = true;
-    state.currentIndex = wrapIndex(index, count);
-    settle();
+    const target = wrapIndex(index, count);
+    if (target === state.currentIndex) return;
+
+    state.isAnimating = true;
+    const before = getBeforeActive(state.currentIndex, state.hasScrolled);
+    const forwardDist = (target - state.currentIndex + count) % count;
+    const backwardDist = (state.currentIndex - target + count) % count;
+    const goForward = forwardDist <= backwardDist;
+    const steps = goForward ? forwardDist : backwardDist;
+
+    if (goForward) {
+      setCircularOrder(cards, state.currentIndex, count, before);
+      applyBasePosition(false, before);
+    } else {
+      setCircularOrder(cards, state.currentIndex, count, before + steps);
+      applyBasePosition(false, before + steps);
+    }
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const step = getTrackStep(cards, track);
+      const endTranslate = goForward
+        ? dir * (before + steps) * step
+        : dir * before * step;
+      track.style.transition = '';
+      track.style.transform = `translateX(${endTranslate}px)`;
+      waitTransition(track, () => {
+        state.hasScrolled = true;
+        state.currentIndex = target;
+        settle();
+        state.isAnimating = false;
+        if (isPlaying) startAutoplay();
+      });
+    }));
   }
 
   function autoplayTick() {
@@ -289,9 +319,8 @@ export default async function init(el) {
   const controls = createTag('div', { class: `${BLOCK}-controls` });
   const progressBar = createProgressBar(count, (i) => {
     stopAutoplay();
+    updateProgress(progressDots, i);
     jumpTo(i);
-    updateProgress(progressDots, state.currentIndex);
-    if (isPlaying) startAutoplay();
   });
   const playPauseBtn = createPlayPause();
   controls.append(progressBar, playPauseBtn);
