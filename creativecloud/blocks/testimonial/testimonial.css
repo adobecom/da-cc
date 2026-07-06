@@ -72,12 +72,12 @@
 
 /* Quote */
 .testimonial-quote {
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 145%;
-  letter-spacing: -0.54px;
   color: #000;
-  margin: 0;
+  font-size: 20px;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 145%;
+  letter-spacing: -0.6px;
 }
 
 /* Author */
@@ -89,8 +89,7 @@
 
 .testimonial-avatar {
   flex: 0 0 auto;
-  width: 56px;
-  height: 56px;
+  width: 50px;
   border-radius: 50%;
   overflow: hidden;
 }
@@ -98,7 +97,7 @@
 .testimonial-avatar picture,
 .testimonial-avatar img {
   width: 100%;
-  height: 100%;
+  height: auto;
   display: block;
   object-fit: cover;
 }
@@ -111,17 +110,21 @@
 }
 
 .testimonial-name {
-  font-size: 12px;
-  font-weight: 900;
-  line-height: 1.2;
   color: #000;
+  font-family: Inter;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 900;
+  line-height: normal;
 }
 
 .testimonial-title {
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.2;
   color: #000;
+  font-family: Inter;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
 }
 
 /* Controls */
@@ -204,9 +207,7 @@
   display: inline-flex;
 }
 
-/* Tablet — 360px+
-   1 centered card at 83.33% width, peeks on both sides.
-   margin = (100% - card) / 2 centers the active card. */
+/* Tablet */
 @media screen and (min-width: 361px) {
   .testimonial {
     --testimonial-card-gap: 20px;
@@ -226,18 +227,18 @@
     row-gap: 64px;
   }
 
+  .testimonial-quote {
+      font-size: 24px;
+      letter-spacing: -0.72px;
+  }
+
   .testimonial-expanded .testimonial-track {
     margin-inline-start: calc((100% - var(--testimonial-card-width)) / 2);
   }
 
-  .testimonial-quote {
-    font-size: 22px;
-    letter-spacing: -0.66px;
-  }
-
   .testimonial-avatar {
-    width: 65px;
-    height: 65px;
+    width: 75px;
+    height: 73px;
   }
 
   .testimonial-author {
@@ -284,16 +285,6 @@
     inset-inline-start: calc((100% + 2 * var(--testimonial-card-width) + 3 * var(--testimonial-card-gap)) / 2);
   }
 
-  .testimonial-quote {
-    font-size: 22px;
-    letter-spacing: -0.66px;
-  }
-
-  .testimonial-avatar {
-    width: 65px;
-    height: 65px;
-  }
-
   .testimonial-author {
     gap: 20px;
   }
@@ -304,16 +295,6 @@
   .testimonial-card {
     padding: 64px;
     row-gap: 80px;
-  }
-
-  .testimonial-quote {
-    font-size: 24px;
-    letter-spacing: -0.72px;
-  }
-
-  .testimonial-avatar {
-    width: 75px;
-    height: 73px;
   }
 
   .testimonial-author {
