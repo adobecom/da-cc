@@ -39,7 +39,7 @@ const copyIconPromise = fetch(COPY_ICON_URL)
 let imsLoadPromise;
 
 async function ensureImsLoaded() {
-  if (window.adobeIMS?.getAccessToken?.()?.token) return;
+  if (typeof window.adobeIMS?.isSignedInUser === 'function') return;
   if (!imsLoadPromise) {
     imsLoadPromise = (async () => {
       const { loadIms, setConfig, getConfig } = await import(`${getLibs()}/utils/utils.js`);
@@ -58,8 +58,16 @@ async function ensureImsLoaded() {
 
 async function getBearerToken() {
   await ensureImsLoaded();
-  const token = window.adobeIMS?.getAccessToken?.()?.token;
-  if (!token) throw new Error('No IMS token available');
+  const ims = window.adobeIMS;
+  if (typeof ims?.isSignedInUser !== 'function' || !ims.isSignedInUser()) {
+    ims?.signIn?.({ redirect_uri: window.location.href });
+    throw new Error('SIGN_IN_REQUIRED');
+  }
+  const token = ims.getAccessToken()?.token;
+  if (!token) {
+    ims.signIn?.({ redirect_uri: window.location.href });
+    throw new Error('SIGN_IN_REQUIRED');
+  }
   return token;
 }
 
