@@ -9,7 +9,11 @@
   padding: 0;
   position: relative;
   width: 100%;
-  overflow: hidden;
+}
+
+.testimonial-heading {
+  text-align: center;
+  padding: 64px 0;
 }
 
 .testimonial-container {
@@ -28,15 +32,50 @@
   transition: none;
 }
 
-.testimonial-container:not(.testimonial-expanded) .testimonial-track {
-  width: auto;
-  justify-content: center;
-  gap: 0;
+.testimonial-container:not(.testimonial-expanded) {
+  overflow: visible;
 }
 
-.testimonial-container:not(.testimonial-expanded) .testimonial-card {
+.testimonial-container:not(.testimonial-expanded) .testimonial-track {
+  gap: 0;
+  justify-content: center;
+  padding-top: calc(120px * (1 - var(--stack-progress, 0)));
+}
+
+
+.testimonial-container:not(.testimonial-expanded) .testimonial-card-front {
+  position: relative;
+  transform: translateX(calc(var(--expand-offset, 0px) * var(--expand-progress, 0)));
+}
+
+.testimonial-container:not(.testimonial-expanded) .testimonial-card-back {
   position: absolute;
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+  width: var(--testimonial-card-width, 100%);
+  top: calc(120px * (1 - var(--stack-progress, 0)));
+  left: 50%;
+  transform: translateX(calc(-50% + var(--expand-offset, 0px) * var(--expand-progress, 0)));
+}
+
+.testimonial-card-dummy {
+  position: absolute;
+  height: 60px;
+  background: var(--testimonial-card-bg);
+  border-radius: var(--testimonial-card-radius) var(--testimonial-card-radius) 0 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(var(--testimonial-card-width, 100%) - var(--stack-depth) * 112px * (1 - var(--stack-progress, 0)));
+  top: calc((120px - var(--stack-depth) * 40px) * (1 - var(--stack-progress, 0)));
+  box-sizing: border-box;
+}
+
+.testimonial-container:not(.testimonial-expanded) .testimonial-controls {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.testimonial-stack-collapsed:not(.testimonial-expanded) .testimonial-controls {
+  opacity: var(--expand-progress, 0);
+  pointer-events: auto;
 }
 
 /* Track — expanded (carousel) state */

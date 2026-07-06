@@ -3,21 +3,24 @@ import { createTag, prefersReducedMotion } from '../../scripts/utils.js';
 const BLOCK = 'testimonial';
 const AUTOPLAY_INTERVAL_MS = 8000;
 const TRANSITION_FALLBACK_MS = 600;
-const STACK_OFFSET_X = 63;
-const STACK_OFFSET_Y = 41;
+const STACK_WIDTH_STEP = 112;
+const STACK_PEEK = 40;
+const DUMMY_STACK_COUNT = 3;
 const TABLET_MQ = '(min-width: 361px)';
 const DESKTOP_MQ = '(min-width: 1201px)';
 const XLARGE_DESKTOP_MQ = '(min-width: 1441px)';
 
 function parseCards(el) {
-  return [...el.querySelectorAll(':scope > div')].map((row) => {
-    const children = [...row.children];
-    const quote = children[0]?.textContent?.trim() || '';
-    const name = children[1]?.textContent?.trim() || '';
-    const title = children[2]?.textContent?.trim() || '';
-    const picture = children[3]?.querySelector('picture');
-    return { quote, name, title, picture };
-  });
+  return [...el.querySelectorAll(':scope > div')]
+    .filter((row) => [...row.children].length > 1)
+    .map((row) => {
+      const children = [...row.children];
+      const quote = children[0]?.textContent?.trim() || '';
+      const name = children[1]?.textContent?.trim() || '';
+      const title = children[2]?.textContent?.trim() || '';
+      const picture = children[3]?.querySelector('picture');
+      return { quote, name, title, picture };
+    });
 }
 
 function createCard(data, index) {
@@ -85,12 +88,14 @@ function getBeforeActive(currentIndex, hasScrolled) {
 }
 
 function setStackPositions(cards) {
-  const count = cards.length;
   cards.forEach((card, i) => {
-    const depth = count - 1 - i;
-    card.style.transform = `translate(${depth * STACK_OFFSET_X}px, ${-depth * STACK_OFFSET_Y}px) scale(${1 - depth * 0.02})`;
-    card.style.zIndex = String(i + 1);
-    card.style.opacity = i === count - 1 ? '1' : '0.5';
+    if (i === 0) {
+      card.classList.add(`${BLOCK}-card-front`);
+      card.style.zIndex = '100';
+    } else {
+      card.classList.add(`${BLOCK}-card-back`);
+      card.style.zIndex = '50';
+    }
   });
 }
 
@@ -158,6 +163,7 @@ function waitTransition(track, callback) {
 }
 
 export default async function init(el) {
+  const headingSource = el.querySelector(':scope > div > div > :is(h1, h2, h3, h4, h5, h6)');
   const cardData = parseCards(el);
   if (!cardData.length) return;
 
@@ -172,9 +178,28 @@ export default async function init(el) {
   let tickRemaining = AUTOPLAY_INTERVAL_MS;
 
   const container = createTag('div', { class: `${BLOCK}-container` });
+
+  if (headingSource) {
+    headingSource.classList.add('heading-l');
+    const headingWrap = createTag('div', {
+      class: `${BLOCK}-heading center left-mobile left-tablet xxl-spacing-top xxl-spacing-bottom l-title`,
+    });
+    headingWrap.append(headingSource);
+    container.append(headingWrap);
+  }
+
   const track = createTag('div', { class: `${BLOCK}-track` });
   const cards = cardData.map((data, i) => createCard(data, i));
   track.append(...cards);
+
+  const dummyCards = [];
+  for (let i = 0; i < DUMMY_STACK_COUNT; i += 1) {
+    const dummy = createTag('div', { class: `${BLOCK}-card-dummy` });
+    dummy.style.setProperty('--stack-depth', String(i + 1));
+    dummy.style.zIndex = String(99 - i);
+    dummyCards.push(dummy);
+  }
+  track.append(...dummyCards);
 
   function updateCardWidth() {
     if (!window.matchMedia(TABLET_MQ).matches) return;
@@ -377,31 +402,141 @@ export default async function init(el) {
     }
   });
 
-  const expandObserver = new IntersectionObserver(([entry]) => {
-    if (!entry?.isIntersecting) return;
-    expandObserver.disconnect();
-    setTimeout(() => {
-      container.classList.add(`${BLOCK}-expanded`);
-      cards.forEach((card) => {
-        card.style.transform = '';
-        card.style.zIndex = '';
-        card.style.opacity = '';
-      });
-      settle();
-      updateProgress(progressDots, state.currentIndex);
-      if (!prefersReducedMotion()) startAutoplay();
-    }, 200);
-  }, { threshold: 0.3 });
-  expandObserver.observe(el);
+  function getNavHeight() {
+    const nav = document.querySelector('.global-navigation') || document.querySelector('header');
+    return nav?.offsetHeight || 0;
+  }
 
-  const visibilityObserver = new IntersectionObserver(([entry]) => {
-    if (entry?.isIntersecting) {
-      if (isPlaying) startAutoplay();
+  let navHeight = getNavHeight();
+
+  el.style.height = '200vh';
+  el.style.overflow = 'clip';
+  container.style.position = 'sticky';
+  container.style.top = `${navHeight}px`;
+  container.style.zIndex = '1';
+
+  if (!navHeight) {
+    const navObserver = new MutationObserver(() => {
+      const h = getNavHeight();
+      if (h) {
+        navHeight = h;
+        container.style.top = `${h}px`;
+        navObserver.disconnect();
+      }
+    });
+    navObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
+  let expandReady = false;
+
+  function computeExpandOffsets() {
+    const trackWidth = track.getBoundingClientRect().width;
+    const cardWidth = cards[0].getBoundingClientRect().width;
+    const gap = parseFloat(getComputedStyle(el).getPropertyValue('--testimonial-card-gap')) || 24;
+
+    let marginStart;
+    if (isDesktop()) {
+      marginStart = (trackWidth - 2 * cardWidth - gap) / 2;
+    } else if (window.matchMedia(TABLET_MQ).matches) {
+      marginStart = (trackWidth - cardWidth) / 2;
     } else {
-      pauseAutoplay();
+      marginStart = 0;
     }
-  });
-  visibilityObserver.observe(el);
+
+    const stackCenter = trackWidth / 2;
+    cards.forEach((card, i) => {
+      const carouselCenter = marginStart + i * (cardWidth + gap) + cardWidth / 2;
+      card.style.setProperty('--expand-offset', `${carouselCenter - stackCenter}px`);
+    });
+  }
+
+  function enterExpanded() {
+    container.classList.add(`${BLOCK}-expanded`);
+    container.classList.remove(`${BLOCK}-stack-collapsed`);
+    container.style.removeProperty('--stack-progress');
+    container.style.removeProperty('--expand-progress');
+    cards.forEach((card) => {
+      card.style.transform = '';
+      card.style.zIndex = '';
+      card.style.removeProperty('--stack-depth');
+      card.style.removeProperty('--expand-offset');
+      card.classList.remove(
+        `${BLOCK}-card-front`,
+        `${BLOCK}-card-back`,
+        `${BLOCK}-card-hidden`,
+      );
+    });
+    dummyCards.forEach((d) => { d.style.display = 'none'; });
+    settle();
+    updateProgress(progressDots, state.currentIndex);
+    if (!prefersReducedMotion()) startAutoplay();
+  }
+
+  function exitExpanded() {
+    stopAutoplay();
+    cards.forEach((card) => {
+      card.classList.remove(`${BLOCK}-card-peek`);
+      card.style.order = '';
+      card.style.transform = '';
+    });
+    container.style.setProperty('--stack-progress', '1');
+    container.style.setProperty('--expand-progress', '1');
+    setStackPositions(cards);
+    computeExpandOffsets();
+    dummyCards.forEach((d) => { d.style.display = ''; });
+    container.classList.remove(`${BLOCK}-expanded`);
+    container.classList.add(`${BLOCK}-stack-collapsed`);
+    track.style.transform = '';
+    track.style.transition = 'none';
+  }
+
+  function handleScroll() {
+    const rect = el.getBoundingClientRect();
+    const scrolled = Math.max(0, navHeight - rect.top);
+    const totalPinDistance = el.offsetHeight - container.offsetHeight;
+    if (totalPinDistance <= 0) return;
+
+    if (scrolled <= 0) {
+      expandReady = false;
+      container.style.setProperty('--stack-progress', '0');
+      container.style.setProperty('--expand-progress', '0');
+      container.classList.remove(`${BLOCK}-expanded`, `${BLOCK}-stack-collapsed`);
+      setStackPositions(cards);
+      dummyCards.forEach((d) => { d.style.display = ''; });
+      return;
+    }
+
+    const animationDistance = totalPinDistance * 0.5;
+    const collapseDistance = animationDistance * 0.5;
+
+    const collapseProgress = Math.min(1, scrolled / collapseDistance);
+    let expandProgress = 0;
+
+    if (collapseProgress >= 1) {
+      if (!expandReady) {
+        computeExpandOffsets();
+        expandReady = true;
+      }
+      const expandScrolled = scrolled - collapseDistance;
+      expandProgress = Math.min(1, expandScrolled / (animationDistance - collapseDistance));
+    }
+
+    const isExpanded = container.classList.contains(`${BLOCK}-expanded`);
+
+    if (expandProgress >= 1 && !isExpanded) {
+      enterExpanded();
+    } else if (expandProgress < 1 && isExpanded) {
+      exitExpanded();
+    }
+
+    if (!container.classList.contains(`${BLOCK}-expanded`)) {
+      container.style.setProperty('--stack-progress', String(collapseProgress));
+      container.classList.toggle(`${BLOCK}-stack-collapsed`, collapseProgress >= 1);
+      container.style.setProperty('--expand-progress', String(expandProgress));
+    }
+  }
+
+  window.addEventListener('scroll', handleScroll, { passive: true });
 
   const resizeObserver = new ResizeObserver(() => {
     if (!container.classList.contains(`${BLOCK}-expanded`)) return;
