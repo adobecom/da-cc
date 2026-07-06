@@ -207,7 +207,7 @@
 /* Tablet — 360px+
    1 centered card at 83.33% width, peeks on both sides.
    margin = (100% - card) / 2 centers the active card. */
-@media screen and (min-width: 360px) {
+@media screen and (min-width: 361px) {
   .testimonial {
     --testimonial-card-gap: 20px;
     --testimonial-progress-width: 50px;
@@ -259,14 +259,14 @@
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    inset-inline-start: calc((100% + var(--testimonial-card-width)) / 2);
+    inset-inline-start: calc((100% + var(--testimonial-card-width)) / 2 - 32px);
   }
 }
 
 /* Desktop — 768px+
    2 visible cards at 515/1440 width ratio, peeks on both sides.
    margin = (100% - 2*card - gap) / 2 centers the 2-card group. */
-@media screen and (min-width: 768px) {
+@media screen and (min-width: 1201px) {
   .testimonial {
     --testimonial-card-gap: 24px;
   }

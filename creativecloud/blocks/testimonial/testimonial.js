@@ -5,8 +5,8 @@ const AUTOPLAY_INTERVAL_MS = 8000;
 const TRANSITION_FALLBACK_MS = 600;
 const STACK_OFFSET_X = 63;
 const STACK_OFFSET_Y = 41;
-const TABLET_MQ = '(min-width: 360px)';
-const DESKTOP_MQ = '(min-width: 768px)';
+const TABLET_MQ = '(min-width: 361px)';
+const DESKTOP_MQ = '(min-width: 1201px)';
 const XLARGE_DESKTOP_MQ = '(min-width: 1441px)';
 
 function parseCards(el) {
@@ -80,7 +80,7 @@ function isDesktop() {
 }
 
 function getBeforeActive(currentIndex, hasScrolled) {
-  if (!isDesktop()) return 1;
+  if (!window.matchMedia(TABLET_MQ).matches) return 1;
   return (currentIndex === 0 && !hasScrolled) ? 0 : 1;
 }
 
