@@ -195,6 +195,12 @@ describe('firefly-share block', () => {
         await Promise.resolve(); // allow promise microtask to settle
         expect(copyButton.classList.contains('copy-to-clipboard-copied')).to.be.true;
         expect(live.textContent.length).to.be.at.least(1);
+        expect(live.textContent).to.not.include('\u200b');
+
+        copyButton.click();
+        await Promise.resolve();
+        expect(copyButton.classList.contains('copy-to-clipboard-copied')).to.be.true;
+        expect(live.textContent).to.include('\u200b');
 
         clock.tick(2000);
         expect(copyButton.classList.contains('hide-copy-tooltip')).to.be.true;
@@ -250,9 +256,15 @@ describe('firefly-share block', () => {
 
       try {
         const manual = document.querySelector('#share-manual');
+        const unknownHostLink = manual.querySelector('a[href="https://x.bar.com/share"]');
+        expect(unknownHostLink).to.exist;
+        expect(unknownHostLink.closest('p')).to.be.null;
+
         await decorate(manual);
         const shareAnchors = manual.querySelectorAll('a[target="_blank"]');
         expect(shareAnchors.length).to.equal(2);
+        expect([...shareAnchors].some((a) => a.href.includes('x.bar.com'))).to.be.false;
+
         shareAnchors[0].click();
         expect(openStub.calledOnce).to.be.true;
         // assert the URL was constructed correctly
