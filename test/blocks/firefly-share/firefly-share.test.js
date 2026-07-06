@@ -263,7 +263,7 @@ describe('firefly-share block', () => {
         await decorate(manual);
         const shareAnchors = manual.querySelectorAll('a[target="_blank"]');
         expect(shareAnchors.length).to.equal(2);
-        expect([...shareAnchors].some((a) => a.href.includes('x.bar.com'))).to.be.false;
+        expect([...shareAnchors].some((a) => new URL(a.href).hostname === 'x.bar.com')).to.be.false;
 
         shareAnchors[0].click();
         expect(openStub.calledOnce).to.be.true;
