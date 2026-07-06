@@ -5,7 +5,9 @@ const AUTOPLAY_INTERVAL_MS = 8000;
 const TRANSITION_FALLBACK_MS = 600;
 const STACK_OFFSET_X = 63;
 const STACK_OFFSET_Y = 41;
-const DESKTOP_MQ = '(min-width: 1200px)';
+const TABLET_MQ = '(min-width: 360px)';
+const DESKTOP_MQ = '(min-width: 768px)';
+const XLARGE_DESKTOP_MQ = '(min-width: 1441px)';
 
 function parseCards(el) {
   return [...el.querySelectorAll(':scope > div')].map((row) => {
@@ -57,12 +59,14 @@ function createPlayPause() {
     class: `${BLOCK}-play-pause`,
     type: 'button',
   });
-  btn.innerHTML = `<svg class="${BLOCK}-pause-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <rect x="4" y="2" width="4" height="16" rx="1" fill="currentColor"/>
-    <rect x="12" y="2" width="4" height="16" rx="1" fill="currentColor"/>
+  btn.innerHTML = `<svg class="${BLOCK}-pause-icon" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18.5832 34.8437C9.61636 34.8437 2.32275 27.5501 2.32275 18.5832C2.32275 9.61636 9.61636 2.32275 18.5832 2.32275C27.5501 2.32275 34.8437 9.61636 34.8437 18.5832C34.8437 27.5501 27.5501 34.8437 18.5832 34.8437ZM18.5832 5.11026C11.1535 5.11026 5.11026 11.1535 5.11026 18.5832C5.11026 26.0129 11.1535 32.0562 18.5832 32.0562C26.0129 32.0562 32.0562 26.0129 32.0562 18.5832C32.0562 11.1535 26.0129 5.11026 18.5832 5.11026Z" fill="black"/>
+    <path d="M21.8356 25.0875C21.0662 25.0875 20.4419 24.4632 20.4419 23.6937V13.4729C20.4419 12.7034 21.0662 12.0791 21.8356 12.0791C22.6051 12.0791 23.2294 12.7034 23.2294 13.4729V23.6937C23.2294 24.4632 22.6051 25.0875 21.8356 25.0875Z" fill="black"/>
+    <path d="M15.3313 25.0875C14.5618 25.0875 13.9375 24.4632 13.9375 23.6937V13.4729C13.9375 12.7034 14.5618 12.0791 15.3313 12.0791C16.1007 12.0791 16.725 12.7034 16.725 13.4729V23.6937C16.725 24.4632 16.1007 25.0875 15.3313 25.0875Z" fill="black"/>
   </svg>
-  <svg class="${BLOCK}-play-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20" fill="none" style="display:none">
-    <path d="M5 3.5L16 10L5 16.5V3.5Z" fill="currentColor"/>
+  <svg class="${BLOCK}-play-icon" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M18.5832 34.8437C9.61636 34.8437 2.32275 27.5501 2.32275 18.5832C2.32275 9.61636 9.61636 2.32275 18.5832 2.32275C27.5501 2.32275 34.8437 9.61636 34.8437 18.5832C34.8437 27.5501 27.5501 34.8437 18.5832 34.8437ZM18.5832 5.11026C11.1535 5.11026 5.11026 11.1535 5.11026 18.5832C5.11026 26.0129 11.1535 32.0562 18.5832 32.0562C26.0129 32.0562 32.0562 26.0129 32.0562 18.5832C32.0562 11.1535 26.0129 5.11026 18.5832 5.11026Z" fill="black"/>
+    <path d="M24.2942 16.9465L15.7464 12.3524C14.5084 11.687 13.0083 12.5838 13.0083 13.9894V23.1774C13.0083 24.5829 14.5084 25.4797 15.7464 24.8143L24.2942 20.2203C25.599 19.519 25.599 17.6477 24.2942 16.9465Z" fill="black"/>
   </svg>`;
   return btn;
 }
@@ -105,13 +109,20 @@ function setCircularOrder(cards, currentIndex, count, beforeActive) {
   }
 }
 
+function getVisibleCount() {
+  if (isDesktop()) return 2;
+  if (window.matchMedia(TABLET_MQ).matches) return 1;
+  return 0;
+}
+
 function markPeekCards(cards, currentIndex, count, beforeActive) {
   cards.forEach((card) => card.classList.remove(`${BLOCK}-card-peek`));
-  if (!isDesktop()) return;
+  const visible = getVisibleCount();
+  if (visible === 0) return;
   for (let pos = 0; pos < count; pos += 1) {
     const realIndex = wrapIndex(currentIndex - beforeActive + pos, count);
     const visiblePos = pos - beforeActive;
-    if (visiblePos < 0 || visiblePos >= 2) {
+    if (visiblePos < 0 || visiblePos >= visible) {
       cards[realIndex].classList.add(`${BLOCK}-card-peek`);
     }
   }
@@ -157,11 +168,27 @@ export default async function init(el) {
   const state = { currentIndex: 0, isAnimating: false, hasScrolled: false };
   let autoplayTimer = null;
   let isPlaying = true;
+  let tickStart = 0;
+  let tickRemaining = AUTOPLAY_INTERVAL_MS;
 
   const container = createTag('div', { class: `${BLOCK}-container` });
   const track = createTag('div', { class: `${BLOCK}-track` });
   const cards = cardData.map((data, i) => createCard(data, i));
   track.append(...cards);
+
+  function updateCardWidth() {
+    if (!window.matchMedia(TABLET_MQ).matches) return;
+    const cw = container.getBoundingClientRect().width;
+    let w;
+    if (window.matchMedia(XLARGE_DESKTOP_MQ).matches) {
+      w = cw * 702 / 1960;
+    } else if (isDesktop()) {
+      w = cw * 515 / 1440;
+    } else {
+      w = cw * 5 / 6;
+    }
+    container.style.setProperty('--testimonial-card-width', `${w}px`);
+  }
 
   function applyBasePosition(animate, beforeActive) {
     const step = getTrackStep(cards, track);
@@ -174,6 +201,7 @@ export default async function init(el) {
   }
 
   function settle() {
+    updateCardWidth();
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     setCircularOrder(cards, state.currentIndex, count, before);
     updateActiveCard(cards, state.currentIndex);
@@ -229,18 +257,33 @@ export default async function init(el) {
     settle();
   }
 
+  function autoplayTick() {
+    autoplayTimer = null;
+    moveNext();
+    updateProgress(progressDots, wrapIndex(state.currentIndex + 1, count));
+    tickRemaining = AUTOPLAY_INTERVAL_MS;
+    tickStart = Date.now();
+    autoplayTimer = setTimeout(autoplayTick, AUTOPLAY_INTERVAL_MS);
+  }
+
   function startAutoplay() {
     if (autoplayTimer || !isPlaying || prefersReducedMotion()) return;
-    autoplayTimer = setInterval(() => {
-      moveNext();
-      updateProgress(progressDots, wrapIndex(state.currentIndex + 1, count));
-    }, AUTOPLAY_INTERVAL_MS);
+    tickStart = Date.now();
+    autoplayTimer = setTimeout(autoplayTick, tickRemaining);
+  }
+
+  function pauseAutoplay() {
+    if (!autoplayTimer) return;
+    clearTimeout(autoplayTimer);
+    autoplayTimer = null;
+    tickRemaining = Math.max(0, tickRemaining - (Date.now() - tickStart));
   }
 
   function stopAutoplay() {
     if (!autoplayTimer) return;
-    clearInterval(autoplayTimer);
+    clearTimeout(autoplayTimer);
     autoplayTimer = null;
+    tickRemaining = AUTOPLAY_INTERVAL_MS;
   }
 
   const controls = createTag('div', { class: `${BLOCK}-controls` });
@@ -260,16 +303,12 @@ export default async function init(el) {
 
   playPauseBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
-    const pauseIcon = playPauseBtn.querySelector(`.${BLOCK}-pause-icon`);
-    const playIcon = playPauseBtn.querySelector(`.${BLOCK}-play-icon`);
+    container.classList.toggle(`${BLOCK}-paused`, !isPlaying);
+    playPauseBtn.classList.toggle(`${BLOCK}-show-play`, !isPlaying);
     if (isPlaying) {
-      pauseIcon.style.display = '';
-      playIcon.style.display = 'none';
       startAutoplay();
     } else {
-      pauseIcon.style.display = 'none';
-      playIcon.style.display = '';
-      stopAutoplay();
+      pauseAutoplay();
     }
   });
 
@@ -330,7 +369,7 @@ export default async function init(el) {
     if (entry?.isIntersecting) {
       if (isPlaying) startAutoplay();
     } else {
-      stopAutoplay();
+      pauseAutoplay();
     }
   });
   visibilityObserver.observe(el);
