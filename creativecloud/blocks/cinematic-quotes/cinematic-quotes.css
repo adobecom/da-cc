@@ -37,7 +37,8 @@
   line-height: 1.25;
 }
 
-.cinematic-quotes .text-container strong {
+.cinematic-quotes .text-container strong,
+.cinematic-quotes .text-container blockquote {
   font-weight: 600;
   line-height: 1.12;
   letter-spacing: -0.24px;
@@ -46,7 +47,8 @@
 }
 
 @media (min-width: 333px) {
-  .cinematic-quotes .text-container strong {
+  .cinematic-quotes .text-container strong,
+  .cinematic-quotes .text-container blockquote {
     font-size: 24px;
   }
 }
@@ -69,7 +71,8 @@
     padding: 0 74px 50px;
   }
 
-  .cinematic-quotes .text-container strong {
+  .cinematic-quotes .text-container strong,
+  .cinematic-quotes .text-container blockquote {
     letter-spacing: -0.753px;
   }
 }
@@ -95,7 +98,8 @@
     gap: 18px;
   }
 
-  .cinematic-quotes .text-container strong {
+  .cinematic-quotes .text-container strong,
+  .cinematic-quotes .text-container blockquote {
     font-size: 30px;
     letter-spacing: -0.9px;
   }
@@ -115,7 +119,8 @@
     gap: 24px;
   }
 
-  .cinematic-quotes .text-container strong {
+  .cinematic-quotes .text-container strong,
+  .cinematic-quotes .text-container blockquote {
     font-size: 42px;
     letter-spacing: -1.26px;
   }
@@ -137,7 +142,8 @@
     font-size: 22px;
   }
 
-  .cinematic-quotes .text-container strong {
+  .cinematic-quotes .text-container strong,
+  .cinematic-quotes .text-container blockquote {
     letter-spacing: -1.26px;
   }
 }
