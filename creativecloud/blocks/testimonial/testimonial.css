@@ -9,7 +9,6 @@
   --stair-step: 26px;
   --stair-width-step: 40px;
   --stair-height: 26px;
-
   padding: 0;
   position: relative;
   width: 100%;
@@ -46,7 +45,11 @@
 .testimonial.xs-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-xs); }
 .testimonial.xxs-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-xxs); }
 
-.testimonial-heading h1,h2,h3,h4,h5 {
+.testimonial-heading h1,
+.testimonial-heading h2,
+.testimonial-heading h3,
+.testimonial-heading h4,
+.testimonial-heading h5 {
   font-size: 32px;
   font-style: normal;
   font-weight: 800;
@@ -315,14 +318,18 @@
     row-gap: 64px;
   }
 
-  .testimonial-heading h1,h2,h3,h4,h5 {
+.testimonial-heading h1,
+.testimonial-heading h2,
+.testimonial-heading h3,
+.testimonial-heading h4,
+.testimonial-heading h5 {
     font-size: 36px;
     letter-spacing: -1.62px;
   }
 
   .testimonial-quote {
-      font-size: 24px;
-      letter-spacing: -0.72px;
+    font-size: 24px;
+    letter-spacing: -0.72px;
   }
 
   .testimonial-expanded .testimonial-track {
@@ -367,7 +374,11 @@
     --testimonial-card-width: 35.76%;
   }
 
-  .testimonial-heading h1,h2,h3,h4,h5 {
+.testimonial-heading h1,
+.testimonial-heading h2,
+.testimonial-heading h3,
+.testimonial-heading h4,
+.testimonial-heading h5 {
     font-size: 44px;
     letter-spacing: -1.98px;
     padding-bottom: 64px;
