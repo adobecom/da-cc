@@ -15,6 +15,19 @@
   width: 100%;
 }
 
+
+.testimonial-container {
+  position: relative;
+  width: 83%;
+  margin: 0 auto;
+  overflow: hidden;
+  padding-bottom: 60px;
+}
+
+.testimonial-heading {
+  padding-top: 60px;
+}
+
 .testimonial.xxxl-spacing-top .testimonial-heading { padding-top: var(--spacing-xxxl); }
 .testimonial.xxl-spacing-top .testimonial-heading { padding-top: var(--spacing-xxl); }
 .testimonial.xl-spacing-top .testimonial-heading { padding-top: var(--spacing-xl); }
@@ -24,14 +37,14 @@
 .testimonial.xs-spacing-top .testimonial-heading { padding-top: var(--spacing-xs); }
 .testimonial.xxs-spacing-top .testimonial-heading { padding-top: var(--spacing-xxs); }
 
-.testimonial.xxxl-spacing-bottom { padding-bottom: var(--spacing-xxxl); }
-.testimonial.xxl-spacing-bottom { padding-bottom: var(--spacing-xxl); }
-.testimonial.xl-spacing-bottom { padding-bottom: var(--spacing-xl); }
-.testimonial.l-spacing-bottom { padding-bottom: var(--spacing-l); }
-.testimonial.m-spacing-bottom { padding-bottom: var(--spacing-m); }
-.testimonial.s-spacing-bottom { padding-bottom: var(--spacing-s); }
-.testimonial.xs-spacing-bottom { padding-bottom: var(--spacing-xs); }
-.testimonial.xxs-spacing-bottom { padding-bottom: var(--spacing-xxs); }
+.testimonial.xxxl-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-xxxl); }
+.testimonial.xxl-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-xxl); }
+.testimonial.xl-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-xl); }
+.testimonial.l-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-l); }
+.testimonial.m-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-m); }
+.testimonial.s-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-s); }
+.testimonial.xs-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-xs); }
+.testimonial.xxs-spacing-bottom .testimonial-container { padding-bottom: var(--spacing-xxs); }
 
 .testimonial-heading h1,h2,h3,h4,h5 {
   font-size: 32px;
@@ -42,14 +55,6 @@
   text-align: center;
   padding-bottom: 40px;
   margin: 0;
-}
-
-.testimonial-container {
-  position: relative;
-  width: 83%;
-  margin: 0 auto;
-  overflow: hidden;
-  padding-bottom: 60px;
 }
 
 /* Track — stacked (start) state */
@@ -298,8 +303,9 @@
 
   .testimonial-container {
     width: 100%;
+    padding-bottom: 60px;
+    /* stylelint-disable-next-line custom-property-empty-line-before */
     --testimonial-card-width: 83.33%;
-    padding-bottom: 80px;
   }
 
   .testimonial-card {
@@ -359,9 +365,8 @@
 
   .testimonial-container {
     --testimonial-card-width: 35.76%;
-    padding-bottom: 100px;
   }
-  
+
   .testimonial-heading h1,h2,h3,h4,h5 {
     font-size: 44px;
     letter-spacing: -1.98px;
