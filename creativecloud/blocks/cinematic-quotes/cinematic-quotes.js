@@ -10,6 +10,8 @@ export default function init(el) {
   // replace it with a semantic blockquote for better screen reader announcement.
   const strong = textContainer.querySelector('strong.tracking-header');
   if (strong) {
+    // If the strong is wrapped by a paragraph, replace the whole paragraph
+    const parent = strong.parentElement;
     const blockquote = document.createElement('blockquote');
     const p = document.createElement('p');
     // Move children from strong into the paragraph
@@ -17,7 +19,13 @@ export default function init(el) {
     blockquote.appendChild(p);
     // Preserve any classes from the original strong on the blockquote container
     blockquote.className = strong.className;
-    strong.replaceWith(blockquote);
+    if (parent && parent.tagName === 'P') {
+      // Replace the entire paragraph with the blockquote
+      parent.replaceWith(blockquote);
+    } else {
+      // Otherwise just replace the strong element
+      strong.replaceWith(blockquote);
+    }
   }
   textRow.replaceWith(textContainer);
 }
