@@ -360,6 +360,11 @@ export default async function init(el) {
     container.classList.toggle(`${BLOCK}-paused`, !isPlaying);
     playPauseBtn.classList.toggle(`${BLOCK}-show-play`, !isPlaying);
     playPauseBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
+    const dall = playPauseBtn.getAttribute('daa-ll');
+    if (dall) {
+      const label = isPlaying ? dall.replace('Play', 'Pause') : dall.replace('Pause', 'Play');
+      playPauseBtn.setAttribute('daa-ll', label);
+    }
     if (isPlaying) {
       startAutoplay();
     } else {
@@ -431,20 +436,23 @@ export default async function init(el) {
   let expandReady = false;
 
   function computeExpandOffsets() {
-    const trackWidth = track.getBoundingClientRect().width;
-    const cardWidth = cards[0].getBoundingClientRect().width;
+    const containerWidth = container.getBoundingClientRect().width;
     const gap = parseFloat(getComputedStyle(el).getPropertyValue('--testimonial-card-gap')) || 24;
+    const widthPct = parseFloat(getComputedStyle(container).getPropertyValue('--testimonial-card-width')) / 100;
+    const cardWidth = window.matchMedia(TABLET_MQ).matches
+      ? containerWidth * (widthPct || 5 / 6)
+      : containerWidth;
 
     let marginStart;
     if (isDesktop()) {
-      marginStart = (trackWidth - 2 * cardWidth - gap) / 2;
+      marginStart = (containerWidth - 2 * cardWidth - gap) / 2;
     } else if (window.matchMedia(TABLET_MQ).matches) {
-      marginStart = (trackWidth - cardWidth) / 2;
+      marginStart = (containerWidth - cardWidth) / 2;
     } else {
       marginStart = 0;
     }
 
-    const stackCenter = trackWidth / 2;
+    const stackCenter = containerWidth / 2;
     cards.forEach((card, i) => {
       const carouselCenter = marginStart + i * (cardWidth + gap) + cardWidth / 2;
       card.style.setProperty('--expand-offset', `${carouselCenter - stackCenter}px`);

@@ -91,6 +91,7 @@
   position: absolute;
   width: var(--testimonial-card-width, 100%);
   top: calc(var(--stair-area) * (1 - var(--stack-progress, 0)));
+  bottom: 0;
   left: 50%;
   transform: translateX(calc(-50% + var(--expand-offset, 0px) * var(--expand-progress, 0)));
 }
