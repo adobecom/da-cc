@@ -3,10 +3,8 @@ import { createTag, prefersReducedMotion } from '../../scripts/utils.js';
 const BLOCK = 'testimonial';
 const AUTOPLAY_INTERVAL_MS = 8000;
 const TRANSITION_FALLBACK_MS = 600;
-const STACK_WIDTH_STEP = 112;
-const STACK_PEEK = 40;
 const DUMMY_STACK_COUNT = 3;
-const TABLET_MQ = '(min-width: 361px)';
+const TABLET_MQ = '(min-width: 600px)';
 const DESKTOP_MQ = '(min-width: 1201px)';
 const XLARGE_DESKTOP_MQ = '(min-width: 1441px)';
 
@@ -180,9 +178,8 @@ export default async function init(el) {
   const container = createTag('div', { class: `${BLOCK}-container` });
 
   if (headingSource) {
-    headingSource.classList.add('heading-l');
     const headingWrap = createTag('div', {
-      class: `${BLOCK}-heading center left-mobile left-tablet xxl-spacing-top xxl-spacing-bottom l-title`,
+      class: `${BLOCK}-heading`,
     });
     headingWrap.append(headingSource);
     container.append(headingWrap);

@@ -5,15 +5,43 @@
   --testimonial-progress-width: 25px;
   --testimonial-progress-height: 4px;
   --testimonial-progress-gap: 10px;
+  --stair-area: 52px;
+  --stair-step: 26px;
+  --stair-width-step: 40px;
+  --stair-height: 26px;
 
   padding: 0;
   position: relative;
   width: 100%;
 }
 
-.testimonial-heading {
+.testimonial.xxxl-spacing-top .testimonial-heading { padding-top: var(--spacing-xxxl); }
+.testimonial.xxl-spacing-top .testimonial-heading { padding-top: var(--spacing-xxl); }
+.testimonial.xl-spacing-top .testimonial-heading { padding-top: var(--spacing-xl); }
+.testimonial.l-spacing-top .testimonial-heading { padding-top: var(--spacing-l); }
+.testimonial.m-spacing-top .testimonial-heading { padding-top: var(--spacing-m); }
+.testimonial.s-spacing-top .testimonial-heading { padding-top: var(--spacing-s); }
+.testimonial.xs-spacing-top .testimonial-heading { padding-top: var(--spacing-xs); }
+.testimonial.xxs-spacing-top .testimonial-heading { padding-top: var(--spacing-xxs); }
+
+.testimonial.xxxl-spacing-bottom { padding-bottom: var(--spacing-xxxl); }
+.testimonial.xxl-spacing-bottom { padding-bottom: var(--spacing-xxl); }
+.testimonial.xl-spacing-bottom { padding-bottom: var(--spacing-xl); }
+.testimonial.l-spacing-bottom { padding-bottom: var(--spacing-l); }
+.testimonial.m-spacing-bottom { padding-bottom: var(--spacing-m); }
+.testimonial.s-spacing-bottom { padding-bottom: var(--spacing-s); }
+.testimonial.xs-spacing-bottom { padding-bottom: var(--spacing-xs); }
+.testimonial.xxs-spacing-bottom { padding-bottom: var(--spacing-xxs); }
+
+.testimonial-heading h1,h2,h3,h4,h5 {
+  font-size: 32px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 98%;
+  letter-spacing: -1.44px;
   text-align: center;
-  padding: 64px 0;
+  padding-bottom: 40px;
+  margin: 0;
 }
 
 .testimonial-container {
@@ -39,11 +67,11 @@
 .testimonial-container:not(.testimonial-expanded) .testimonial-track {
   gap: 0;
   justify-content: center;
-  padding-top: calc(120px * (1 - var(--stack-progress, 0)));
+  padding-top: calc(var(--stair-area) * (1 - var(--stack-progress, 0)));
 }
 
 
-.testimonial-container:not(.testimonial-expanded):not(.testimonial-stack-collapsed) .testimonial-card {
+.testimonial-container:not(.testimonial-expanded):not(.testimonial-stack-collapsed) .testimonial-card-front {
   filter: drop-shadow(0 0 15.4px rgba(0, 0, 0, 0.15));
 }
 
@@ -55,22 +83,26 @@
 .testimonial-container:not(.testimonial-expanded) .testimonial-card-back {
   position: absolute;
   width: var(--testimonial-card-width, 100%);
-  top: calc(120px * (1 - var(--stack-progress, 0)));
+  top: calc(var(--stair-area) * (1 - var(--stack-progress, 0)));
   left: 50%;
   transform: translateX(calc(-50% + var(--expand-offset, 0px) * var(--expand-progress, 0)));
 }
 
 .testimonial-card-dummy {
   position: absolute;
-  height: 60px;
+  height: var(--stair-height);
   background: var(--testimonial-card-bg);
   border-radius: var(--testimonial-card-radius) var(--testimonial-card-radius) 0 0;
   left: 50%;
   transform: translateX(-50%);
-  width: calc(var(--testimonial-card-width, 100%) - var(--stack-depth) * 112px * (1 - var(--stack-progress, 0)));
-  top: calc((120px - var(--stack-depth) * 40px) * (1 - var(--stack-progress, 0)));
+  width: calc(var(--testimonial-card-width, 100%) - var(--stack-depth) * var(--stair-width-step) * (1 - var(--stack-progress, 0)));
+  top: calc((var(--stair-area) - var(--stack-depth) * var(--stair-step)) * (1 - var(--stack-progress, 0)));
   box-sizing: border-box;
   box-shadow: 0 0 15.4px rgba(0, 0, 0, 0.15);
+}
+
+.testimonial-card-dummy:last-child {
+  display: none;
 }
 
 .testimonial-container:not(.testimonial-expanded) .testimonial-controls {
@@ -250,10 +282,18 @@
 }
 
 /* Tablet */
-@media screen and (min-width: 361px) {
+@media screen and (min-width: 600px) {
   .testimonial {
     --testimonial-card-gap: 20px;
     --testimonial-progress-width: 50px;
+    --stair-area: 120px;
+    --stair-step: 40px;
+    --stair-width-step: 40px;
+    --stair-height: 40px;
+  }
+
+  .testimonial-card-dummy:last-child {
+    display: block;
   }
 
   .testimonial-container {
@@ -267,6 +307,11 @@
     width: var(--testimonial-card-width);
     padding: 42px;
     row-gap: 64px;
+  }
+
+  .testimonial-heading h1,h2,h3,h4,h5 {
+    font-size: 36px;
+    letter-spacing: -1.62px;
   }
 
   .testimonial-quote {
@@ -315,6 +360,12 @@
   .testimonial-container {
     --testimonial-card-width: 35.76%;
     padding-bottom: 100px;
+  }
+  
+  .testimonial-heading h1,h2,h3,h4,h5 {
+    font-size: 44px;
+    letter-spacing: -1.98px;
+    padding-bottom: 64px;
   }
 
   .testimonial-expanded .testimonial-track {
