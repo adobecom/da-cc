@@ -141,10 +141,10 @@
   width: 100%;
   background: var(--testimonial-card-bg);
   border-radius: var(--testimonial-card-radius);
-  padding: 24px;
+  padding: 42px;
   display: grid;
   grid-template-rows: 1fr auto;
-  row-gap: 40px;
+  row-gap: 64px;
   box-sizing: border-box;
 }
 
