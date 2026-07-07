@@ -20,8 +20,14 @@ function parseCards(el) {
     });
 }
 
-function createCard(data, index) {
-  const card = createTag('article', { class: `${BLOCK}-card`, 'data-index': index });
+function createCard(data, index, total) {
+  const card = createTag('article', {
+    class: `${BLOCK}-card`,
+    'data-index': index,
+    role: 'group',
+    'aria-roledescription': 'slide',
+    'aria-label': `Slide ${index + 1} of ${total}`,
+  });
   const quoteEl = createTag('blockquote', { class: `${BLOCK}-quote` }, data.quote);
   const authorEl = createTag('div', { class: `${BLOCK}-author` });
   if (data.picture) {
@@ -45,6 +51,7 @@ function createProgressBar(count, onClick) {
       class: `${BLOCK}-progress-dot`,
       type: 'button',
       'data-index': i,
+      'aria-label': `Go to slide ${i + 1} of ${count}`,
     });
     const fill = createTag('div', { class: `${BLOCK}-progress-fill` });
     dot.append(fill);
@@ -137,6 +144,8 @@ function updateProgress(progressDots, currentIndex) {
     const fill = dot.querySelector(`.${BLOCK}-progress-fill`);
     if (fill) {
       fill.style.animation = 'none';
+      fill.style.transform = '';
+      fill.style.animationDelay = '';
       fill.style.animation = '';
     }
   });
@@ -175,7 +184,12 @@ export default async function init(el) {
   let tickStart = 0;
   let tickRemaining = AUTOPLAY_INTERVAL_MS;
 
-  const container = createTag('div', { class: `${BLOCK}-container` });
+  const container = createTag('div', {
+    class: `${BLOCK}-container`,
+    role: 'region',
+    'aria-roledescription': 'carousel',
+    'aria-label': headingSource?.textContent?.trim() || 'Testimonials',
+  });
 
   if (headingSource) {
     const headingWrap = createTag('div', { class: `${BLOCK}-heading` });
@@ -184,7 +198,7 @@ export default async function init(el) {
   }
 
   const track = createTag('div', { class: `${BLOCK}-track` });
-  const cards = cardData.map((data, i) => createCard(data, i));
+  const cards = cardData.map((data, i) => createCard(data, i, count));
   track.append(...cards);
 
   const dummyCards = [];
@@ -232,6 +246,8 @@ export default async function init(el) {
         state.hasScrolled = true;
         state.currentIndex = nextIndex;
         settle();
+        // eslint-disable-next-line no-use-before-define
+        updateProgress(progressDots, state.currentIndex);
         state.isAnimating = false;
       });
     }));
@@ -255,6 +271,8 @@ export default async function init(el) {
         state.hasScrolled = true;
         state.currentIndex = prevIndex;
         settle();
+        // eslint-disable-next-line no-use-before-define
+        updateProgress(progressDots, state.currentIndex);
         state.isAnimating = false;
       });
     }));
@@ -299,6 +317,8 @@ export default async function init(el) {
         state.hasScrolled = true;
         state.currentIndex = target;
         settle();
+        // eslint-disable-next-line no-use-before-define
+        updateProgress(progressDots, state.currentIndex);
         state.isAnimating = false;
         if (isPlaying) startAutoplay();
       });
@@ -307,9 +327,11 @@ export default async function init(el) {
 
   function autoplayTick() {
     autoplayTimer = null;
+    if (state.isAnimating) {
+      autoplayTimer = setTimeout(autoplayTick, TRANSITION_FALLBACK_MS);
+      return;
+    }
     moveNext();
-    // eslint-disable-next-line no-use-before-define
-    updateProgress(progressDots, wrapIndex(state.currentIndex + 1, count));
     tickRemaining = AUTOPLAY_INTERVAL_MS;
     tickStart = Date.now();
     autoplayTimer = setTimeout(autoplayTick, AUTOPLAY_INTERVAL_MS);
@@ -388,10 +410,8 @@ export default async function init(el) {
     stopAutoplay();
     if (deltaX < 0) {
       moveNext();
-      updateProgress(progressDots, wrapIndex(state.currentIndex + 1, count));
     } else {
       movePrev();
-      updateProgress(progressDots, wrapIndex(state.currentIndex - 1, count));
     }
     if (isPlaying) startAutoplay();
   }, { passive: true });
@@ -400,11 +420,9 @@ export default async function init(el) {
     if (e.key === 'ArrowLeft') {
       e.preventDefault();
       movePrev();
-      updateProgress(progressDots, wrapIndex(state.currentIndex - 1, count));
     } else if (e.key === 'ArrowRight') {
       e.preventDefault();
       moveNext();
-      updateProgress(progressDots, wrapIndex(state.currentIndex + 1, count));
     }
   });
 
@@ -421,17 +439,18 @@ export default async function init(el) {
   container.style.top = `${navHeight}px`;
   container.style.zIndex = '1';
 
-  if (!navHeight) {
-    const navObserver = new MutationObserver(() => {
-      const h = getNavHeight();
-      if (h) {
-        navHeight = h;
-        container.style.top = `${h}px`;
-        navObserver.disconnect();
+  const blockObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        const h = getNavHeight();
+        if (h && h !== navHeight) {
+          navHeight = h;
+          container.style.top = `${h}px`;
+        }
       }
     });
-    navObserver.observe(document.body, { childList: true, subtree: true });
-  }
+  }, { threshold: 0 });
+  blockObserver.observe(el);
 
   let expandReady = false;
 
