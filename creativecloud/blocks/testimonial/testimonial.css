@@ -242,6 +242,11 @@
   cursor: pointer;
 }
 
+.testimonial-progress-dot:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 3px;
+}
+
 .testimonial-progress-dot:hover {
   background: #828282;
 }
