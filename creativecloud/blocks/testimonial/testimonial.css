@@ -43,6 +43,10 @@
 }
 
 
+.testimonial-container:not(.testimonial-expanded):not(.testimonial-stack-collapsed) .testimonial-card {
+  filter: drop-shadow(0 0 15.4px rgba(0, 0, 0, 0.15));
+}
+
 .testimonial-container:not(.testimonial-expanded) .testimonial-card-front {
   position: relative;
   transform: translateX(calc(var(--expand-offset, 0px) * var(--expand-progress, 0)));
@@ -66,6 +70,7 @@
   width: calc(var(--testimonial-card-width, 100%) - var(--stack-depth) * 112px * (1 - var(--stack-progress, 0)));
   top: calc((120px - var(--stack-depth) * 40px) * (1 - var(--stack-progress, 0)));
   box-sizing: border-box;
+  box-shadow: 0 0 15.4px rgba(0, 0, 0, 0.15);
 }
 
 .testimonial-container:not(.testimonial-expanded) .testimonial-controls {

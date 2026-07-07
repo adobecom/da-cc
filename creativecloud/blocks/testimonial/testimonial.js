@@ -196,7 +196,7 @@ export default async function init(el) {
   for (let i = 0; i < DUMMY_STACK_COUNT; i += 1) {
     const dummy = createTag('div', { class: `${BLOCK}-card-dummy` });
     dummy.style.setProperty('--stack-depth', String(i + 1));
-    dummy.style.zIndex = String(99 - i);
+    dummy.style.zIndex = String(10 - i);
     dummyCards.push(dummy);
   }
   track.append(...dummyCards);
@@ -533,6 +533,7 @@ export default async function init(el) {
       container.style.setProperty('--stack-progress', String(collapseProgress));
       container.classList.toggle(`${BLOCK}-stack-collapsed`, collapseProgress >= 1);
       container.style.setProperty('--expand-progress', String(expandProgress));
+      dummyCards.forEach((d) => { d.style.display = expandProgress > 0 ? 'none' : ''; });
     }
   }
 
