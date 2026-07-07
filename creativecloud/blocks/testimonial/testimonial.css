@@ -418,12 +418,16 @@
     transition: none;
   }
 
-  .testimonial-container:not(.testimonial-expanded) .testimonial-card {
+  .testimonial-expanded .testimonial-card {
     transition: none;
   }
 
   .testimonial-progress-dot.active .testimonial-progress-fill {
     animation: none;
     transform: scaleX(1);
+  }
+
+  .testimonial-play-pause {
+    display: none;
   }
 }

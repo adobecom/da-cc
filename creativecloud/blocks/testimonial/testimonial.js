@@ -150,6 +150,7 @@ function updateActiveCard(cards, currentIndex) {
 }
 
 function waitTransition(track, callback) {
+  if (prefersReducedMotion()) { callback(); return; }
   let done = false;
   const finish = () => {
     if (done) return;
@@ -349,8 +350,19 @@ export default async function init(el) {
   container.append(track, controls);
   el.append(container);
 
-  setStackPositions(cards);
   const progressDots = [...progressBar.querySelectorAll(`.${BLOCK}-progress-dot`)];
+
+  if (prefersReducedMotion()) {
+    container.classList.add(`${BLOCK}-expanded`);
+    dummyCards.forEach((d) => { d.style.display = 'none'; });
+    requestAnimationFrame(() => {
+      settle();
+      updateProgress(progressDots, state.currentIndex);
+    });
+    return;
+  }
+
+  setStackPositions(cards);
 
   playPauseBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
