@@ -6,7 +6,6 @@ const TRANSITION_FALLBACK_MS = 600;
 const DUMMY_STACK_COUNT = 3;
 const TABLET_MQ = '(min-width: 600px)';
 const DESKTOP_MQ = '(min-width: 1201px)';
-const XLARGE_DESKTOP_MQ = '(min-width: 1441px)';
 
 function parseCards(el) {
   return [...el.querySelectorAll(':scope > div')]
@@ -59,6 +58,7 @@ function createPlayPause() {
   const btn = createTag('button', {
     class: `${BLOCK}-play-pause`,
     type: 'button',
+    'aria-label': 'Pause',
   });
   btn.innerHTML = `<svg class="${BLOCK}-pause-icon" width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M18.5832 34.8437C9.61636 34.8437 2.32275 27.5501 2.32275 18.5832C2.32275 9.61636 9.61636 2.32275 18.5832 2.32275C27.5501 2.32275 34.8437 9.61636 34.8437 18.5832C34.8437 27.5501 27.5501 34.8437 18.5832 34.8437ZM18.5832 5.11026C11.1535 5.11026 5.11026 11.1535 5.11026 18.5832C5.11026 26.0129 11.1535 32.0562 18.5832 32.0562C26.0129 32.0562 32.0562 26.0129 32.0562 18.5832C32.0562 11.1535 26.0129 5.11026 18.5832 5.11026Z" fill="black"/>
@@ -137,7 +137,6 @@ function updateProgress(progressDots, currentIndex) {
     const fill = dot.querySelector(`.${BLOCK}-progress-fill`);
     if (fill) {
       fill.style.animation = 'none';
-      fill.offsetHeight; // eslint-disable-line no-unused-expressions
       fill.style.animation = '';
     }
   });
@@ -179,9 +178,7 @@ export default async function init(el) {
   const container = createTag('div', { class: `${BLOCK}-container` });
 
   if (headingSource) {
-    const headingWrap = createTag('div', {
-      class: `${BLOCK}-heading`,
-    });
+    const headingWrap = createTag('div', { class: `${BLOCK}-heading` });
     headingWrap.append(headingSource);
     container.append(headingWrap);
   }
@@ -199,20 +196,6 @@ export default async function init(el) {
   }
   track.append(...dummyCards);
 
-  function updateCardWidth() {
-    if (!window.matchMedia(TABLET_MQ).matches) return;
-    const cw = container.getBoundingClientRect().width;
-    let w;
-    if (window.matchMedia(XLARGE_DESKTOP_MQ).matches) {
-      w = cw * 702 / 1960;
-    } else if (isDesktop()) {
-      w = cw * 515 / 1440;
-    } else {
-      w = cw * 5 / 6;
-    }
-    container.style.setProperty('--testimonial-card-width', `${w}px`);
-  }
-
   function applyBasePosition(animate, beforeActive) {
     const step = getTrackStep(cards, track);
     track.style.transition = animate ? '' : 'none';
@@ -224,7 +207,6 @@ export default async function init(el) {
   }
 
   function settle() {
-    updateCardWidth();
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     setCircularOrder(cards, state.currentIndex, count, before);
     updateActiveCard(cards, state.currentIndex);
@@ -239,13 +221,16 @@ export default async function init(el) {
     setCircularOrder(cards, state.currentIndex, count, before);
     applyBasePosition(false, before);
 
+    const nextIndex = wrapIndex(state.currentIndex + 1, count);
+    markPeekCards(cards, nextIndex, count, before);
+
     requestAnimationFrame(() => requestAnimationFrame(() => {
       const step = getTrackStep(cards, track);
       track.style.transition = '';
       track.style.transform = `translateX(${dir * (before + 1) * step}px)`;
       waitTransition(track, () => {
         state.hasScrolled = true;
-        state.currentIndex = wrapIndex(state.currentIndex + 1, count);
+        state.currentIndex = nextIndex;
         settle();
         state.isAnimating = false;
       });
@@ -256,9 +241,11 @@ export default async function init(el) {
     if (count <= 1 || state.isAnimating) return;
     state.isAnimating = true;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
+    const prevIndex = wrapIndex(state.currentIndex - 1, count);
 
     setCircularOrder(cards, state.currentIndex, count, before + 1);
     applyBasePosition(false, before + 1);
+    markPeekCards(cards, prevIndex, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
       const step = getTrackStep(cards, track);
@@ -266,11 +253,18 @@ export default async function init(el) {
       track.style.transform = `translateX(${dir * before * step}px)`;
       waitTransition(track, () => {
         state.hasScrolled = true;
-        state.currentIndex = wrapIndex(state.currentIndex - 1, count);
+        state.currentIndex = prevIndex;
         settle();
         state.isAnimating = false;
       });
     }));
+  }
+
+  function startAutoplay() {
+    if (autoplayTimer || !isPlaying || prefersReducedMotion()) return;
+    tickStart = Date.now();
+    // eslint-disable-next-line no-use-before-define
+    autoplayTimer = setTimeout(autoplayTick, tickRemaining);
   }
 
   function jumpTo(index) {
@@ -292,6 +286,7 @@ export default async function init(el) {
       setCircularOrder(cards, state.currentIndex, count, before + steps);
       applyBasePosition(false, before + steps);
     }
+    markPeekCards(cards, target, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
       const step = getTrackStep(cards, track);
@@ -313,16 +308,11 @@ export default async function init(el) {
   function autoplayTick() {
     autoplayTimer = null;
     moveNext();
+    // eslint-disable-next-line no-use-before-define
     updateProgress(progressDots, wrapIndex(state.currentIndex + 1, count));
     tickRemaining = AUTOPLAY_INTERVAL_MS;
     tickStart = Date.now();
     autoplayTimer = setTimeout(autoplayTick, AUTOPLAY_INTERVAL_MS);
-  }
-
-  function startAutoplay() {
-    if (autoplayTimer || !isPlaying || prefersReducedMotion()) return;
-    tickStart = Date.now();
-    autoplayTimer = setTimeout(autoplayTick, tickRemaining);
   }
 
   function pauseAutoplay() {
@@ -342,6 +332,7 @@ export default async function init(el) {
   const controls = createTag('div', { class: `${BLOCK}-controls` });
   const progressBar = createProgressBar(count, (i) => {
     stopAutoplay();
+    // eslint-disable-next-line no-use-before-define
     updateProgress(progressDots, i);
     jumpTo(i);
   });
@@ -368,6 +359,7 @@ export default async function init(el) {
     isPlaying = !isPlaying;
     container.classList.toggle(`${BLOCK}-paused`, !isPlaying);
     playPauseBtn.classList.toggle(`${BLOCK}-show-play`, !isPlaying);
+    playPauseBtn.setAttribute('aria-label', isPlaying ? 'Pause' : 'Play');
     if (isPlaying) {
       startAutoplay();
     } else {
