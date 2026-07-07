@@ -393,7 +393,7 @@
   }
 
   .testimonial-play-pause {
-    inset-inline-start: calc((100% + 2 * var(--testimonial-card-width) + 3 * var(--testimonial-card-gap)) / 2);
+    inset-inline-start: calc(50% + var(--testimonial-card-width) + 1.5 * var(--testimonial-card-gap));
   }
 
   .testimonial-author {
