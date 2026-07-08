@@ -380,7 +380,20 @@ export default async function init(el) {
     });
   }
 
-  if (!prefersReducedMotion()) setStackPositions(cards);
+  function equalizeStackHeights() {
+    cards.forEach((card) => {
+      card.style.minHeight = '';
+      card.style.zIndex = '';
+      card.classList.remove(`${BLOCK}-card-front`, `${BLOCK}-card-back`);
+    });
+    track.getBoundingClientRect();
+    const heights = cards.map((card) => card.offsetHeight);
+    const maxHeight = Math.max(...heights);
+    cards[0].style.minHeight = `${maxHeight}px`;
+    setStackPositions(cards);
+  }
+
+  if (!prefersReducedMotion()) equalizeStackHeights();
 
   playPauseBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
@@ -532,6 +545,7 @@ export default async function init(el) {
       cards.forEach((card) => {
         card.style.transform = '';
         card.style.zIndex = '';
+        card.style.minHeight = '';
         card.style.removeProperty('--stack-depth');
         card.style.removeProperty('--expand-offset');
         card.classList.remove(
@@ -569,7 +583,7 @@ export default async function init(el) {
       });
       container.style.setProperty('--stack-progress', '1');
       container.style.setProperty('--expand-progress', '1');
-      setStackPositions(cards);
+      equalizeStackHeights();
       computeExpandOffsets();
       dummyCards.forEach((d) => { d.style.display = ''; });
       container.classList.remove(`${BLOCK}-expanded`);
@@ -657,8 +671,11 @@ export default async function init(el) {
   visibilityObserver.observe(el);
 
   const resizeObserver = new ResizeObserver(() => {
-    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
-    settle();
+    if (container.classList.contains(`${BLOCK}-expanded`)) {
+      settle();
+    } else if (!prefersReducedMotion()) {
+      equalizeStackHeights();
+    }
   });
   resizeObserver.observe(el);
 }
