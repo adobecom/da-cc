@@ -21,7 +21,7 @@ function parseCards(el) {
 }
 
 function createCard(data, index) {
-  const card = createTag('article', {
+  const card = createTag('div', {
     class: `${BLOCK}-card`,
     'data-index': index,
     role: 'group',
