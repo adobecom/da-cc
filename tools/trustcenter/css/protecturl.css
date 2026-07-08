@@ -159,10 +159,6 @@
   fill: var(--color-gray-800);
 }
 
-.tc-tool-plain .tc-output .tc-copy-btn:hover svg .fill {
-  fill: var(--color-gray-800);
-}
-
 .tc-tool-plain .tc-output .tc-copy-btn.copied svg .fill {
-  fill: var(--color-green-700);
+  fill: #268e6c;
 }

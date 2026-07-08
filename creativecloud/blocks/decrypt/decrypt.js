@@ -170,10 +170,7 @@ function initCopyButtons() {
       if (!target?.value) return;
       try {
         await navigator.clipboard.writeText(target.value);
-      } catch (_) {
-        target.select();
-        document.execCommand('copy');
-      }
+      } catch (_) { /* clipboard unavailable, skip */ }
       btn.classList.add('copied');
       btn.innerHTML = CHECK_ICON;
       btn.setAttribute('aria-label', 'Copied');
