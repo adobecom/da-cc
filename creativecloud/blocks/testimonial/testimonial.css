@@ -119,8 +119,8 @@
 }
 
 .testimonial-stack-collapsed:not(.testimonial-expanded) .testimonial-controls {
-  opacity: var(--expand-progress, 0);
-  pointer-events: auto;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Track — expanded (carousel) state */
@@ -231,6 +231,15 @@
   gap: 16px;
   margin-top: 40px;
   padding: 0 30px;
+  opacity: 0;
+}
+
+.testimonial-expanded .testimonial-controls {
+  transition: opacity 400ms ease;
+}
+
+.testimonial-controls-visible {
+  opacity: 1;
 }
 
 .testimonial-progress {

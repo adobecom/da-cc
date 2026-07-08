@@ -369,6 +369,7 @@ export default async function init(el) {
 
   if (prefersReducedMotion()) {
     container.classList.add(`${BLOCK}-expanded`, `${BLOCK}-paused`);
+    controls.classList.add(`${BLOCK}-controls-visible`);
     isPlaying = false;
     playPauseBtn.classList.add(`${BLOCK}-show-play`);
     playPauseBtn.setAttribute('aria-label', 'Play');
@@ -478,7 +479,7 @@ export default async function init(el) {
 
     let navHeight = getNavHeight();
 
-    el.style.height = '200vh';
+    el.style.height = '100vh';
     el.style.overflow = 'clip';
     container.style.position = 'sticky';
     container.style.top = `${navHeight}px`;
@@ -544,12 +545,18 @@ export default async function init(el) {
       state.hasScrolled = false;
       tickRemaining = AUTOPLAY_INTERVAL_MS;
       settle();
-      updateProgress(progressDots, state.currentIndex);
-      startAutoplay();
+      requestAnimationFrame(() => {
+        controls.classList.add(`${BLOCK}-controls-visible`);
+        controls.addEventListener('transitionend', () => {
+          updateProgress(progressDots, state.currentIndex);
+          startAutoplay();
+        }, { once: true });
+      });
     };
 
     const exitExpanded = () => {
       stopAutoplay();
+      controls.classList.remove(`${BLOCK}-controls-visible`);
       cards.forEach((card) => {
         card.classList.remove(`${BLOCK}-card-peek`);
         card.style.order = '';
