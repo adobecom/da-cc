@@ -479,7 +479,7 @@ export default async function init(el) {
 
     let navHeight = getNavHeight();
 
-    el.style.height = '100vh';
+    el.style.height = '150vh';
     el.style.overflow = 'clip';
     container.style.position = 'sticky';
     container.style.top = `${navHeight}px`;
