@@ -238,9 +238,10 @@ export default async function init(el) {
   const showcaseContentElem = el.querySelector(':scope > div');
   // Add class to container for styling
   showcaseContentElem.classList.add('firefly-model-showcase-content');
-  showcaseContentElem
-    .querySelector(':scope > div')
-    .classList.add('content-container');
+  const contentContainer = showcaseContentElem.querySelector(':scope > div');
+  // 'copy' class + placeholder div are required by Unity to locate and inject the prompt bar
+  contentContainer.classList.add('content-container', 'copy');
+  contentContainer.append(createTag('div', { class: 'firefly-model-showcase-prompt-container' }));
   // Decorate buttons
   el.classList.add('l-button');
   await decorateButtons(el);

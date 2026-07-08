@@ -100,6 +100,18 @@
   scroll-margin-top: 400vh
 }
 
+/* Unity prompt-bar integration */
+.firefly-model-showcase.unity-enabled .interactive-area {
+  width: 100%;
+  background: none; /* remove core checkerboard placeholder background */
+}
+
+.firefly-model-showcase.unity-enabled .interactive-area .ex-unity-wrap,
+.firefly-model-showcase.unity-enabled .interactive-area .ex-unity-wrap .ex-unity-widget,
+.firefly-model-showcase.unity-enabled .interactive-area .ex-unity-wrap .ex-unity-widget .autocomplete {
+  width: 100%;
+}
+
 .firefly-model-showcase-gallery {
   display: flex;
   width: var(--gallery-width);
