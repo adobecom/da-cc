@@ -547,10 +547,15 @@ export default async function init(el) {
       settle();
       requestAnimationFrame(() => {
         controls.classList.add(`${BLOCK}-controls-visible`);
-        controls.addEventListener('transitionend', () => {
+        let started = false;
+        const beginAutoplay = () => {
+          if (started) return;
+          started = true;
           updateProgress(progressDots, state.currentIndex);
           startAutoplay();
-        }, { once: true });
+        };
+        controls.addEventListener('transitionend', beginAutoplay, { once: true });
+        setTimeout(beginAutoplay, 400);
       });
     };
 
@@ -621,22 +626,35 @@ export default async function init(el) {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-
-    const visibilityObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) {
-          pauseAutoplay();
-          container.classList.add(`${BLOCK}-out-of-view`);
-        } else {
-          container.classList.remove(`${BLOCK}-out-of-view`);
-          if (isPlaying && container.classList.contains(`${BLOCK}-expanded`)) {
-            startAutoplay();
-          }
-        }
-      });
-    }, { threshold: 0 });
-    visibilityObserver.observe(el);
   }
+
+  const visibilityObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) {
+        pauseAutoplay();
+        if (prefersReducedMotion()) {
+          const activeFill = progressBar.querySelector(`.${BLOCK}-progress-dot.active .${BLOCK}-progress-fill`);
+          if (activeFill) {
+            activeFill.style.animation = 'none';
+            activeFill.style.transform = 'scaleX(1)';
+          }
+          isPlaying = false;
+          container.classList.add(`${BLOCK}-paused`);
+          playPauseBtn.classList.add(`${BLOCK}-show-play`);
+          playPauseBtn.setAttribute('aria-label', 'Play');
+        } else {
+          container.classList.add(`${BLOCK}-out-of-view`);
+        }
+      } else {
+        container.classList.remove(`${BLOCK}-out-of-view`);
+        if (isPlaying && !prefersReducedMotion()
+          && container.classList.contains(`${BLOCK}-expanded`)) {
+          startAutoplay();
+        }
+      }
+    });
+  }, { threshold: 0 });
+  visibilityObserver.observe(el);
 
   const resizeObserver = new ResizeObserver(() => {
     if (!container.classList.contains(`${BLOCK}-expanded`)) return;
