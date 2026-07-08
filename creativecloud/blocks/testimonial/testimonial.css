@@ -235,7 +235,7 @@
 }
 
 .testimonial-expanded .testimonial-controls {
-  transition: opacity 400ms ease;
+  transition: opacity 300ms ease;
 }
 
 .testimonial-controls-visible {
