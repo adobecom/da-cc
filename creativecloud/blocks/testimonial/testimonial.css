@@ -131,6 +131,15 @@
   will-change: transform;
 }
 
+.testimonial-expanded .testimonial-track {
+  cursor: grab;
+  user-select: none;
+}
+
+.testimonial-expanded .testimonial-track:active {
+  cursor: grabbing;
+}
+
 .testimonial-expanded .testimonial-card {
   position: relative;
   z-index: auto;
@@ -426,7 +435,8 @@
   }
 }
 
-.testimonial-paused .testimonial-progress-dot.active .testimonial-progress-fill {
+.testimonial-paused .testimonial-progress-dot.active .testimonial-progress-fill,
+.testimonial-out-of-view .testimonial-progress-dot.active .testimonial-progress-fill {
   animation-play-state: paused;
 }
 
@@ -434,21 +444,3 @@
   transform-origin: right;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .testimonial-expanded .testimonial-track {
-    transition: none;
-  }
-
-  .testimonial-expanded .testimonial-card {
-    transition: none;
-  }
-
-  .testimonial-progress-dot.active .testimonial-progress-fill {
-    animation: none;
-    transform: scaleX(1);
-  }
-
-  .testimonial-play-pause {
-    display: none;
-  }
-}

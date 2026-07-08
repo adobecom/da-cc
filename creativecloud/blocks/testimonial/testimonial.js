@@ -20,13 +20,13 @@ function parseCards(el) {
     });
 }
 
-function createCard(data, index, total) {
+function createCard(data, index) {
   const card = createTag('article', {
     class: `${BLOCK}-card`,
     'data-index': index,
     role: 'group',
     'aria-roledescription': 'slide',
-    'aria-label': `Slide ${index + 1} of ${total}`,
+    'aria-label': `Testimonial by ${data.name}`,
   });
   const quoteEl = createTag('blockquote', { class: `${BLOCK}-quote` }, data.quote);
   const authorEl = createTag('div', { class: `${BLOCK}-author` });
@@ -51,7 +51,7 @@ function createProgressBar(count, onClick) {
       class: `${BLOCK}-progress-dot`,
       type: 'button',
       'data-index': i,
-      'aria-label': `Go to slide ${i + 1} of ${count}`,
+      'aria-label': `Testimonial ${i + 1}`,
     });
     const fill = createTag('div', { class: `${BLOCK}-progress-fill` });
     dot.append(fill);
@@ -158,7 +158,6 @@ function updateActiveCard(cards, currentIndex) {
 }
 
 function waitTransition(track, callback) {
-  if (prefersReducedMotion()) { callback(); return; }
   let done = false;
   const finish = () => {
     if (done) return;
@@ -198,7 +197,7 @@ export default async function init(el) {
   }
 
   const track = createTag('div', { class: `${BLOCK}-track` });
-  const cards = cardData.map((data, i) => createCard(data, i, count));
+  const cards = cardData.map((data, i) => createCard(data, i));
   track.append(...cards);
 
   const dummyCards = [];
@@ -279,7 +278,7 @@ export default async function init(el) {
   }
 
   function startAutoplay() {
-    if (autoplayTimer || !isPlaying || prefersReducedMotion()) return;
+    if (autoplayTimer || !isPlaying) return;
     tickStart = Date.now();
     // eslint-disable-next-line no-use-before-define
     autoplayTimer = setTimeout(autoplayTick, tickRemaining);
@@ -366,16 +365,18 @@ export default async function init(el) {
   const progressDots = [...progressBar.querySelectorAll(`.${BLOCK}-progress-dot`)];
 
   if (prefersReducedMotion()) {
-    container.classList.add(`${BLOCK}-expanded`);
+    container.classList.add(`${BLOCK}-expanded`, `${BLOCK}-paused`);
+    isPlaying = false;
+    playPauseBtn.classList.add(`${BLOCK}-show-play`);
+    playPauseBtn.setAttribute('aria-label', 'Play');
     dummyCards.forEach((d) => { d.style.display = 'none'; });
     requestAnimationFrame(() => {
       settle();
       updateProgress(progressDots, state.currentIndex);
     });
-    return;
   }
 
-  setStackPositions(cards);
+  if (!prefersReducedMotion()) setStackPositions(cards);
 
   playPauseBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
@@ -396,16 +397,9 @@ export default async function init(el) {
 
   let startX = 0;
   let startY = 0;
-  container.addEventListener('touchstart', (e) => {
-    if (e.changedTouches.length !== 1) return;
-    startX = e.changedTouches[0].clientX;
-    startY = e.changedTouches[0].clientY;
-  }, { passive: true });
 
-  container.addEventListener('touchend', (e) => {
-    if (e.changedTouches.length !== 1) return;
-    const deltaX = e.changedTouches[0].clientX - startX;
-    const deltaY = e.changedTouches[0].clientY - startY;
+  function handleSwipe(deltaX, deltaY) {
+    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
     if (Math.abs(deltaX) < 50 || Math.abs(deltaY) >= Math.abs(deltaX)) return;
     stopAutoplay();
     if (deltaX < 0) {
@@ -414,7 +408,41 @@ export default async function init(el) {
       movePrev();
     }
     if (isPlaying) startAutoplay();
+  }
+
+  container.addEventListener('touchstart', (e) => {
+    if (e.changedTouches.length !== 1) return;
+    startX = e.changedTouches[0].clientX;
+    startY = e.changedTouches[0].clientY;
   }, { passive: true });
+
+  container.addEventListener('touchend', (e) => {
+    if (e.changedTouches.length !== 1) return;
+    handleSwipe(e.changedTouches[0].clientX - startX, e.changedTouches[0].clientY - startY);
+  }, { passive: true });
+
+  let isDragging = false;
+  container.addEventListener('mousedown', (e) => {
+    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+  });
+
+  container.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    e.preventDefault();
+  });
+
+  container.addEventListener('mouseup', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    handleSwipe(e.clientX - startX, e.clientY - startY);
+  });
+
+  container.addEventListener('mouseleave', () => {
+    isDragging = false;
+  });
 
   el.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowLeft') {
@@ -426,146 +454,166 @@ export default async function init(el) {
     }
   });
 
-  function getNavHeight() {
-    const nav = document.querySelector('.global-navigation') || document.querySelector('header');
-    return nav?.offsetHeight || 0;
-  }
+  if (!prefersReducedMotion()) {
+    const getNavHeight = () => {
+      const nav = document.querySelector('.global-navigation') || document.querySelector('header');
+      return nav?.offsetHeight || 0;
+    };
 
-  let navHeight = getNavHeight();
+    let navHeight = getNavHeight();
 
-  el.style.height = '200vh';
-  el.style.overflow = 'clip';
-  container.style.position = 'sticky';
-  container.style.top = `${navHeight}px`;
-  container.style.zIndex = '1';
+    el.style.height = '200vh';
+    el.style.overflow = 'clip';
+    container.style.position = 'sticky';
+    container.style.top = `${navHeight}px`;
+    container.style.zIndex = '1';
 
-  const blockObserver = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        const h = getNavHeight();
-        if (h && h !== navHeight) {
-          navHeight = h;
-          container.style.top = `${h}px`;
+    const blockObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const h = getNavHeight();
+          if (h && h !== navHeight) {
+            navHeight = h;
+            container.style.top = `${h}px`;
+          }
         }
+      });
+    }, { threshold: 0 });
+    blockObserver.observe(el);
+
+    let expandReady = false;
+
+    const computeExpandOffsets = () => {
+      const containerWidth = container.getBoundingClientRect().width;
+      const gap = parseFloat(getComputedStyle(el).getPropertyValue('--testimonial-card-gap')) || 24;
+      const widthPct = parseFloat(getComputedStyle(container).getPropertyValue('--testimonial-card-width')) / 100;
+      const cardWidth = window.matchMedia(TABLET_MQ).matches
+        ? containerWidth * (widthPct || 5 / 6)
+        : containerWidth;
+
+      let marginStart;
+      if (isDesktop()) {
+        marginStart = (containerWidth - 2 * cardWidth - gap) / 2;
+      } else if (window.matchMedia(TABLET_MQ).matches) {
+        marginStart = (containerWidth - cardWidth) / 2;
+      } else {
+        marginStart = 0;
       }
-    });
-  }, { threshold: 0 });
-  blockObserver.observe(el);
 
-  let expandReady = false;
+      const stackCenter = containerWidth / 2;
+      cards.forEach((card, i) => {
+        const carouselCenter = marginStart + i * (cardWidth + gap) + cardWidth / 2;
+        card.style.setProperty('--expand-offset', `${carouselCenter - stackCenter}px`);
+      });
+    };
 
-  function computeExpandOffsets() {
-    const containerWidth = container.getBoundingClientRect().width;
-    const gap = parseFloat(getComputedStyle(el).getPropertyValue('--testimonial-card-gap')) || 24;
-    const widthPct = parseFloat(getComputedStyle(container).getPropertyValue('--testimonial-card-width')) / 100;
-    const cardWidth = window.matchMedia(TABLET_MQ).matches
-      ? containerWidth * (widthPct || 5 / 6)
-      : containerWidth;
+    const enterExpanded = () => {
+      container.classList.add(`${BLOCK}-expanded`);
+      container.classList.remove(`${BLOCK}-stack-collapsed`);
+      container.style.removeProperty('--stack-progress');
+      container.style.removeProperty('--expand-progress');
+      cards.forEach((card) => {
+        card.style.transform = '';
+        card.style.zIndex = '';
+        card.style.removeProperty('--stack-depth');
+        card.style.removeProperty('--expand-offset');
+        card.classList.remove(
+          `${BLOCK}-card-front`,
+          `${BLOCK}-card-back`,
+          `${BLOCK}-card-hidden`,
+        );
+      });
+      dummyCards.forEach((d) => { d.style.display = 'none'; });
+      state.currentIndex = 0;
+      state.hasScrolled = false;
+      tickRemaining = AUTOPLAY_INTERVAL_MS;
+      settle();
+      updateProgress(progressDots, state.currentIndex);
+      startAutoplay();
+    };
 
-    let marginStart;
-    if (isDesktop()) {
-      marginStart = (containerWidth - 2 * cardWidth - gap) / 2;
-    } else if (window.matchMedia(TABLET_MQ).matches) {
-      marginStart = (containerWidth - cardWidth) / 2;
-    } else {
-      marginStart = 0;
-    }
-
-    const stackCenter = containerWidth / 2;
-    cards.forEach((card, i) => {
-      const carouselCenter = marginStart + i * (cardWidth + gap) + cardWidth / 2;
-      card.style.setProperty('--expand-offset', `${carouselCenter - stackCenter}px`);
-    });
-  }
-
-  function enterExpanded() {
-    container.classList.add(`${BLOCK}-expanded`);
-    container.classList.remove(`${BLOCK}-stack-collapsed`);
-    container.style.removeProperty('--stack-progress');
-    container.style.removeProperty('--expand-progress');
-    cards.forEach((card) => {
-      card.style.transform = '';
-      card.style.zIndex = '';
-      card.style.removeProperty('--stack-depth');
-      card.style.removeProperty('--expand-offset');
-      card.classList.remove(
-        `${BLOCK}-card-front`,
-        `${BLOCK}-card-back`,
-        `${BLOCK}-card-hidden`,
-      );
-    });
-    dummyCards.forEach((d) => { d.style.display = 'none'; });
-    settle();
-    updateProgress(progressDots, state.currentIndex);
-    if (!prefersReducedMotion()) startAutoplay();
-  }
-
-  function exitExpanded() {
-    stopAutoplay();
-    cards.forEach((card) => {
-      card.classList.remove(`${BLOCK}-card-peek`);
-      card.style.order = '';
-      card.style.transform = '';
-    });
-    container.style.setProperty('--stack-progress', '1');
-    container.style.setProperty('--expand-progress', '1');
-    setStackPositions(cards);
-    computeExpandOffsets();
-    dummyCards.forEach((d) => { d.style.display = ''; });
-    container.classList.remove(`${BLOCK}-expanded`);
-    container.classList.add(`${BLOCK}-stack-collapsed`);
-    track.style.transform = '';
-    track.style.transition = 'none';
-  }
-
-  function handleScroll() {
-    const rect = el.getBoundingClientRect();
-    const scrolled = Math.max(0, navHeight - rect.top);
-    const totalPinDistance = el.offsetHeight - container.offsetHeight;
-    if (totalPinDistance <= 0) return;
-
-    if (scrolled <= 0) {
-      expandReady = false;
-      container.style.setProperty('--stack-progress', '0');
-      container.style.setProperty('--expand-progress', '0');
-      container.classList.remove(`${BLOCK}-expanded`, `${BLOCK}-stack-collapsed`);
+    const exitExpanded = () => {
+      stopAutoplay();
+      cards.forEach((card) => {
+        card.classList.remove(`${BLOCK}-card-peek`);
+        card.style.order = '';
+        card.style.transform = '';
+      });
+      container.style.setProperty('--stack-progress', '1');
+      container.style.setProperty('--expand-progress', '1');
       setStackPositions(cards);
+      computeExpandOffsets();
       dummyCards.forEach((d) => { d.style.display = ''; });
-      return;
-    }
+      container.classList.remove(`${BLOCK}-expanded`);
+      container.classList.add(`${BLOCK}-stack-collapsed`);
+      track.style.transform = '';
+      track.style.transition = 'none';
+    };
 
-    const animationDistance = totalPinDistance * 0.5;
-    const collapseDistance = animationDistance * 0.5;
+    const handleScroll = () => {
+      const rect = el.getBoundingClientRect();
+      const scrolled = Math.max(0, navHeight - rect.top);
+      const totalPinDistance = el.offsetHeight - container.offsetHeight;
+      if (totalPinDistance <= 0) return;
 
-    const collapseProgress = Math.min(1, scrolled / collapseDistance);
-    let expandProgress = 0;
-
-    if (collapseProgress >= 1) {
-      if (!expandReady) {
-        computeExpandOffsets();
-        expandReady = true;
+      if (scrolled <= 0) {
+        expandReady = false;
+        container.style.setProperty('--stack-progress', '0');
+        container.style.setProperty('--expand-progress', '0');
+        container.classList.remove(`${BLOCK}-expanded`, `${BLOCK}-stack-collapsed`);
+        setStackPositions(cards);
+        dummyCards.forEach((d) => { d.style.display = ''; });
+        return;
       }
-      const expandScrolled = scrolled - collapseDistance;
-      expandProgress = Math.min(1, expandScrolled / (animationDistance - collapseDistance));
-    }
 
-    const isExpanded = container.classList.contains(`${BLOCK}-expanded`);
+      const animationDistance = totalPinDistance * 0.5;
+      const collapseDistance = animationDistance * 0.5;
 
-    if (expandProgress >= 1 && !isExpanded) {
-      enterExpanded();
-    } else if (expandProgress < 1 && isExpanded) {
-      exitExpanded();
-    }
+      const collapseProgress = Math.min(1, scrolled / collapseDistance);
+      let expandProgress = 0;
 
-    if (!container.classList.contains(`${BLOCK}-expanded`)) {
-      container.style.setProperty('--stack-progress', String(collapseProgress));
-      container.classList.toggle(`${BLOCK}-stack-collapsed`, collapseProgress >= 1);
-      container.style.setProperty('--expand-progress', String(expandProgress));
-      dummyCards.forEach((d) => { d.style.display = expandProgress > 0 ? 'none' : ''; });
-    }
+      if (collapseProgress >= 1) {
+        if (!expandReady) {
+          computeExpandOffsets();
+          expandReady = true;
+        }
+        const expandScrolled = scrolled - collapseDistance;
+        expandProgress = Math.min(1, expandScrolled / (animationDistance - collapseDistance));
+      }
+
+      const isExpanded = container.classList.contains(`${BLOCK}-expanded`);
+
+      if (expandProgress >= 1 && !isExpanded) {
+        enterExpanded();
+      } else if (expandProgress < 1 && isExpanded) {
+        exitExpanded();
+      }
+
+      if (!container.classList.contains(`${BLOCK}-expanded`)) {
+        container.style.setProperty('--stack-progress', String(collapseProgress));
+        container.classList.toggle(`${BLOCK}-stack-collapsed`, collapseProgress >= 1);
+        container.style.setProperty('--expand-progress', String(expandProgress));
+        dummyCards.forEach((d) => { d.style.display = expandProgress > 0 ? 'none' : ''; });
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    const visibilityObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) {
+          pauseAutoplay();
+          container.classList.add(`${BLOCK}-out-of-view`);
+        } else {
+          container.classList.remove(`${BLOCK}-out-of-view`);
+          if (isPlaying && container.classList.contains(`${BLOCK}-expanded`)) {
+            startAutoplay();
+          }
+        }
+      });
+    }, { threshold: 0 });
+    visibilityObserver.observe(el);
   }
-
-  window.addEventListener('scroll', handleScroll, { passive: true });
 
   const resizeObserver = new ResizeObserver(() => {
     if (!container.classList.contains(`${BLOCK}-expanded`)) return;
