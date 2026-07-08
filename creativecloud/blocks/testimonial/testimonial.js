@@ -244,6 +244,7 @@ export default async function init(el) {
       waitTransition(track, () => {
         state.hasScrolled = true;
         state.currentIndex = nextIndex;
+        tickRemaining = AUTOPLAY_INTERVAL_MS;
         settle();
         // eslint-disable-next-line no-use-before-define
         updateProgress(progressDots, state.currentIndex);
@@ -269,6 +270,7 @@ export default async function init(el) {
       waitTransition(track, () => {
         state.hasScrolled = true;
         state.currentIndex = prevIndex;
+        tickRemaining = AUTOPLAY_INTERVAL_MS;
         settle();
         // eslint-disable-next-line no-use-before-define
         updateProgress(progressDots, state.currentIndex);
@@ -315,6 +317,7 @@ export default async function init(el) {
       waitTransition(track, () => {
         state.hasScrolled = true;
         state.currentIndex = target;
+        tickRemaining = AUTOPLAY_INTERVAL_MS;
         settle();
         // eslint-disable-next-line no-use-before-define
         updateProgress(progressDots, state.currentIndex);
@@ -388,10 +391,23 @@ export default async function init(el) {
       const label = isPlaying ? dall.replace('Play', 'Pause') : dall.replace('Pause', 'Play');
       playPauseBtn.setAttribute('daa-ll', label);
     }
+    const activeFill = progressBar.querySelector(`.${BLOCK}-progress-dot.active .${BLOCK}-progress-fill`);
     if (isPlaying) {
+      const elapsed = AUTOPLAY_INTERVAL_MS - tickRemaining;
+      if (activeFill) {
+        activeFill.style.transform = '';
+        activeFill.style.animation = 'none';
+        activeFill.getBoundingClientRect();
+        activeFill.style.animation = '';
+        activeFill.style.animationDelay = `-${elapsed}ms`;
+      }
       startAutoplay();
     } else {
       pauseAutoplay();
+      if (activeFill) {
+        activeFill.style.animation = 'none';
+        activeFill.style.transform = 'scaleX(1)';
+      }
     }
   });
 

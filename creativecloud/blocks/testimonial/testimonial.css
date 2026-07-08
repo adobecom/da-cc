@@ -435,7 +435,11 @@
   }
 }
 
-.testimonial-paused .testimonial-progress-dot.active .testimonial-progress-fill,
+.testimonial-paused .testimonial-progress-dot.active .testimonial-progress-fill {
+  animation: none;
+  transform: scaleX(1);
+}
+
 .testimonial-out-of-view .testimonial-progress-dot.active .testimonial-progress-fill {
   animation-play-state: paused;
 }
