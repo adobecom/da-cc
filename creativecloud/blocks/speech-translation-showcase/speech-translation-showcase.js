@@ -143,7 +143,7 @@ function bindVideoToAudio(audioPlayerEl, mediaEl) {
   videoEl.addEventListener('ended', () => syncVideoChrome(videoEl, false));
 }
 
-function parseShowcaseItems(el) {
+function parseShowcaseItems(el, variant) {
   const rows = [...el.querySelectorAll(':scope > div')];
 
   return rows.flatMap((row, index) => {
@@ -163,6 +163,7 @@ function parseShowcaseItems(el) {
       flagPicture: flagImg,
       audioSrc: audioLink,
       mediaEl,
+      variant,
     }];
   });
 }
@@ -210,8 +211,9 @@ function buildBladesList(items, root) {
 }
 
 export default function init(el) {
+  const variant = [...el.classList].filter((c) => c !== 'speech-translation-showcase').join(' ');
   el.classList.add('speech-showcase');
-  const items = parseShowcaseItems(el);
+  const items = parseShowcaseItems(el, variant);
   if (!items.length) return;
 
   const bladesList = buildBladesList(items, el);
