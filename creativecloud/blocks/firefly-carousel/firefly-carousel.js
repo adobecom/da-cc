@@ -50,15 +50,12 @@ let videoUtils;
 // Reduced motion only: pause user-played videos when they leave the viewport.
 function pauseOffViewportPlayingVideos(cards) {
   if (!videoUtils) return;
-  const viewportRect = cards[0]?.closest(`.${BLOCK}-viewport`)?.getBoundingClientRect();
-  if (!viewportRect) return;
   cards.forEach((card) => {
+    if (card.classList.contains('active')) return;
     card.querySelectorAll('video').forEach((video) => {
-      if (!video.played.length || video.paused) return;
-      const { left, right, top, bottom } = video.getBoundingClientRect();
-      if (left < viewportRect.right && right > viewportRect.left
-        && top < viewportRect.bottom && bottom > viewportRect.top) return;
+      if (!video.played.length || video.hasAttribute(videoUtils.USER_PAUSED_ATTR)) return;
       video.setAttribute(videoUtils.USER_PAUSED_ATTR, '');
+      if (video.paused) return;
       video.pause();
       videoUtils.syncPausePlayIcon(video);
     });
