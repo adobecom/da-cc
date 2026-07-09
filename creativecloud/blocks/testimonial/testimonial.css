@@ -119,8 +119,8 @@
 }
 
 .testimonial-stack-collapsed:not(.testimonial-expanded) .testimonial-controls {
-  opacity: var(--expand-progress, 0);
-  pointer-events: auto;
+  opacity: 0;
+  pointer-events: none;
 }
 
 /* Track — expanded (carousel) state */
@@ -129,6 +129,15 @@
   margin-inline-start: 0;
   transition: transform 500ms cubic-bezier(0.4, 0, 0.2, 1);
   will-change: transform;
+}
+
+.testimonial-expanded .testimonial-track {
+  cursor: grab;
+  user-select: none;
+}
+
+.testimonial-expanded .testimonial-track:active {
+  cursor: grabbing;
 }
 
 .testimonial-expanded .testimonial-card {
@@ -222,6 +231,15 @@
   gap: 16px;
   margin-top: 40px;
   padding: 0 30px;
+  opacity: 0;
+}
+
+.testimonial-expanded .testimonial-controls {
+  transition: opacity 300ms ease;
+}
+
+.testimonial-controls-visible {
+  opacity: 1;
 }
 
 .testimonial-progress {
@@ -427,6 +445,11 @@
 }
 
 .testimonial-paused .testimonial-progress-dot.active .testimonial-progress-fill {
+  animation: none;
+  transform: scaleX(1);
+}
+
+.testimonial-out-of-view .testimonial-progress-dot.active .testimonial-progress-fill {
   animation-play-state: paused;
 }
 
@@ -434,21 +457,3 @@
   transform-origin: right;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .testimonial-expanded .testimonial-track {
-    transition: none;
-  }
-
-  .testimonial-expanded .testimonial-card {
-    transition: none;
-  }
-
-  .testimonial-progress-dot.active .testimonial-progress-fill {
-    animation: none;
-    transform: scaleX(1);
-  }
-
-  .testimonial-play-pause {
-    display: none;
-  }
-}
