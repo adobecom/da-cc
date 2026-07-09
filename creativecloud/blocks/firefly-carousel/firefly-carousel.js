@@ -49,15 +49,26 @@ let videoUtils;
 
 // Reduced motion only: pause user-played videos when they leave the viewport.
 function pauseOffViewportPlayingVideos(cards) {
+  // eslint-disable-next-line no-console
+  console.log('[ff-carousel debug] pauseOffViewportPlayingVideos called', { hasVideoUtils: !!videoUtils, cardCount: cards.length });
   if (!videoUtils) return;
   cards.forEach((card) => {
+    const video = card.querySelector('video');
+    // eslint-disable-next-line no-console
+    console.log('[ff-carousel debug] card', card.dataset.slideIndex, {
+      active: card.classList.contains('active'),
+      hasVideo: !!video,
+      playedLength: video?.played.length,
+      paused: video?.paused,
+      userPaused: video && videoUtils ? video.hasAttribute(videoUtils.USER_PAUSED_ATTR) : null,
+    });
     if (card.classList.contains('active')) return;
-    card.querySelectorAll('video').forEach((video) => {
-      if (!video.played.length || video.hasAttribute(videoUtils.USER_PAUSED_ATTR)) return;
-      video.setAttribute(videoUtils.USER_PAUSED_ATTR, '');
-      if (video.paused) return;
-      video.pause();
-      videoUtils.syncPausePlayIcon(video);
+    card.querySelectorAll('video').forEach((v) => {
+      if (!v.played.length || v.hasAttribute(videoUtils.USER_PAUSED_ATTR)) return;
+      v.setAttribute(videoUtils.USER_PAUSED_ATTR, '');
+      if (v.paused) return;
+      v.pause();
+      videoUtils.syncPausePlayIcon(v);
     });
   });
 }
