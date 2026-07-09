@@ -328,6 +328,10 @@
     --stair-height: 40px;
   }
 
+  .testimonial-heading {
+    padding-top: 100px;
+  }
+
   .testimonial-card-dummy:last-child {
     display: block;
   }
@@ -396,6 +400,10 @@
 @media screen and (min-width: 1201px) {
   .testimonial {
     --testimonial-card-gap: 24px;
+  }
+
+  .testimonial-heading {
+    padding-top: 120px;
   }
 
   .testimonial-container {
