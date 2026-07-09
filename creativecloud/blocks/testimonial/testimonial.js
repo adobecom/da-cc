@@ -607,15 +607,16 @@ export default async function init(el) {
         card.style.order = '';
         card.style.transform = '';
       });
+      track.style.transform = '';
+      track.style.transition = 'none';
+      container.classList.remove(`${BLOCK}-expanded`);
+      container.classList.add(`${BLOCK}-stack-collapsed`);
       container.style.setProperty('--stack-progress', '1');
       container.style.setProperty('--expand-progress', '1');
+      setStackPositions(cards);
       equalizeStackHeights();
       computeExpandOffsets();
       dummyCards.forEach((d) => { d.style.display = ''; });
-      container.classList.remove(`${BLOCK}-expanded`);
-      container.classList.add(`${BLOCK}-stack-collapsed`);
-      track.style.transform = '';
-      track.style.transition = 'none';
     };
 
     const handleScroll = () => {

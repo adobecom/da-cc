@@ -329,7 +329,7 @@
   }
 
   .testimonial-heading {
-    padding-top: 100px;
+    padding-top: 200px;
   }
 
   .testimonial-card-dummy:last-child {
@@ -402,12 +402,12 @@
     --testimonial-card-gap: 24px;
   }
 
-  .testimonial-heading {
-    padding-top: 120px;
-  }
-
   .testimonial-container {
     --testimonial-card-width: 35.76%;
+  }
+
+  .testimonial-heading {
+    padding-top: 64px;
   }
 
   .testimonial-heading h1,
@@ -449,6 +449,12 @@
 @media screen and (min-width: 1441px) {
   .testimonial-container {
     --testimonial-card-width: 35.82%;
+  }
+}
+
+@media screen and (min-width: 1920px) {
+  .testimonial-heading {
+    padding-top: 220px;
   }
 }
 
