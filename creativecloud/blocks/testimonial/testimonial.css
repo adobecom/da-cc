@@ -328,10 +328,6 @@
     --stair-height: 40px;
   }
 
-  .testimonial-heading {
-    padding-top: 200px;
-  }
-
   .testimonial-card-dummy:last-child {
     display: block;
   }
@@ -393,6 +389,13 @@
     top: 50%;
     transform: translateY(-50%);
     inset-inline-start: calc((100% + var(--testimonial-card-width)) / 2 - 32px);
+  }
+}
+
+
+@media screen and (min-width: 600px) and (orientation: portrait) {
+  .testimonial-heading {
+    padding-top: 200px;
   }
 }
 
