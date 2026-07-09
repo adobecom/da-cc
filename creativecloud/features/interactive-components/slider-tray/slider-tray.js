@@ -175,6 +175,8 @@ function sliderEvent(media, layer, imgObj) {
       const { value } = sliderEl;
       sliderEl.setAttribute('value', value);
       const outerCircle = sliderEl.nextSibling;
+      outerCircle.setAttribute('aria-valuenow', value);
+      outerCircle.setAttribute('aria-valuetext', value);
       const value1 = (value - sliderEl.min) / (sliderEl.max - sliderEl.min);
       const thumbPercent = 3 + (value1 * 94);
       const interactiveBlock = media.closest('.marquee') || media.closest('.aside');
