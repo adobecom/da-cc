@@ -242,6 +242,10 @@ export default async function init(el) {
       track.style.transition = '';
       track.style.transform = `translateX(${dir * (before + 1) * step}px)`;
       waitTransition(track, () => {
+        if (!container.classList.contains(`${BLOCK}-expanded`)) {
+          state.isAnimating = false;
+          return;
+        }
         state.hasScrolled = true;
         state.currentIndex = nextIndex;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -268,6 +272,10 @@ export default async function init(el) {
       track.style.transition = '';
       track.style.transform = `translateX(${dir * before * step}px)`;
       waitTransition(track, () => {
+        if (!container.classList.contains(`${BLOCK}-expanded`)) {
+          state.isAnimating = false;
+          return;
+        }
         state.hasScrolled = true;
         state.currentIndex = prevIndex;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -315,6 +323,10 @@ export default async function init(el) {
       track.style.transition = '';
       track.style.transform = `translateX(${endTranslate}px)`;
       waitTransition(track, () => {
+        if (!container.classList.contains(`${BLOCK}-expanded`)) {
+          state.isAnimating = false;
+          return;
+        }
         state.hasScrolled = true;
         state.currentIndex = target;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -571,7 +583,6 @@ export default async function init(el) {
       dummyCards.forEach((d) => { d.style.display = 'none'; });
       state.currentIndex = 0;
       state.hasScrolled = false;
-      tickRemaining = AUTOPLAY_INTERVAL_MS;
       settle();
       requestAnimationFrame(() => {
         controls.classList.add(`${BLOCK}-controls-visible`);
@@ -588,7 +599,8 @@ export default async function init(el) {
     };
 
     const exitExpanded = () => {
-      stopAutoplay();
+      pauseAutoplay();
+      state.isAnimating = false;
       controls.classList.remove(`${BLOCK}-controls-visible`);
       cards.forEach((card) => {
         card.classList.remove(`${BLOCK}-card-peek`);
@@ -641,7 +653,7 @@ export default async function init(el) {
 
       if (expandProgress >= 1 && !isExpanded) {
         enterExpanded();
-      } else if (expandProgress < 1 && isExpanded) {
+      } else if (expandProgress < 0.98 && isExpanded) {
         exitExpanded();
       }
 
