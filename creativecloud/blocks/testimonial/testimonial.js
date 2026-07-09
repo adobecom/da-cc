@@ -446,6 +446,14 @@ export default async function init(el) {
     startY = e.changedTouches[0].clientY;
   }, { passive: true });
 
+  container.addEventListener('touchmove', (e) => {
+    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
+    if (e.touches.length !== 1) return;
+    const dx = Math.abs(e.touches[0].clientX - startX);
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (dx > dy) e.preventDefault();
+  }, { passive: false });
+
   container.addEventListener('touchend', (e) => {
     if (e.changedTouches.length !== 1) return;
     handleSwipe(e.changedTouches[0].clientX - startX, e.changedTouches[0].clientY - startY);
