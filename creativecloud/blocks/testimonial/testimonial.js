@@ -178,6 +178,7 @@ export default async function init(el) {
   const count = cardData.length;
   const dir = isRTL ? 1 : -1;
   const state = { currentIndex: 0, isAnimating: false, hasScrolled: false };
+  let animationGen = 0;
   let autoplayTimer = null;
   let isPlaying = true;
   let tickStart = 0;
@@ -230,6 +231,8 @@ export default async function init(el) {
   function moveNext() {
     if (count <= 1 || state.isAnimating) return;
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     setCircularOrder(cards, state.currentIndex, count, before);
     applyBasePosition(false, before);
@@ -238,14 +241,12 @@ export default async function init(el) {
     markPeekCards(cards, nextIndex, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       track.style.transition = '';
       track.style.transform = `translateX(${dir * (before + 1) * step}px)`;
       waitTransition(track, () => {
-        if (!container.classList.contains(`${BLOCK}-expanded`)) {
-          state.isAnimating = false;
-          return;
-        }
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = nextIndex;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -260,6 +261,8 @@ export default async function init(el) {
   function movePrev() {
     if (count <= 1 || state.isAnimating) return;
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     const prevIndex = wrapIndex(state.currentIndex - 1, count);
 
@@ -268,14 +271,12 @@ export default async function init(el) {
     markPeekCards(cards, prevIndex, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       track.style.transition = '';
       track.style.transform = `translateX(${dir * before * step}px)`;
       waitTransition(track, () => {
-        if (!container.classList.contains(`${BLOCK}-expanded`)) {
-          state.isAnimating = false;
-          return;
-        }
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = prevIndex;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -300,6 +301,8 @@ export default async function init(el) {
     if (target === state.currentIndex) return;
 
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     const forwardDist = (target - state.currentIndex + count) % count;
     const backwardDist = (state.currentIndex - target + count) % count;
@@ -316,6 +319,7 @@ export default async function init(el) {
     markPeekCards(cards, target, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       const endTranslate = goForward
         ? dir * (before + steps) * step
@@ -323,10 +327,7 @@ export default async function init(el) {
       track.style.transition = '';
       track.style.transform = `translateX(${endTranslate}px)`;
       waitTransition(track, () => {
-        if (!container.classList.contains(`${BLOCK}-expanded`)) {
-          state.isAnimating = false;
-          return;
-        }
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = target;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -600,6 +601,7 @@ export default async function init(el) {
 
     const exitExpanded = () => {
       pauseAutoplay();
+      animationGen += 1;
       state.isAnimating = false;
       controls.classList.remove(`${BLOCK}-controls-visible`);
       cards.forEach((card) => {
