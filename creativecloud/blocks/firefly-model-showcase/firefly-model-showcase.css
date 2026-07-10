@@ -106,10 +106,22 @@
   background: none; /* remove core checkerboard placeholder background */
 }
 
+/* placeholder stands in for the CTA it replaces, so it reuses the CTA's own spacing */
+.firefly-model-showcase-prompt-container {
+  margin: var(--cta-margin);
+}
+
 .firefly-model-showcase.unity-enabled .interactive-area .ex-unity-wrap,
 .firefly-model-showcase.unity-enabled .interactive-area .ex-unity-wrap .ex-unity-widget,
 .firefly-model-showcase.unity-enabled .interactive-area .ex-unity-wrap .ex-unity-widget .autocomplete {
   width: 100%;
+}
+
+/* core widget CSS adds horizontal padding here by default (content-box sizing),
+   which pushes the widget past the container's right edge instead of shrinking
+   into the 100% width above; zero it so the widget aligns flush with the heading/copy */
+.firefly-model-showcase.unity-enabled .interactive-area .ex-unity-wrap:not(.sticky) .ex-unity-widget {
+  padding: 0;
 }
 
 .firefly-model-showcase-gallery {
