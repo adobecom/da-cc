@@ -446,6 +446,14 @@ export default async function init(el) {
     startY = e.changedTouches[0].clientY;
   }, { passive: true });
 
+  container.addEventListener('touchmove', (e) => {
+    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
+    if (e.touches.length !== 1) return;
+    const dx = Math.abs(e.touches[0].clientX - startX);
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (dx > dy) e.preventDefault();
+  }, { passive: false });
+
   container.addEventListener('touchend', (e) => {
     if (e.changedTouches.length !== 1) return;
     handleSwipe(e.changedTouches[0].clientX - startX, e.changedTouches[0].clientY - startY);
@@ -484,6 +492,12 @@ export default async function init(el) {
     }
   });
 
+  function updateBlockHeight() {
+    const vh150 = window.innerHeight * 1.5;
+    const minNeeded = container.offsetHeight + window.innerHeight * 0.5;
+    el.style.height = `${Math.max(vh150, minNeeded)}px`;
+  }
+
   if (!prefersReducedMotion()) {
     const getNavHeight = () => {
       const nav = document.querySelector('.global-navigation') || document.querySelector('header');
@@ -492,11 +506,11 @@ export default async function init(el) {
 
     let navHeight = getNavHeight();
 
-    el.style.height = '150vh';
     el.style.overflow = 'clip';
     container.style.position = 'sticky';
     container.style.top = `${navHeight}px`;
     container.style.zIndex = '1';
+    updateBlockHeight();
 
     const blockObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -675,6 +689,7 @@ export default async function init(el) {
       settle();
     } else if (!prefersReducedMotion()) {
       equalizeStackHeights();
+      updateBlockHeight();
     }
   });
   resizeObserver.observe(el);
