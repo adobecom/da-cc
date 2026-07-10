@@ -47,6 +47,15 @@ class Unsubscribe extends Trials {
       if (checkbox.checked) {
         checkboxes[index ? 0 : 1].checked = false;
       }
+      if (index === 0) {
+        const toggleInput = form.querySelector('input[toggle-hideshow]');
+        if (toggleInput) {
+          const toggleContainer = toggleInput.closest('.form-item');
+          if (toggleContainer) {
+            toggleContainer.style.display = checkbox.checked ? '' : 'block';
+          }
+        }
+      }
       const checkboxChecked = form.querySelector(CHECKBOX_INPUT_CHECKED);
       unsubscribeForm.toggleSubmitButton(!(checkboxChecked instanceof HTMLElement));
     };
