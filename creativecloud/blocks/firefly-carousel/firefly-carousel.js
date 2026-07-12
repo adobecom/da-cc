@@ -49,19 +49,8 @@ let videoUtils;
 
 // Reduced motion only: pause user-played videos when they leave the viewport.
 function pauseOffViewportPlayingVideos(cards) {
-  // eslint-disable-next-line no-console
-  console.log('[ff-carousel debug] pauseOffViewportPlayingVideos called', { hasVideoUtils: !!videoUtils, cardCount: cards.length });
   if (!videoUtils) return;
   cards.forEach((card) => {
-    const video = card.querySelector('video');
-    // eslint-disable-next-line no-console
-    console.log('[ff-carousel debug] card', card.dataset.slideIndex, {
-      active: card.classList.contains('active'),
-      hasVideo: !!video,
-      playedLength: video?.played.length,
-      paused: video?.paused,
-      userPaused: video && videoUtils ? video.hasAttribute(videoUtils.USER_PAUSED_ATTR) : null,
-    });
     if (card.classList.contains('active')) return;
     card.querySelectorAll('video').forEach((v) => {
       if (!v.played.length || v.hasAttribute(videoUtils.USER_PAUSED_ATTR)) return;
@@ -219,12 +208,14 @@ function waitForTrackTransition(track, onDone) {
   const settle = () => {
     if (settled) return;
     settled = true;
-    // eslint-disable-next-line no-use-before-define
     clearTimeout(fallbackTimer);
     onDone();
   };
   const fallbackTimer = setTimeout(settle, TRANSITION_FALLBACK_MS);
-  track.addEventListener('transitionend', settle, { once: true });
+  track.addEventListener('transitionend', (e) => {
+    if (e.target !== track || e.propertyName !== 'transform') return;
+    settle();
+  }, { once: true });
 }
 
 function afterNextPaint(callback) {
