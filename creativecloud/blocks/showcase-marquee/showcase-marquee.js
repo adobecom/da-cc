@@ -1,4 +1,4 @@
-import { getLibs } from '../../scripts/utils.js';
+import { getLibs, prefersReducedMotion } from '../../scripts/utils.js';
 
 const miloLibs = getLibs('/libs');
 const { createTag } = await import(`${miloLibs}/utils/utils.js`);
@@ -40,10 +40,12 @@ export function createRollingLogos(logos) {
     logoContainer.style.setProperty('--logos-gap', `${gap}px`);
   }
 
-  function addScrolling() {
+  function setupLayout() {
     handleResize(tabletMQ.matches);
     tabletMQ.addEventListener('change', ({ matches }) => handleResize(matches));
+  }
 
+  function addScrolling() {
     let lastScrollY = window.scrollY;
     let targetScrollOffset = 0;
     let currentScrollOffset = 0;
@@ -83,7 +85,7 @@ export function createRollingLogos(logos) {
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
-  return { addScrolling, logoContainer };
+  return { addScrolling, setupLayout, logoContainer };
 }
 
 async function fetchAnimationLabels(getFedsPlaceholderConfig, replaceKeyArray) {
@@ -100,8 +102,8 @@ async function fetchAnimationLabels(getFedsPlaceholderConfig, replaceKeyArray) {
 }
 
 function initAnimationControls({ button, iconWrapper, logoContainer }) {
-  let isPlaying = true;
   if (!button || !iconWrapper || !logoContainer) return;
+  let isPlaying = true;
 
   const updateControlState = (playing) => {
     isPlaying = playing;
@@ -113,16 +115,13 @@ function initAnimationControls({ button, iconWrapper, logoContainer }) {
 
   const pauseAnimation = () => {
     updateControlState(false);
-    const { transform } = getComputedStyle(logoContainer);
-    logoContainer.style.animation = 'none';
-    logoContainer.style.transform = transform;
+    logoContainer.style.setProperty('--marquee-state', 'paused', 'important');
     logoContainer.classList.add('paused');
   };
 
   const playAnimation = () => {
     updateControlState(true);
-    logoContainer.style.animation = '';
-    logoContainer.style.transform = '';
+    logoContainer.style.setProperty('--marquee-state', 'running', 'important');
     logoContainer.classList.remove('paused');
   };
 
@@ -141,6 +140,8 @@ function initAnimationControls({ button, iconWrapper, logoContainer }) {
   });
 
   button.addEventListener('keydown', handleKeydown);
+
+  if (prefersReducedMotion()) pauseAnimation();
 }
 
 function createAnimationControls({ container, getFederatedContentRoot, logoContainer }) {
@@ -227,7 +228,7 @@ export default async function init(el) {
   const logoLabels = [...logos].map((logo) => getAuthorLogoLabel(logo));
   logoRowContent.innerHTML = '';
   // TODO: cut down 1 level of DOM nesting
-  const { logoContainer, addScrolling } = createRollingLogos(logos);
+  const { logoContainer, addScrolling, setupLayout } = createRollingLogos(logos);
 
   const authoredLabels = logoLabels.filter(Boolean);
   if (authoredLabels.length > 0) {
@@ -248,6 +249,7 @@ export default async function init(el) {
   new IntersectionObserver(([{ isIntersecting }], ob) => {
     if (!isIntersecting) return;
     ob.disconnect();
+    setupLayout();
     if (!logoContainer.classList.contains('paused')) {
       addScrolling();
     }
