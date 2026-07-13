@@ -1,4 +1,4 @@
-import { createTag } from '../../scripts/utils.js';
+import { createTag, prefersReducedMotion, getLibs } from '../../scripts/utils.js';
 
 const BLOCK = 'firefly-carousel';
 const GAP = 8;
@@ -44,6 +44,26 @@ const ICONS = {
 };
 
 const MEDIA_SELECTOR = 'picture, .video-container.video-holder';
+
+let videoUtils;
+
+// Reduced motion only: pause user-played videos when they leave the viewport.
+function pauseOffViewportPlayingVideos(cards) {
+  if (!videoUtils) return;
+  const viewportRect = cards[0]?.closest(`.${BLOCK}-viewport`)?.getBoundingClientRect();
+  if (!viewportRect) return;
+  cards.forEach((card) => {
+    card.querySelectorAll('video').forEach((video) => {
+      if (!video.played.length || video.paused) return;
+      const { left, right, top, bottom } = video.getBoundingClientRect();
+      if (left < viewportRect.right && right > viewportRect.left
+        && top < viewportRect.bottom && bottom > viewportRect.top) return;
+      video.setAttribute(videoUtils.USER_PAUSED_ATTR, '');
+      video.pause();
+      videoUtils.syncPausePlayIcon(video);
+    });
+  });
+}
 
 function getMediaElement(mediaDiv) {
   if (mediaDiv.matches(MEDIA_SELECTOR)) return mediaDiv;
@@ -183,6 +203,7 @@ function applyNavFrame(track, cards, state, itemCount, frame, axisMultiplier, an
     track.getBoundingClientRect();
     track.style.transition = '';
   }
+  if (videoUtils) pauseOffViewportPlayingVideos(cards);
 }
 
 function waitForTrackTransition(track, onDone) {
@@ -363,6 +384,9 @@ export default async function init(el) {
   const state = { currentIndex: 0, isAnimating: false };
   const structure = createCarouselStructure();
   const cards = buildTrack(structure.track, items);
+  if (prefersReducedMotion()) {
+    videoUtils = await import(`${getLibs()}/utils/decorate.js`);
+  }
   const controls = createNavControls(
     structure.track,
     structure.viewport,
@@ -374,7 +398,14 @@ export default async function init(el) {
 
   el.append(structure.viewport);
   observeResize(structure.viewport, controls.reposition);
-  setupAutoScroll(structure.viewport, controls.moveNext);
+  if (prefersReducedMotion()) {
+    el.querySelectorAll('video').forEach((video) => {
+      video.removeAttribute('autoplay');
+      video.pause();
+    });
+  } else {
+    setupAutoScroll(structure.viewport, controls.moveNext);
+  }
   setupSwipe(structure.viewport, controls.moveNext, controls.movePrev);
   setupArrowKeyNavigation(el, controls);
 }
