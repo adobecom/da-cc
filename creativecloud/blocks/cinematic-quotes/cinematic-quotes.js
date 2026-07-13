@@ -7,4 +7,13 @@ export default function init(el) {
   const textContainer = textRow.querySelector(':scope div');
   textContainer.classList.add('text-container');
   textRow.replaceWith(textContainer);
+
+  // Convert strong tags to blockquote tags
+  const strongTags = el.querySelectorAll('strong');
+  strongTags.forEach((strong) => {
+    const blockquote = document.createElement('blockquote');
+    blockquote.innerHTML = strong.innerHTML;
+    strong.innerHTML = '';
+    strong.appendChild(blockquote);
+  });
 }
