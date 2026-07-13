@@ -1,10 +1,12 @@
 
 .decrypt {
   opacity: 0;
+  pointer-events: none;
 }
 
 .decrypt.decrypt-ready {
   opacity: 1;
+  pointer-events: auto;
 }
 
 .decrypt.tc-form-section {

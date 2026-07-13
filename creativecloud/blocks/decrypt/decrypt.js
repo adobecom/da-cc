@@ -219,10 +219,28 @@ export default async function init(el) {
   el.classList.add('tc-form-section');
   el.innerHTML = FORM_MARKUP;
 
-  copyIconPromise.catch(() => {}).finally(() => {
+  initDecryptButton();
+
+  const imsCheck = ensureImsLoaded().then(() => {
+    const ims = window.adobeIMS;
+    if (typeof ims?.isSignedInUser !== 'function' || !ims.isSignedInUser()) {
+      ims?.signIn?.({ redirect_uri: window.location.href });
+      return false;
+    }
+    const token = ims.getAccessToken()?.token;
+    if (!token) {
+      ims.signIn?.({ redirect_uri: window.location.href });
+      return false;
+    }
+    return true;
+  }).catch(() => {
+    window.adobeIMS?.signIn?.({ redirect_uri: window.location.href });
+    return false;
+  });
+
+  Promise.all([copyIconPromise.catch(() => {}), imsCheck]).then(([, signedIn]) => {
+    if (!signedIn) return;
     initCopyButtons();
     el.classList.add('decrypt-ready');
   });
-
-  initDecryptButton();
 }
