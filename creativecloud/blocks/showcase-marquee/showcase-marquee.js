@@ -67,6 +67,10 @@ export function createRollingLogos(logos) {
     };
 
     const animate = () => {
+      if (logoContainer.classList.contains('paused')) {
+        rafId = null;
+        return;
+      }
       updateScrollEffect();
       const difference = Math.abs(targetScrollOffset - currentScrollOffset);
       if (difference > 0.1) {
@@ -77,6 +81,10 @@ export function createRollingLogos(logos) {
     };
 
     const onScroll = () => {
+      if (logoContainer.classList.contains('paused')) {
+        lastScrollY = window.scrollY;
+        return;
+      }
       if (!rafId) {
         rafId = requestAnimationFrame(animate);
       }
@@ -250,8 +258,6 @@ export default async function init(el) {
     if (!isIntersecting) return;
     ob.disconnect();
     setupLayout();
-    if (!logoContainer.classList.contains('paused')) {
-      addScrolling();
-    }
+    addScrolling();
   }).observe(el);
 }
