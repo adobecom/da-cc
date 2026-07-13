@@ -392,6 +392,13 @@
   }
 }
 
+
+@media screen and (min-width: 600px) and (orientation: portrait) {
+  .testimonial-heading {
+    padding-top: 200px;
+  }
+}
+
 /* Desktop */
 @media screen and (min-width: 1201px) {
   .testimonial {
@@ -400,6 +407,10 @@
 
   .testimonial-container {
     --testimonial-card-width: 35.76%;
+  }
+
+  .testimonial-heading {
+    padding-top: 60px;
   }
 
   .testimonial-heading h1,
@@ -441,6 +452,12 @@
 @media screen and (min-width: 1441px) {
   .testimonial-container {
     --testimonial-card-width: 35.82%;
+  }
+}
+
+@media screen and (min-width: 1920px) {
+  .testimonial-heading {
+    padding-top: 220px;
   }
 }
 
