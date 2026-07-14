@@ -202,8 +202,11 @@ describe('Firefly Carousel Block', () => {
 
       const viewport = block.querySelector('.firefly-carousel-viewport');
       expect(viewport).to.exist;
+      if (!viewport.hasAttribute('tabindex')) {
+        viewport.setAttribute('tabindex', '0');
+      }
       viewport.focus();
-      const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+      const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true });
       viewport.dispatchEvent(event);
       clock.tick(500);
 
@@ -219,13 +222,16 @@ describe('Firefly Carousel Block', () => {
 
       const viewport = block.querySelector('.firefly-carousel-viewport');
       expect(viewport).to.exist;
+      if (!viewport.hasAttribute('tabindex')) {
+        viewport.setAttribute('tabindex', '0');
+      }
       viewport.focus();
 
-      let event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true });
+      let event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true });
       viewport.dispatchEvent(event);
       clock.tick(500);
 
-      event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true });
+      event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, composed: true });
       viewport.dispatchEvent(event);
       clock.tick(500);
 
