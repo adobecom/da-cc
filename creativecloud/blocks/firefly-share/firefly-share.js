@@ -219,7 +219,7 @@ export default async function decorate(block) {
         clipboardTimeout = setTimeout(() => {
           showCopyTooltip({ copyButton, show: false });
         }, 2000);
-      }).catch(() => {});
+      });
     });
   }
   block.append(container);
