@@ -1,6 +1,6 @@
 import initSpeechBlades from '../../features/firefly-speech/speech-blade.js';
 
-function parseBlades(el) {
+function parseBlades(el, variant) {
   return [...el.querySelectorAll(':scope > div')].map((row, index) => {
     const columns = [...row.querySelectorAll(':scope > div')];
     const flagImg = columns[0]?.querySelector('picture') || null;
@@ -14,12 +14,14 @@ function parseBlades(el) {
       country,
       flagPicture: flagImg,
       audioSrc: audioLink,
+      variant,
     };
   });
 }
 
 export default function init(el) {
-  const blades = parseBlades(el);
+  const variant = [...el.classList].filter((c) => c !== 'speech-translation-panel').join(' ');
+  const blades = parseBlades(el, variant);
   const list = initSpeechBlades(blades);
   if (list) el.replaceChildren(list);
 }
