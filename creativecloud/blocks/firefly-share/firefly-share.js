@@ -164,6 +164,7 @@ export default async function decorate(block) {
     li.appendChild(shareLink);
     container.append(li);
     shareLink.addEventListener('click', (e) => {
+      /* c8 ignore next 2 */
       e.preventDefault();
       window.open(shareLink.href, 'newwindow', 'width=600, height=400');
     });
@@ -210,6 +211,7 @@ export default async function decorate(block) {
     container.append(li);
     let changeText = false;
     copyButton.addEventListener('click', (e) => {
+      /* c8 ignore next 6 */
       e.preventDefault();
       copyAriaLive.textContent = '';
       navigator.clipboard.writeText(window.location.href).then(() => {
