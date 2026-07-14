@@ -7,8 +7,10 @@ import { expect } from '@esm-bundle/chai';
 import waitForElement from '../../helpers/waitForElement.js';
 
 import {
+  isRenewalPath,
   organizationsStore,
   registriesStore,
+  renewalStore,
   SCENARIOS,
   stepperStore,
 } from '../../../creativecloud/blocks/nonprofit/nonprofit.js';
@@ -44,7 +46,13 @@ describe('nonprofit - General', () => {
   });
 
   afterEach(() => {
-    stepperStore.update((prev) => ({ ...prev, step: 1, scenario: SCENARIOS.FOUND_IN_SEARCH }));
+    stepperStore.update((prev) => ({
+      ...prev,
+      step: 1,
+      scenario: SCENARIOS.FOUND_IN_SEARCH,
+      workflow: 'acquisition',
+    }));
+    renewalStore.update({ profile: null });
   });
 
   function validateStepTitle(value) {
@@ -679,5 +687,71 @@ describe('nonprofit - Lingo fallback for base and sub-regions', () => {
     submit.click();
     await waitForElement('.np-application-review-container');
     expect(window.fetch.getCall(0).args[0]).to.contain('lng=fr-CH');
+  });
+});
+
+describe('nonprofit - Renewal', () => {
+  before(() => {
+    setConfig({ locale: { prefix: '', ietf: 'en-US' } });
+    window.mph = { 'nonprofit-loading': 'Loading' };
+    window.lana = { log: () => {} };
+  });
+
+  beforeEach(() => {
+    stepperStore.update((prev) => ({ ...prev, workflow: 'renewal', step: 1 }));
+    window.adobeIMS = {
+      isSignedInUser: () => true,
+      getProfile: () => Promise.resolve({
+        userId: 'ABC123',
+        email: 'renewal@test.com',
+        firstName: 'Renew',
+        lastName: 'User',
+      }),
+      signIn: sinon.stub(),
+    };
+  });
+
+  afterEach(() => {
+    stepperStore.update((prev) => ({
+      ...prev,
+      workflow: 'acquisition',
+      step: 1,
+      scenario: SCENARIOS.FOUND_IN_SEARCH,
+    }));
+    renewalStore.update({ profile: null });
+    sessionStorage.removeItem('nonprofit-workflow');
+  });
+
+  it('should detect renewal path from stepper workflow', () => {
+    expect(isRenewalPath()).to.be.true;
+    stepperStore.update((prev) => ({ ...prev, workflow: 'acquisition' }));
+    expect(isRenewalPath()).to.be.false;
+  });
+
+  it('should redirect unsigned users to IMS sign-in with renewal return URL', async () => {
+    window.adobeIMS.isSignedInUser = () => false;
+
+    document.body.innerHTML = body;
+    await init(document.querySelector('.nonprofit'));
+
+    expect(window.adobeIMS.signIn.calledOnce).to.be.true;
+    expect(window.adobeIMS.signIn.firstCall.args[0].redirect_uri).to.contain('workflow=renewal');
+    expect(document.querySelector('.np-container')).to.not.exist;
+  });
+
+  it('should prefill profile and preserve workflow across steps', async () => {
+    document.body.innerHTML = body;
+    await init(document.querySelector('.nonprofit'));
+    await waitForElement('.np-container');
+
+    expect(renewalStore.data.profile.email).to.equal('renewal@test.com');
+    expect(isRenewalPath()).to.be.true;
+
+    stepperStore.update((prev) => ({ ...prev, step: 2, scenario: SCENARIOS.FOUND_IN_SEARCH }));
+    await waitForElement('.np-input[name="email"]');
+
+    expect(document.querySelector('.np-input[name="email"]').value).to.equal('renewal@test.com');
+    expect(document.querySelector('.np-input[name="firstName"]').value).to.equal('Renew');
+    expect(isRenewalPath()).to.be.true;
   });
 });

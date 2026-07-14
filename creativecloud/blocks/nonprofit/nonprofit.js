@@ -3,7 +3,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable max-len */
 import ReactiveStore from './reactiveStore.js';
-import { setLibs, getGeoLocaleInfo } from '../../scripts/utils.js';
+import { setLibs, getGeoLocaleInfo, isSignedInInitialized } from '../../scripts/utils.js';
 import { countries, PRODUCT_VALIDATION_CONFIG } from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
@@ -34,6 +34,8 @@ export const SCENARIOS = Object.freeze({
 });
 const SEARCH_DEBOUNCE = 500; // ms
 const FETCH_ON_SCROLL_OFFSET = 100; // px
+const RENEWAL_WORKFLOW_SESSION_KEY = 'nonprofit-workflow'; // Persists renewal mode if URL param is lost after IMS redirect
+const IMS_CALLBACK_PARAMS = ['code', 'state', 'error', 'error_description']; // Strip from redirect_uri before sign-in
 // #endregion
 
 const nonprofitFormData = JSON.parse('{}');
@@ -43,13 +45,95 @@ export const stepperStore = new ReactiveStore({
   step: 1,
   scenario: SCENARIOS.FOUND_IN_SEARCH,
   pending: false,
+  // Detect renewal from URL or sessionStorage on module load
+  workflow: (() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('workflow') === 'renewal' || params.get('action') === 'renewal') return 'renewal';
+    if (sessionStorage.getItem(RENEWAL_WORKFLOW_SESSION_KEY) === 'renewal') return 'renewal';
+    return 'acquisition';
+  })(),
 });
+
+export const renewalStore = new ReactiveStore({ profile: null }); // IMS profile for signed-in renewal users
+
+export function isRenewalPath() {
+  return stepperStore.data.workflow === 'renewal';
+}
 
 export const organizationsStore = new ReactiveStore([]);
 
 export const registriesStore = new ReactiveStore([]);
 
 const selectedOrganizationStore = new ReactiveStore();
+// #endregion
+
+// #region Renewal
+
+function isRenewalUrl() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('workflow') === 'renewal' || params.get('action') === 'renewal';
+}
+
+function syncRenewalWorkflow() {
+  if (isRenewalUrl()) {
+    stepperStore.update((prev) => ({ ...prev, workflow: 'renewal' }));
+    sessionStorage.setItem(RENEWAL_WORKFLOW_SESSION_KEY, 'renewal');
+    return;
+  }
+  // Restore renewal mode from sessionStorage when returning from IMS without query param
+  if (sessionStorage.getItem(RENEWAL_WORKFLOW_SESSION_KEY) === 'renewal') {
+    stepperStore.update((prev) => ({ ...prev, workflow: 'renewal' }));
+    const url = new URL(window.location.href);
+    url.searchParams.set('workflow', 'renewal');
+    window.history.replaceState({}, '', url);
+  }
+}
+
+function getRenewalSignInRedirectUri() {
+  const url = new URL(window.location.href);
+  IMS_CALLBACK_PARAMS.forEach((key) => url.searchParams.delete(key));
+  url.searchParams.set('workflow', 'renewal');
+  url.hash = '';
+  return url.href;
+}
+
+async function loadImsIfNeeded() {
+  // Nonprofit pages may not load IMS via gnav — load explicitly when needed
+  if (window.adobeIMS?.isSignedInUser) return;
+  try {
+    const { loadIms } = await import(`${miloLibs}/utils/utils.js`);
+    await loadIms();
+  } catch (error) {
+    window.lana?.log(`Renewal loadIms failed: ${error}`, LANA_OPTIONS);
+  }
+}
+
+async function initRenewalImsGate() {
+  await loadImsIfNeeded();
+  await isSignedInInitialized();
+
+  if (!window.adobeIMS.isSignedInUser()) {
+    sessionStorage.setItem(RENEWAL_WORKFLOW_SESSION_KEY, 'renewal');
+    // redirect_uri returns user to this page with workflow=renewal after Adobe sign-in
+    window.adobeIMS.signIn({ redirect_uri: getRenewalSignInRedirectUri() });
+    return false;
+  }
+
+  const profile = await window.adobeIMS.getProfile();
+  renewalStore.update({ profile });
+
+  // Pre-fill personal details from IMS profile
+  if (profile.email) nonprofitFormData.email = profile.email;
+  if (profile.firstName || profile.first_name) {
+    nonprofitFormData.firstName = profile.firstName || profile.first_name;
+  }
+  if (profile.lastName || profile.last_name) {
+    nonprofitFormData.lastName = profile.lastName || profile.last_name;
+  }
+
+  return true;
+}
+
 // #endregion
 
 // #region Percent API integration
@@ -916,7 +1000,13 @@ function renderPersonalData(containerTag, product) {
 
   formTag.append(firstNameTag, lastNameTag, emailTag, disclaimerTag, submitTag);
 
-  formTag.append(firstNameTag, lastNameTag, emailTag, submitTag);
+  const firstNameInput = firstNameTag.querySelector('input');
+  const lastNameInput = lastNameTag.querySelector('input');
+  // Apply IMS pre-fill when available (renewal path)
+  if (nonprofitFormData.firstName) firstNameInput.value = nonprofitFormData.firstName;
+  if (nonprofitFormData.lastName) lastNameInput.value = nonprofitFormData.lastName;
+  if (nonprofitFormData.email) emailInput.value = nonprofitFormData.email;
+
   trackSubmitCondition(formTag);
 
   formTag.addEventListener('submit', async (ev) => {
@@ -1040,8 +1130,15 @@ function initNonprofit(element) {
   element.append(containerTag);
 }
 
-export default function init(element) {
-  // Get metadata
+export default async function init(element) {
   removeOptionElements(element);
+  syncRenewalWorkflow();
+
+  // Renewal requires IMS sign-in before rendering the form
+  if (isRenewalPath()) {
+    const canRender = await initRenewalImsGate();
+    if (!canRender) return;
+  }
+
   initNonprofit(element);
 }
