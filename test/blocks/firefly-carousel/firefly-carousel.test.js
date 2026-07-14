@@ -701,14 +701,12 @@ describe('Firefly Carousel Block', () => {
 
     it('handles video elements with video-container class', async () => {
       const block = body.querySelector('#carousel-with-videos');
-      if (!block) return;
+      expect(block).to.exist;
       await init(block);
       clock.tick(100);
 
       const videoContainer = block.querySelector('.video-container');
-      if (videoContainer) {
-        expect(videoContainer).to.exist;
-      }
+      expect(videoContainer, 'expected .video-container to exist in carousel-with-videos').to.exist;
     });
 
     it('initializes all carousel features without errors', async () => {
