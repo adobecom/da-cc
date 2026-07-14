@@ -83,7 +83,17 @@ function observeSliderTray(sliderTray, targets) {
 function createSlider(sliderType, details, menu, sliderTray) {
   const sliderLabel = createTag('label', { for: `${sliderType}` }, details.trim());
   const sliderContainer = createTag('div', { class: `sliderContainer ${sliderType.toLowerCase()}` });
-  const outerCircle = createTag('a', { class: 'outerCircle', href: '#', tabindex: '-1', 'aria-label': 'slideRunner' });
+  const initialValue = sliderType === 'hue' ? '0' : '150';
+  const outerCircle = createTag('a', {
+    class: 'outerCircle',
+    href: '#',
+    tabindex: '-1',
+    'aria-label': `${sliderType} slider`,
+    role: 'slider',
+    'aria-valuemin': CSSRanges[sliderType].min,
+    'aria-valuemax': CSSRanges[sliderType].max,
+    'aria-valuenow': initialValue,
+  });
   const analyticsHolder = createTag('div', { class: 'interactive-link-analytics-text' }, `Adjust ${sliderType} slider`);
   const input = createTag('input', {
     type: 'range',
@@ -91,7 +101,7 @@ function createSlider(sliderType, details, menu, sliderTray) {
     max: CSSRanges[sliderType].max,
     class: `options ${sliderType.toLowerCase()}-input`,
     'aria-label': 'slider',
-    value: `${sliderType === 'hue' ? '0' : '150'}`,
+    value: initialValue,
   });
   outerCircle.append(analyticsHolder);
   sliderContainer.append(input, outerCircle);
@@ -165,6 +175,8 @@ function sliderEvent(media, layer, imgObj) {
       const { value } = sliderEl;
       sliderEl.setAttribute('value', value);
       const outerCircle = sliderEl.nextSibling;
+      outerCircle.setAttribute('aria-valuenow', value);
+      outerCircle.setAttribute('aria-valuetext', value);
       const value1 = (value - sliderEl.min) / (sliderEl.max - sliderEl.min);
       const thumbPercent = 3 + (value1 * 94);
       const interactiveBlock = media.closest('.marquee') || media.closest('.aside');
