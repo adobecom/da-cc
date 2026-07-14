@@ -178,6 +178,7 @@ export default async function init(el) {
   const count = cardData.length;
   const dir = isRTL ? 1 : -1;
   const state = { currentIndex: 0, isAnimating: false, hasScrolled: false };
+  let animationGen = 0;
   let autoplayTimer = null;
   let isPlaying = true;
   let tickStart = 0;
@@ -230,6 +231,8 @@ export default async function init(el) {
   function moveNext() {
     if (count <= 1 || state.isAnimating) return;
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     setCircularOrder(cards, state.currentIndex, count, before);
     applyBasePosition(false, before);
@@ -238,10 +241,12 @@ export default async function init(el) {
     markPeekCards(cards, nextIndex, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       track.style.transition = '';
       track.style.transform = `translateX(${dir * (before + 1) * step}px)`;
       waitTransition(track, () => {
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = nextIndex;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -256,6 +261,8 @@ export default async function init(el) {
   function movePrev() {
     if (count <= 1 || state.isAnimating) return;
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     const prevIndex = wrapIndex(state.currentIndex - 1, count);
 
@@ -264,10 +271,12 @@ export default async function init(el) {
     markPeekCards(cards, prevIndex, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       track.style.transition = '';
       track.style.transform = `translateX(${dir * before * step}px)`;
       waitTransition(track, () => {
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = prevIndex;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -292,6 +301,8 @@ export default async function init(el) {
     if (target === state.currentIndex) return;
 
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     const forwardDist = (target - state.currentIndex + count) % count;
     const backwardDist = (state.currentIndex - target + count) % count;
@@ -308,6 +319,7 @@ export default async function init(el) {
     markPeekCards(cards, target, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       const endTranslate = goForward
         ? dir * (before + steps) * step
@@ -315,6 +327,7 @@ export default async function init(el) {
       track.style.transition = '';
       track.style.transform = `translateX(${endTranslate}px)`;
       waitTransition(track, () => {
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = target;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -571,7 +584,6 @@ export default async function init(el) {
       dummyCards.forEach((d) => { d.style.display = 'none'; });
       state.currentIndex = 0;
       state.hasScrolled = false;
-      tickRemaining = AUTOPLAY_INTERVAL_MS;
       settle();
       requestAnimationFrame(() => {
         controls.classList.add(`${BLOCK}-controls-visible`);
@@ -588,22 +600,25 @@ export default async function init(el) {
     };
 
     const exitExpanded = () => {
-      stopAutoplay();
+      pauseAutoplay();
+      animationGen += 1;
+      state.isAnimating = false;
       controls.classList.remove(`${BLOCK}-controls-visible`);
       cards.forEach((card) => {
         card.classList.remove(`${BLOCK}-card-peek`);
         card.style.order = '';
         card.style.transform = '';
       });
+      track.style.transform = '';
+      track.style.transition = 'none';
+      container.classList.remove(`${BLOCK}-expanded`);
+      container.classList.add(`${BLOCK}-stack-collapsed`);
       container.style.setProperty('--stack-progress', '1');
       container.style.setProperty('--expand-progress', '1');
+      setStackPositions(cards);
       equalizeStackHeights();
       computeExpandOffsets();
       dummyCards.forEach((d) => { d.style.display = ''; });
-      container.classList.remove(`${BLOCK}-expanded`);
-      container.classList.add(`${BLOCK}-stack-collapsed`);
-      track.style.transform = '';
-      track.style.transition = 'none';
     };
 
     const handleScroll = () => {
@@ -641,7 +656,7 @@ export default async function init(el) {
 
       if (expandProgress >= 1 && !isExpanded) {
         enterExpanded();
-      } else if (expandProgress < 1 && isExpanded) {
+      } else if (expandProgress < 0.98 && isExpanded) {
         exitExpanded();
       }
 
