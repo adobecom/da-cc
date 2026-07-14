@@ -200,14 +200,11 @@ describe('Firefly Carousel Block', () => {
       await init(block);
       clock.tick(100);
 
-      const viewport = block.querySelector('.firefly-carousel-viewport');
-      expect(viewport).to.exist;
-      if (!viewport.hasAttribute('tabindex')) {
-        viewport.setAttribute('tabindex', '0');
-      }
-      viewport.focus();
+      const focusTarget = block.querySelector('.firefly-carousel-nav-btn.next, .firefly-carousel-nav-btn.prev, .firefly-carousel-prompt');
+      expect(focusTarget, 'expected a focusable element inside the carousel').to.exist;
+      focusTarget.focus();
       const event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true });
-      viewport.dispatchEvent(event);
+      focusTarget.dispatchEvent(event);
       clock.tick(500);
 
       const activeCard = block.querySelector('.firefly-carousel-card.active');
@@ -220,19 +217,16 @@ describe('Firefly Carousel Block', () => {
       await init(block);
       clock.tick(100);
 
-      const viewport = block.querySelector('.firefly-carousel-viewport');
-      expect(viewport).to.exist;
-      if (!viewport.hasAttribute('tabindex')) {
-        viewport.setAttribute('tabindex', '0');
-      }
-      viewport.focus();
+      const focusTarget = block.querySelector('.firefly-carousel-nav-btn.next, .firefly-carousel-nav-btn.prev, .firefly-carousel-prompt');
+      expect(focusTarget, 'expected a focusable element inside the carousel').to.exist;
+      focusTarget.focus();
 
       let event = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, composed: true });
-      viewport.dispatchEvent(event);
+      focusTarget.dispatchEvent(event);
       clock.tick(500);
 
       event = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, composed: true });
-      viewport.dispatchEvent(event);
+      focusTarget.dispatchEvent(event);
       clock.tick(500);
 
       const activeCard = block.querySelector('.firefly-carousel-card.active');
@@ -305,8 +299,10 @@ describe('Firefly Carousel Block', () => {
 
       const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
       const prevBtn = block.querySelector('.firefly-carousel-nav-btn.prev');
-      if (nextBtn) expect(nextBtn.getAttribute('aria-label')).to.exist;
-      if (prevBtn) expect(prevBtn.getAttribute('aria-label')).to.exist;
+      expect(nextBtn, 'expected next navigation button to exist').to.exist;
+      expect(prevBtn, 'expected previous navigation button to exist').to.exist;
+      expect(nextBtn.getAttribute('aria-label')).to.exist;
+      expect(prevBtn.getAttribute('aria-label')).to.exist;
     });
 
     it('includes title attribute for button tooltips', async () => {
@@ -315,9 +311,8 @@ describe('Firefly Carousel Block', () => {
       clock.tick(100);
 
       const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
-      if (nextBtn) {
-        expect(nextBtn.title).to.exist;
-      }
+      expect(nextBtn, 'expected next navigation button to exist').to.exist;
+      expect(nextBtn.title).to.exist;
     });
 
     it('prompt pills have accessible labels', async () => {
@@ -326,10 +321,9 @@ describe('Firefly Carousel Block', () => {
       clock.tick(100);
 
       const pills = block.querySelectorAll('.firefly-carousel-prompt');
-      if (pills.length > 0) {
-        const firstPill = pills[0];
-        expect(firstPill.getAttribute('aria-label')).to.exist;
-      }
+      expect(pills.length, 'expected prompt pills to exist').to.be.greaterThan(0);
+      const firstPill = pills[0];
+      expect(firstPill.getAttribute('aria-label')).to.exist;
     });
 
     it('maintains proper semantic structure', async () => {
@@ -396,17 +390,15 @@ describe('Firefly Carousel Block', () => {
 
       const track = block.querySelector('.firefly-carousel-track');
       const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
+      expect(track, 'expected carousel track to exist').to.exist;
+      expect(nextBtn, 'expected next navigation button to exist').to.exist;
 
       // trigger a navigation to force transform to be applied
-      if (nextBtn) {
-        nextBtn.click();
-        clock.tick(500);
-      }
+      nextBtn.click();
+      clock.tick(500);
 
-      if (track) {
-        const transform = track.style.transform || track.getAttribute('style');
-        expect(String(transform)).to.include('translate');
-      }
+      const transform = track.style.transform || track.getAttribute('style');
+      expect(String(transform)).to.include('translate');
     });
 
     it('batches DOM updates efficiently when navigating', async () => {
@@ -417,10 +409,9 @@ describe('Firefly Carousel Block', () => {
       clock.tick(100);
 
       const nextBtn = block.querySelector('.firefly-carousel-nav-btn.next');
-      if (nextBtn) {
-        nextBtn.click();
-        clock.tick(500);
-      }
+      expect(nextBtn, 'expected next navigation button to exist').to.exist;
+      nextBtn.click();
+      clock.tick(500);
 
       rafSpy.restore();
       expect(rafSpy.called).to.be.true;
@@ -489,10 +480,9 @@ describe('Firefly Carousel Block', () => {
       clock.tick(100);
 
       const viewport = block.querySelector('.firefly-carousel-viewport');
-      if (viewport) {
-        const width = viewport.offsetWidth;
-        expect(width).to.be.greaterThan(0);
-      }
+      expect(viewport, 'expected carousel viewport to exist').to.exist;
+      const width = viewport.offsetWidth;
+      expect(width).to.be.greaterThan(0);
     });
 
     it('cards are properly positioned', async () => {
@@ -501,10 +491,9 @@ describe('Firefly Carousel Block', () => {
       clock.tick(100);
 
       const cards = block.querySelectorAll('.firefly-carousel-card');
-      if (cards.length > 0) {
-        const firstCard = cards[0];
-        expect(firstCard.offsetWidth).to.be.greaterThan(0);
-      }
+      expect(cards.length, 'expected carousel cards to exist').to.be.greaterThan(0);
+      const firstCard = cards[0];
+      expect(firstCard.offsetWidth).to.be.greaterThan(0);
     });
 
     it('carousel renders with proper card structure', async () => {
