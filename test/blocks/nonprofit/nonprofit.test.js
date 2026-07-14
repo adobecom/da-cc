@@ -691,8 +691,32 @@ describe('nonprofit - Lingo fallback for base and sub-regions', () => {
 });
 
 describe('nonprofit - Renewal', () => {
+  const mockEduValidation = (status, statusCode = 200) => {
+    sinon.stub(window, 'fetch').callsFake((url) => {
+      if (String(url).includes('edu-validations')) {
+        if (statusCode === 404) {
+          return Promise.resolve({ ok: false, status: 404 });
+        }
+        return Promise.resolve({
+          ok: true,
+          status: statusCode,
+          json: () => Promise.resolve({
+            status,
+            'email-id': 'validation@test.com',
+            'person-id': 'ABC123@AdobeID',
+          }),
+        });
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ data: [] }),
+      });
+    });
+  };
+
   before(() => {
-    setConfig({ locale: { prefix: '', ietf: 'en-US' } });
+    setConfig({ locale: { prefix: '', ietf: 'en-US' }, env: { name: 'stage' } });
     window.mph = { 'nonprofit-loading': 'Loading' };
     window.lana = { log: () => {} };
   });
@@ -707,6 +731,7 @@ describe('nonprofit - Renewal', () => {
         firstName: 'Renew',
         lastName: 'User',
       }),
+      getAccessToken: () => Promise.resolve({ token: 'test-token' }),
       signIn: sinon.stub(),
     };
   });
@@ -718,8 +743,10 @@ describe('nonprofit - Renewal', () => {
       step: 1,
       scenario: SCENARIOS.FOUND_IN_SEARCH,
     }));
-    renewalStore.update({ profile: null });
+    renewalStore.update({ profile: null, validation: null, validationStatus: null });
     sessionStorage.removeItem('nonprofit-workflow');
+    sessionStorage.removeItem('nonprofit-renewal-date');
+    if (window.fetch.restore) window.fetch.restore();
   });
 
   it('should detect renewal path from stepper workflow', () => {
@@ -739,7 +766,41 @@ describe('nonprofit - Renewal', () => {
     expect(document.querySelector('.np-container')).to.not.exist;
   });
 
-  it('should prefill profile and preserve workflow across steps', async () => {
+  it('should show status screen for approved renewal requests', async () => {
+    mockEduValidation('APPROVED');
+
+    document.body.innerHTML = body;
+    await init(document.querySelector('.nonprofit'));
+
+    expect(document.querySelector('.np-renewal-status')).to.exist;
+    expect(document.querySelector('.np-stepper-container')).to.not.exist;
+    expect(document.querySelector('.np-container')).to.exist;
+  });
+
+  it('should show form for unknown renewal status', async () => {
+    mockEduValidation('UNKNOWN');
+
+    document.body.innerHTML = body;
+    await init(document.querySelector('.nonprofit'));
+    await waitForElement('.np-container');
+
+    expect(document.querySelector('.np-stepper-container')).to.exist;
+    expect(document.querySelector('.np-renewal-status')).to.not.exist;
+  });
+
+  it('should show form when validation record is not found', async () => {
+    mockEduValidation(null, 404);
+
+    document.body.innerHTML = body;
+    await init(document.querySelector('.nonprofit'));
+    await waitForElement('.np-container');
+
+    expect(document.querySelector('.np-stepper-container')).to.exist;
+  });
+
+  it('should prefill profile, lock email, and preserve workflow across steps', async () => {
+    mockEduValidation('UNKNOWN');
+
     document.body.innerHTML = body;
     await init(document.querySelector('.nonprofit'));
     await waitForElement('.np-container');
@@ -750,7 +811,9 @@ describe('nonprofit - Renewal', () => {
     stepperStore.update((prev) => ({ ...prev, step: 2, scenario: SCENARIOS.FOUND_IN_SEARCH }));
     await waitForElement('.np-input[name="email"]');
 
-    expect(document.querySelector('.np-input[name="email"]').value).to.equal('renewal@test.com');
+    const emailInput = document.querySelector('.np-input[name="email"]');
+    expect(emailInput.value).to.equal('validation@test.com');
+    expect(emailInput.hasAttribute('readonly')).to.be.true;
     expect(document.querySelector('.np-input[name="firstName"]').value).to.equal('Renew');
     expect(isRenewalPath()).to.be.true;
   });

@@ -480,3 +480,23 @@ export const PRODUCT_VALIDATION_CONFIG = {
     CONFIGURATION_ID: 'hostedconfiguration_000000CUpdZN7S21XokeEKM1B600c',
   },
 };
+
+export const EDU_VALIDATION_CONFIG = {
+  stage: {
+    baseUrl: 'https://commerce-stg.adobe.com/edu-validations/v1',
+    apiKey: window.adobeid.client_id,
+  },
+  prod: {
+    baseUrl: 'https://commerce.adobe.com/edu-validations/v1',
+    apiKey: window.adobeid.client_id,
+  },
+};
+
+export const VALIDATION_STATUS = Object.freeze({
+  APPROVED: 'APPROVED',
+  DECLINED: 'DECLINED',
+  PENDING: 'PENDING',
+  UNKNOWN: 'UNKNOWN',
+});
+
+export const NONPROFIT_VALIDATION_TYPE = 'nonprofit';

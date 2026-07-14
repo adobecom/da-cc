@@ -7,6 +7,12 @@ import { setLibs, getGeoLocaleInfo, isSignedInInitialized } from '../../scripts/
 import { countries, PRODUCT_VALIDATION_CONFIG } from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
+import {
+  fetchRenewalValidation,
+  formatPersonId,
+  getEduValidationConfig,
+  parseEffectiveDate,
+} from './commerce-validation.js';
 
 const LANA_OPTIONS = {
   tags: 'nonprofit',
@@ -15,7 +21,7 @@ const LANA_OPTIONS = {
 };
 
 const miloLibs = setLibs('/libs');
-const { createTag, getConfig } = await import(`${miloLibs}/utils/utils.js`);
+const { createTag, getConfig, getMetadata } = await import(`${miloLibs}/utils/utils.js`);
 
 const removeOptionElements = (element) => {
   const children = element.querySelectorAll(':scope > div');
@@ -35,6 +41,7 @@ export const SCENARIOS = Object.freeze({
 const SEARCH_DEBOUNCE = 500; // ms
 const FETCH_ON_SCROLL_OFFSET = 100; // px
 const RENEWAL_WORKFLOW_SESSION_KEY = 'nonprofit-workflow'; // Persists renewal mode if URL param is lost after IMS redirect
+const RENEWAL_DATE_SESSION_KEY = 'nonprofit-renewal-date'; // Persists anniversary date from renewal email link
 const IMS_CALLBACK_PARAMS = ['code', 'state', 'error', 'error_description']; // Strip from redirect_uri before sign-in
 // #endregion
 
@@ -54,7 +61,7 @@ export const stepperStore = new ReactiveStore({
   })(),
 });
 
-export const renewalStore = new ReactiveStore({ profile: null }); // IMS profile for signed-in renewal users
+export const renewalStore = new ReactiveStore({ profile: null, validation: null, validationStatus: null }); // IMS profile + EduValidation status for renewal
 
 export function isRenewalPath() {
   return stepperStore.data.workflow === 'renewal';
@@ -74,10 +81,19 @@ function isRenewalUrl() {
   return params.get('workflow') === 'renewal' || params.get('action') === 'renewal';
 }
 
+function syncRenewalDate() {
+  const params = new URLSearchParams(window.location.search);
+  const renewalDate = params.get('renewalDate') || params.get('renewal-date');
+  if (renewalDate) {
+    sessionStorage.setItem(RENEWAL_DATE_SESSION_KEY, renewalDate);
+  }
+}
+
 function syncRenewalWorkflow() {
   if (isRenewalUrl()) {
     stepperStore.update((prev) => ({ ...prev, workflow: 'renewal' }));
     sessionStorage.setItem(RENEWAL_WORKFLOW_SESSION_KEY, 'renewal');
+    syncRenewalDate();
     return;
   }
   // Restore renewal mode from sessionStorage when returning from IMS without query param
@@ -85,14 +101,28 @@ function syncRenewalWorkflow() {
     stepperStore.update((prev) => ({ ...prev, workflow: 'renewal' }));
     const url = new URL(window.location.href);
     url.searchParams.set('workflow', 'renewal');
+    const storedDate = sessionStorage.getItem(RENEWAL_DATE_SESSION_KEY);
+    if (storedDate && !url.searchParams.has('renewalDate')) {
+      url.searchParams.set('renewalDate', storedDate);
+    }
     window.history.replaceState({}, '', url);
   }
+}
+
+function getRenewalEffectiveDate() {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get('renewalDate')
+    || params.get('renewal-date')
+    || sessionStorage.getItem(RENEWAL_DATE_SESSION_KEY);
+  return parseEffectiveDate(raw);
 }
 
 function getRenewalSignInRedirectUri() {
   const url = new URL(window.location.href);
   IMS_CALLBACK_PARAMS.forEach((key) => url.searchParams.delete(key));
   url.searchParams.set('workflow', 'renewal');
+  const effectiveDate = getRenewalEffectiveDate();
+  if (effectiveDate) url.searchParams.set('renewalDate', effectiveDate);
   url.hash = '';
   return url.href;
 }
@@ -132,6 +162,125 @@ async function initRenewalImsGate() {
   }
 
   return true;
+}
+
+function getEduValidationRequestConfig() {
+  const { env } = getConfig();
+  const config = getEduValidationConfig(env?.name);
+  const apiKey = getMetadata('edu-validation-api-key') || config.apiKey;
+  return { baseUrl: config.baseUrl, apiKey };
+}
+
+function applyValidationPrefill(validation) {
+  if (!validation) return;
+  if (validation['email-id']) nonprofitFormData.email = validation['email-id'];
+}
+
+async function initRenewalValidation() {
+  const { profile } = renewalStore.data;
+  const personId = formatPersonId(profile);
+  if (!personId) return { type: 'error' };
+
+  try {
+    const accessTokenResponse = await window.adobeIMS.getAccessToken();
+    const accessToken = accessTokenResponse?.token || accessTokenResponse;
+    const { baseUrl, apiKey } = getEduValidationRequestConfig();
+    const result = await fetchRenewalValidation({
+      baseUrl,
+      apiKey,
+      personId,
+      effectiveDate: getRenewalEffectiveDate(),
+      country: profile?.country,
+      accessToken,
+    });
+
+    renewalStore.update((prev) => ({
+      ...prev,
+      validation: result.validation,
+      validationStatus: result.status,
+    }));
+
+    if (result.type === 'form') applyValidationPrefill(result.validation);
+    return result;
+  } catch (error) {
+    window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
+    return { type: 'error', error };
+  }
+}
+
+function getRenewalStatusCopy(status) {
+  const statusKey = status?.toLowerCase();
+  const title = window.mph?.[`nonprofit-renewal-status-${statusKey}-title`];
+  const detail = window.mph?.[`nonprofit-renewal-status-${statusKey}-detail`];
+  const defaults = {
+    approved: {
+      title: 'Your renewal request has been approved',
+      detail: 'No further action is needed. You can return to Acrobat for nonprofits.',
+    },
+    pending: {
+      title: 'Your renewal request is pending',
+      detail: 'We are reviewing your submission. You will receive an email once a decision is made.',
+    },
+    declined: {
+      title: 'Your renewal request was declined',
+      detail: 'Your nonprofit status could not be verified. Please contact support for next steps.',
+    },
+  };
+  return {
+    title: title || defaults[statusKey]?.title || 'Renewal status',
+    detail: detail || defaults[statusKey]?.detail || '',
+  };
+}
+
+function renderRenewalStatusScreen(element, status, validation) {
+  const email = validation?.['email-id'] || renewalStore.data.profile?.email || nonprofitFormData.email;
+  const { title, detail } = getRenewalStatusCopy(status);
+  const containerTag = createTag('div', { class: 'np-container np-renewal-status' });
+  const statusTag = createTag('div', { class: 'np-application-review-container' });
+  const titleTag = createTag('h1', { class: 'np-title' }, title);
+  const detailTag = createTag('span', { class: 'np-application-review-detail' }, detail);
+  const emailDetailTag = email
+    ? createTag(
+      'span',
+      { class: 'np-application-review-detail' },
+      window.mph?.['nonprofit-renewal-status-email-detail']?.replace('__EMAIL__', email)
+        || `Updates will be sent to ${email}.`,
+    )
+    : null;
+
+  statusTag.append(titleTag, detailTag);
+  if (emailDetailTag) statusTag.append(emailDetailTag);
+
+  const returnTag = createTag(
+    'a',
+    {
+      class: 'np-button',
+      href: 'https://www.adobe.com/nonprofits.html',
+      'daa-ll': 'return to acrobat for nonprofits',
+    },
+    window.mph?.['nonprofit-return-to-acrobat-for-nonprofits'] || 'Return to Acrobat for nonprofits',
+  );
+
+  containerTag.append(statusTag, returnTag);
+  element.append(containerTag);
+}
+
+function renderRenewalErrorScreen(element) {
+  const containerTag = createTag('div', { class: 'np-container np-renewal-error' });
+  const errorTag = createTag('div', { class: 'np-application-review-container' });
+  const titleTag = createTag(
+    'h1',
+    { class: 'np-title' },
+    window.mph?.['nonprofit-renewal-error-title'] || 'Unable to load your renewal status',
+  );
+  const detailTag = createTag(
+    'span',
+    { class: 'np-application-review-detail' },
+    window.mph?.['nonprofit-renewal-error-detail'] || 'Please refresh the page and try again.',
+  );
+  errorTag.append(titleTag, detailTag);
+  containerTag.append(errorTag);
+  element.append(containerTag);
 }
 
 // #endregion
@@ -1006,6 +1155,11 @@ function renderPersonalData(containerTag, product) {
   if (nonprofitFormData.firstName) firstNameInput.value = nonprofitFormData.firstName;
   if (nonprofitFormData.lastName) lastNameInput.value = nonprofitFormData.lastName;
   if (nonprofitFormData.email) emailInput.value = nonprofitFormData.email;
+  // Renewal email comes from EduValidation GET and must not be editable
+  if (isRenewalPath() && nonprofitFormData.email) {
+    emailInput.setAttribute('readonly', 'readonly');
+    emailInput.classList.add('np-input-readonly');
+  }
 
   trackSubmitCondition(formTag);
 
@@ -1134,10 +1288,20 @@ export default async function init(element) {
   removeOptionElements(element);
   syncRenewalWorkflow();
 
-  // Renewal requires IMS sign-in before rendering the form
+  // Renewal requires IMS sign-in and EduValidation status before rendering the form
   if (isRenewalPath()) {
     const canRender = await initRenewalImsGate();
     if (!canRender) return;
+
+    const validationResult = await initRenewalValidation();
+    if (validationResult.type === 'status') {
+      renderRenewalStatusScreen(element, validationResult.status, validationResult.validation);
+      return;
+    }
+    if (validationResult.type === 'error') {
+      renderRenewalErrorScreen(element);
+      return;
+    }
   }
 
   initNonprofit(element);
