@@ -100,7 +100,7 @@ function createSlider(sliderType, details, menu, sliderTray) {
     min: CSSRanges[sliderType].min,
     max: CSSRanges[sliderType].max,
     class: `options ${sliderType.toLowerCase()}-input`,
-    'aria-label': 'slider',
+    'aria-label': `${sliderType} slider`,
     value: initialValue,
   });
   outerCircle.append(analyticsHolder);
