@@ -1142,10 +1142,12 @@ function renderPersonalData(containerTag, product) {
   replaceURL(disclaimerTag);
   const submitTag = getSubmitTag();
 
-  formTag.addEventListener('input', () => {
+  const updateSubmitState = () => {
     const isFormValid = formTag.checkValidity() && validateEmail();
     submitTag.toggleAttribute('disabled', !isFormValid);
-  });
+  };
+
+  formTag.addEventListener('input', updateSubmitState);
 
   formTag.append(firstNameTag, lastNameTag, emailTag, disclaimerTag, submitTag);
 
@@ -1162,6 +1164,7 @@ function renderPersonalData(containerTag, product) {
   }
 
   trackSubmitCondition(formTag);
+  updateSubmitState();
 
   formTag.addEventListener('submit', async (ev) => {
     ev.preventDefault();
