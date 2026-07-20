@@ -1,4 +1,4 @@
-import { getLibs, prefersReducedMotion } from '../../scripts/utils.js';
+import { getLibs } from '../../scripts/utils.js';
 
 const miloLibs = getLibs('/libs');
 const { createTag } = await import(`${miloLibs}/utils/utils.js`);
@@ -112,6 +112,7 @@ async function fetchAnimationLabels(getFedsPlaceholderConfig, replaceKeyArray) {
 function initAnimationControls({ button, iconWrapper, logoContainer }) {
   if (!button || !iconWrapper || !logoContainer) return;
   let isPlaying = true;
+  const reducedMotionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const updateControlState = (playing) => {
     isPlaying = playing;
@@ -123,13 +124,30 @@ function initAnimationControls({ button, iconWrapper, logoContainer }) {
 
   const pauseAnimation = () => {
     updateControlState(false);
-    logoContainer.style.setProperty('--marquee-state', 'paused', 'important');
+    if (reducedMotionMQ.matches) {
+      logoContainer.style.animation = '';
+      logoContainer.style.transform = '';
+      logoContainer.style.setProperty('--marquee-state', 'paused', 'important');
+    } else {
+      logoContainer.style.removeProperty('--marquee-state');
+      const { transform } = getComputedStyle(logoContainer);
+      logoContainer.style.animation = 'none';
+      logoContainer.style.transform = transform;
+    }
     logoContainer.classList.add('paused');
   };
 
   const playAnimation = () => {
     updateControlState(true);
-    logoContainer.style.setProperty('--marquee-state', 'running', 'important');
+    if (reducedMotionMQ.matches) {
+      logoContainer.style.animation = '';
+      logoContainer.style.transform = '';
+      logoContainer.style.setProperty('--marquee-state', 'running', 'important');
+    } else {
+      logoContainer.style.removeProperty('--marquee-state');
+      logoContainer.style.animation = '';
+      logoContainer.style.transform = '';
+    }
     logoContainer.classList.remove('paused');
   };
 
@@ -149,7 +167,9 @@ function initAnimationControls({ button, iconWrapper, logoContainer }) {
 
   button.addEventListener('keydown', handleKeydown);
 
-  if (prefersReducedMotion()) pauseAnimation();
+  reducedMotionMQ.addEventListener('change', ({ matches }) => (matches ? pauseAnimation() : playAnimation()));
+
+  if (reducedMotionMQ.matches) pauseAnimation();
 }
 
 function createAnimationControls({ container, getFederatedContentRoot, logoContainer }) {
