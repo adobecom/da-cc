@@ -20,18 +20,19 @@ describe('commerce-validation', () => {
     expect(parseEffectiveDate('invalid')).to.equal(null);
   });
 
-  it('should build validation search URL with nonprofit type and effective date', () => {
+  it('should build validation search URL with verification-segment and effective date', () => {
     const url = buildValidationSearchUrl({
-      baseUrl: 'https://commerce-stg.adobe.com/edu-validations/v1',
+      baseUrl: 'https://commerce-stg.adobe.com/v1/edu-validations',
       personId: 'ABC123@AdobeID',
       effectiveDate: '2026-08-06',
       country: 'US',
     });
 
     expect(url).to.contain('person-id=ABC123%40AdobeID');
-    expect(url).to.contain('type=nonprofit');
+    expect(url).to.contain('verification-segment=NONPROFIT');
     expect(url).to.contain('effective-date=2026-08-06');
     expect(url).to.contain('country=US');
+    expect(url).to.not.contain('type=');
   });
 
   it('should resolve terminal statuses to status view', () => {
@@ -48,7 +49,7 @@ describe('commerce-validation', () => {
     });
 
     const result = await fetchRenewalValidation({
-      baseUrl: 'https://commerce-stg.adobe.com/edu-validations/v1',
+      baseUrl: 'https://commerce-stg.adobe.com/v1/edu-validations',
       apiKey: 'test-key',
       personId: 'ABC123@AdobeID',
       accessToken: 'token',

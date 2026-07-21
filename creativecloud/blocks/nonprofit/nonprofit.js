@@ -210,9 +210,7 @@ async function initRenewalValidation() {
 
 function getRenewalStatusCopy(status) {
   const statusKey = status?.toLowerCase();
-  const title = window.mph?.[`nonprofit-renewal-status-${statusKey}-title`];
-  const detail = window.mph?.[`nonprofit-renewal-status-${statusKey}-detail`];
-  const defaults = {
+  const fallbacks = {
     approved: {
       title: 'Your renewal request has been approved',
       detail: 'No further action is needed. You can return to Acrobat for nonprofits.',
@@ -227,8 +225,8 @@ function getRenewalStatusCopy(status) {
     },
   };
   return {
-    title: title || defaults[statusKey]?.title || 'Renewal status',
-    detail: detail || defaults[statusKey]?.detail || '',
+    title: window.mph?.[`nonprofit-renewal-status-${statusKey}-title`] || fallbacks[statusKey]?.title,
+    detail: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail`] || fallbacks[statusKey]?.detail,
   };
 }
 
@@ -243,8 +241,9 @@ function renderRenewalStatusScreen(element, status, validation) {
     ? createTag(
       'span',
       { class: 'np-application-review-detail' },
-      window.mph?.['nonprofit-renewal-status-email-detail']?.replace('__EMAIL__', email)
-        || `Updates will be sent to ${email}.`,
+      (window.mph?.['nonprofit-renewal-status-email-detail']
+        || 'Updates will be sent to <strong>__EMAIL__</strong>.')
+        .replace('__EMAIL__', email),
     )
     : null;
 
@@ -258,7 +257,7 @@ function renderRenewalStatusScreen(element, status, validation) {
       href: 'https://www.adobe.com/nonprofits.html',
       'daa-ll': 'return to acrobat for nonprofits',
     },
-    window.mph?.['nonprofit-return-to-acrobat-for-nonprofits'] || 'Return to Acrobat for nonprofits',
+    window.mph?.['nonprofit-return-to-acrobat-for-nonprofits'],
   );
 
   containerTag.append(statusTag, returnTag);
@@ -1092,7 +1091,7 @@ function renderPersonalData(containerTag, product) {
   // Description
   const descriptionTag = getDescriptionTag(
     window.mph['nonprofit-title-personal-details'],
-    window.mph['nonprofit-subtitle-personal-details'],
+    isRenewalPath() ? null : window.mph['nonprofit-subtitle-personal-details'],
   );
 
   // Form
@@ -1201,32 +1200,37 @@ function renderApplicationReview(containerTag) {
   containerTag.setAttribute('daa-lh', 'verification');
 
   const applicationReviewTag = createTag('div', { class: 'np-application-review-container' });
+  const isRenewal = isRenewalPath();
 
   const titleTag = createTag(
     'h1',
     { class: 'np-title' },
-    window.mph['nonprofit-title-application-review'],
+    isRenewal
+      ? (window.mph['nonprofit-renewal-title-application-review'] || 'Thank you for confirming your nonprofit details.')
+      : window.mph['nonprofit-title-application-review'],
   );
   const detail1Tag = createTag(
     'span',
     { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-1-application-review'],
+    isRenewal
+      ? (window.mph['nonprofit-renewal-detail-1-application-review'] || 'Thank you for your interest in Adobe for Nonprofits.')
+      : window.mph['nonprofit-detail-1-application-review'],
   );
   const detail2Tag = createTag(
     'span',
     { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-2-application-review']?.replace(
-      '__EMAIL__',
-      nonprofitFormData.email,
-    ),
+    (isRenewal
+      ? (window.mph['nonprofit-renewal-detail-2-application-review'] || 'Your submission is now under review by our partners at Goodstack.')
+      : window.mph['nonprofit-detail-2-application-review']
+    )?.replace('__EMAIL__', nonprofitFormData.email),
   );
   const detail3Tag = createTag(
     'span',
     { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-3-application-review']?.replace(
-      '__EMAIL__',
-      nonprofitFormData.email,
-    ),
+    (isRenewal
+      ? (window.mph['nonprofit-renewal-detail-3-application-review'] || 'You’ll be notified at <strong>__EMAIL__</strong> within 2–4 business days.')
+      : window.mph['nonprofit-detail-3-application-review']
+    )?.replace('__EMAIL__', nonprofitFormData.email),
   );
   replaceURL(detail1Tag);
   replaceURL(detail2Tag);

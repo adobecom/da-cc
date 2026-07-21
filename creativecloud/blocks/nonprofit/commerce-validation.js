@@ -1,7 +1,7 @@
 import {
   EDU_VALIDATION_CONFIG,
-  NONPROFIT_VALIDATION_TYPE,
   VALIDATION_STATUS,
+  VERIFICATION_SEGMENT,
 } from './constants.js';
 
 const TERMINAL_STATUSES = new Set([
@@ -27,9 +27,12 @@ export function buildValidationSearchUrl({
   personId,
   effectiveDate,
   country,
-  type = NONPROFIT_VALIDATION_TYPE,
+  verificationSegment = VERIFICATION_SEGMENT.NONPROFIT,
 }) {
-  const params = new URLSearchParams({ 'person-id': personId, type });
+  const params = new URLSearchParams({
+    'person-id': personId,
+    'verification-segment': verificationSegment,
+  });
   if (effectiveDate) params.set('effective-date', effectiveDate);
   if (country) params.set('country', country);
   return `${baseUrl}?${params.toString()}`;
@@ -56,19 +59,21 @@ export async function fetchRenewalValidation({
   effectiveDate,
   country,
   accessToken,
-  type = NONPROFIT_VALIDATION_TYPE,
+  verificationSegment = VERIFICATION_SEGMENT.NONPROFIT,
 }) {
   const url = buildValidationSearchUrl({
     baseUrl,
     personId,
     effectiveDate,
     country,
-    type,
+    verificationSegment,
   });
 
   const response = await fetch(url, {
     headers: {
+      Accept: 'application/json',
       Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
       'x-api-key': apiKey,
     },
   });

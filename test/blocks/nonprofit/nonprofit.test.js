@@ -815,6 +815,36 @@ describe('nonprofit - Renewal', () => {
     expect(emailInput.value).to.equal('validation@test.com');
     expect(emailInput.hasAttribute('readonly')).to.be.true;
     expect(document.querySelector('.np-input[name="firstName"]').value).to.equal('Renew');
+    expect(document.querySelector('.np-subtitle')).to.not.exist;
+    expect(document.querySelector('.np-button[type="submit"]').hasAttribute('disabled')).to.be.false;
     expect(isRenewalPath()).to.be.true;
+  });
+
+  it('should show renewal application review copy after submission', async () => {
+    mockEduValidation('UNKNOWN');
+    window.mph = {
+      ...window.mph,
+      'nonprofit-renewal-title-application-review': 'Thank you for confirming your nonprofit details.',
+      'nonprofit-renewal-detail-1-application-review': 'Thank you for your interest in Adobe for Nonprofits.',
+      'nonprofit-renewal-detail-2-application-review': 'Your submission is now under review by our partners at Goodstack.',
+      'nonprofit-renewal-detail-3-application-review': 'You’ll be notified at <strong>__EMAIL__</strong> within 2–4 business days.',
+      'nonprofit-partner-name': 'Goodstack',
+      'nonprofit-partner-url': 'https://goodstack.io',
+    };
+
+    document.body.innerHTML = body;
+    await init(document.querySelector('.nonprofit'));
+    await waitForElement('.np-container');
+
+    stepperStore.update((prev) => ({ ...prev, step: 3, scenario: SCENARIOS.FOUND_IN_SEARCH }));
+    await waitForElement('.np-application-review-container');
+
+    expect(document.querySelector('.np-title').textContent).to.equal('Thank you for confirming your nonprofit details.');
+    const details = [...document.querySelectorAll('.np-application-review-detail')].map((el) => el.textContent);
+    expect(details[0]).to.equal('Thank you for your interest in Adobe for Nonprofits.');
+    expect(details[1]).to.contain('Your submission is now under review by our partners at Goodstack.');
+    const emailDetail = document.querySelectorAll('.np-application-review-detail')[2];
+    expect(emailDetail.querySelector('strong')?.textContent).to.equal('validation@test.com');
+    expect(emailDetail.textContent).to.contain('validation@test.com');
   });
 });
