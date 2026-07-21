@@ -131,6 +131,10 @@
   background-color: var(--color-white);
   background-position: 98% 50%;
   background-size: 1em 1em;
+  padding-inline-end: calc(var(--spacing-xs) + 20px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 [dir='rtl'] .cc-forms select {
