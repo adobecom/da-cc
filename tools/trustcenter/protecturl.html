@@ -21,6 +21,7 @@
   <link rel="icon" href="data:,">
   <link rel="stylesheet" href="/creativecloud/features/cc-forms/components/progress-circle.css" />
   <link rel="stylesheet" href="/creativecloud/blocks/cc-forms/cc-forms.css" />
+  <link rel="stylesheet" href="/tools/trustcenter/css/protecturl.css" />
 </head>
 
 <body>
@@ -42,20 +43,37 @@
         </div>
       </div>
     </div>
-    <div>
+    <div class="tc-form-section">
       <div class="content">
-        <div class="cc-forms default spacing-m">
-          <div class="form-components">
-            <div class="form-item"><input type="text" class="cc-form-component" name="plaintexturl" id="plaintexturl" required="required" data-required="required" placeholder="Enter the asset url*"></div>
-            <div class="form-item"><a href="/tools/trustcenter/protecturl.html?nonprod=true" class="con-button blue button-l cc-form-component submit generate-protected-link" id="generate-protected-link" daa-ll="Generate Protected L-1--" data-http-link="true">Generate Protected Link</a></div>
-            <div class="form-item"><textarea name="protected-url" id="protected-url" rows="10"></textarea></div>
+        <div class="tc-tool-plain" role="region" aria-labelledby="protect-the-asset-link">
+          <div class="cc-forms default spacing-m">
+            <div class="form-components">
+              <div class="form-item">
+                <label for="plaintexturl">Enter the asset url*</label>
+                <input type="text" class="cc-form-component" name="plaintexturl" id="plaintexturl" required="required"
+                  data-required="required" placeholder="Enter the asset url*">
+              </div>
+              <div class="form-item">
+                <a href="#" class="tc-submit-btn cc-form-component submit generate-protected-link"
+                  id="generate-protected-link" daa-ll="Generate Protected L-1--"
+                  data-http-link="true">Generate Protected Link</a>
+              </div>
+              <div class="form-item">
+                <div class="tc-output">
+                  <textarea name="protected-url" id="protected-url" rows="10"
+                    placeholder="Encrypted URL will appear here..." readonly></textarea>
+                  <button type="button" class="tc-copy-btn" data-copy-target="protected-url" aria-label="Copy encrypted URL" title="Copy"></button>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
+
       <div class="section-metadata" data-block-status="loaded">
         <div>
           <div data-valign="middle">style</div>
-          <div data-valign="middle">xxl-spacing, half-width</div>
+          <div data-valign="middle">xxl-spacing</div>
         </div>
       </div>
     </div>
