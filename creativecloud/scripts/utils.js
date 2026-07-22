@@ -430,6 +430,7 @@ export const decorateArea = getDecorateAreaFn();
 const CONFIG = {
   contentRoot: '/cc-shared',
   codeRoot: '/creativecloud',
+  commerce: { 'wcs-api-key': 'wcms-commerce-ims-ro-user-milo-cc' },
   imsClientId: 'adobedotcom-cc',
   iconsExcludeBlocks: ['unity', 'cc-forms', 'interactive-metadata', 'firefly-howto'],
   locales,
