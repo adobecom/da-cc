@@ -473,7 +473,7 @@ const CONFIG = {
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?learn(\/.*)?/,
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?benefits(\/.*)?/,
     /www\.adobe\.com\/(\w\w(_\w\w)?\/)?download(\/.*)?/,
-    /creativecloud\.adobe\.com\/(\w\w(_\w\w)?\/)?apps\/download\/substance3d(?:-[^/?#]+)?(\/.*)?$/,
+    /creativecloud\.adobe\.com\/(\w\w(_\w\w)?\/)?apps\/download\/substance3d(?:-[^/?#]+)?(\/.*)?(#_dnt)?$/,
   ],
   autoBlocks: [{ audio: '.mp3' }, { audio: '.m4a' }, { audio: '.aac' }],
   brandConciergeAA: 'cc:app-reco',
