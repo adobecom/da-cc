@@ -766,15 +766,18 @@ describe('nonprofit - Renewal', () => {
     expect(document.querySelector('.np-container')).to.not.exist;
   });
 
-  it('should show status screen for approved renewal requests', async () => {
+  it('should show step 3 verification with locked stepper for approved renewal requests', async () => {
     mockEduValidation('APPROVED');
 
     document.body.innerHTML = body;
     await init(document.querySelector('.nonprofit'));
+    await waitForElement('.np-application-review-container');
 
-    expect(document.querySelector('.np-renewal-status')).to.exist;
-    expect(document.querySelector('.np-stepper-container')).to.not.exist;
-    expect(document.querySelector('.np-container')).to.exist;
+    expect(document.querySelector('.np-stepper-container')).to.exist;
+    expect(document.querySelector('.np-stepper-container').classList.contains('np-stepper-locked')).to.be.true;
+    expect(document.querySelector('.np-renewal-status')).to.not.exist;
+    expect(stepperStore.data.step).to.equal(3);
+    expect(document.querySelector('.np-stepper-back').style.display).to.equal('none');
   });
 
   it('should show form for unknown renewal status', async () => {

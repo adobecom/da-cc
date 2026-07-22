@@ -34,6 +34,11 @@
   max-height: var(--np-stepper-max-height);
 }
 
+.np-stepper-container.np-stepper-locked {
+  pointer-events: none;
+  opacity: 0.7;
+}
+
 .np-step-container {
   display: flex;
   align-items: center;

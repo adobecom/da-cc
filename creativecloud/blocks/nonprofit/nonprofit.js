@@ -208,6 +208,12 @@ async function initRenewalValidation() {
   }
 }
 
+const RENEWAL_TERMINAL_STATUSES = ['APPROVED', 'PENDING', 'DECLINED'];
+
+function isRenewalStepperLocked() {
+  return isRenewalPath() && RENEWAL_TERMINAL_STATUSES.includes(renewalStore.data.validationStatus);
+}
+
 function getRenewalStatusCopy(status) {
   const statusKey = status?.toLowerCase();
   const fallbacks = {
@@ -230,11 +236,12 @@ function getRenewalStatusCopy(status) {
   };
 }
 
-function renderRenewalStatusScreen(element, status, validation) {
+function renderRenewalVerificationStatus(containerTag, status, validation) {
+  containerTag.setAttribute('daa-lh', 'verification');
+
   const email = validation?.['email-id'] || renewalStore.data.profile?.email || nonprofitFormData.email;
   const { title, detail } = getRenewalStatusCopy(status);
-  const containerTag = createTag('div', { class: 'np-container np-renewal-status' });
-  const statusTag = createTag('div', { class: 'np-application-review-container' });
+  const applicationReviewTag = createTag('div', { class: 'np-application-review-container' });
   const titleTag = createTag('h1', { class: 'np-title' }, title);
   const detailTag = createTag('span', { class: 'np-application-review-detail' }, detail);
   const emailDetailTag = email
@@ -247,8 +254,8 @@ function renderRenewalStatusScreen(element, status, validation) {
     )
     : null;
 
-  statusTag.append(titleTag, detailTag);
-  if (emailDetailTag) statusTag.append(emailDetailTag);
+  applicationReviewTag.append(titleTag, detailTag);
+  if (emailDetailTag) applicationReviewTag.append(emailDetailTag);
 
   const returnTag = createTag(
     'a',
@@ -260,8 +267,7 @@ function renderRenewalStatusScreen(element, status, validation) {
     window.mph?.['nonprofit-return-to-acrobat-for-nonprofits'],
   );
 
-  containerTag.append(statusTag, returnTag);
-  element.append(containerTag);
+  containerTag.replaceChildren(applicationReviewTag, returnTag);
 }
 
 function renderRenewalErrorScreen(element) {
@@ -457,9 +463,10 @@ function getStepBackTag() {
   buttonTag.append(backIconTag);
 
   stepperStore.subscribe(({ step, scenario, pending }) => {
-    if (pending) buttonTag.classList.add('disabled');
+    if (pending || isRenewalStepperLocked()) buttonTag.classList.add('disabled');
     else buttonTag.classList.remove('disabled');
-    if (step === 1 || (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) || step === 5) {
+    if (step === 1 || (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) || step === 5
+      || isRenewalStepperLocked()) {
       buttonTag.style.display = 'none';
       return;
     }
@@ -467,12 +474,12 @@ function getStepBackTag() {
   });
 
   buttonTag.addEventListener('click', () => {
-    if (stepperStore.data.pending) return;
+    if (stepperStore.data.pending || isRenewalStepperLocked()) return;
     stepperStore.update((prev) => ({ ...prev, step: prev.step - 1 }));
   });
 
   buttonTag.addEventListener('keydown', (ev) => {
-    if (stepperStore.data.pending) return;
+    if (stepperStore.data.pending || isRenewalStepperLocked()) return;
     if (ev.code !== 'Enter') return;
     ev.preventDefault();
     buttonTag.click();
@@ -500,6 +507,18 @@ function renderStepper(containerTag) {
   const step3 = getStepTag(3);
 
   stepperStore.subscribe(({ step, scenario }) => {
+    if (isRenewalStepperLocked()) {
+      stepperContainerTag.classList.add('np-stepper-locked');
+      step1.classList.add('is-cleared');
+      step2.classList.add('is-cleared');
+      step3.classList.add('is-active');
+      step1.setAttribute('aria-disabled', true);
+      step2.setAttribute('aria-disabled', true);
+      step3.setAttribute('aria-disabled', true);
+      return;
+    }
+
+    stepperContainerTag.classList.remove('np-stepper-locked');
     // Reset steps
     step1.classList.remove('is-cleared', 'is-active');
     step2.classList.remove('is-cleared', 'is-active');
@@ -1264,7 +1283,17 @@ function renderStepContent(containerTag, product) {
     if (step === 1) renderSelectNonprofit(contentContainerTag);
     if (step === 2 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderPersonalData(contentContainerTag, product);
     if (step === 2 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderOrganizationDetails(contentContainerTag);
-    if (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderApplicationReview(contentContainerTag);
+    if (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) {
+      if (isRenewalStepperLocked()) {
+        renderRenewalVerificationStatus(
+          contentContainerTag,
+          renewalStore.data.validationStatus,
+          renewalStore.data.validation,
+        );
+      } else {
+        renderApplicationReview(contentContainerTag);
+      }
+    }
     if (step === 3 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderOrganizationAddress(contentContainerTag);
     if (step === 4 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderPersonalData(contentContainerTag, product);
     if (step === 5 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderApplicationReview(contentContainerTag);
@@ -1302,7 +1331,13 @@ export default async function init(element) {
 
     const validationResult = await initRenewalValidation();
     if (validationResult.type === 'status') {
-      renderRenewalStatusScreen(element, validationResult.status, validationResult.validation);
+      if (validationResult.validation) applyValidationPrefill(validationResult.validation);
+      stepperStore.update((prev) => ({
+        ...prev,
+        step: 3,
+        scenario: SCENARIOS.FOUND_IN_SEARCH,
+      }));
+      initNonprofit(element);
       return;
     }
     if (validationResult.type === 'error') {
