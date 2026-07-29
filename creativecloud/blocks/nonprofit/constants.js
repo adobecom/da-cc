@@ -610,11 +610,11 @@ export const PRODUCT_VALIDATION_CONFIG = {
 export const EDU_VALIDATION_CONFIG = {
   stage: {
     baseUrl: 'https://commerce-stg.adobe.com/v1/edu-validations',
-    apiKey: window.adobeid.client_id,
+    apiKey: window.adobeid?.client_id,
   },
   prod: {
     baseUrl: 'https://commerce.adobe.com/v1/edu-validations',
-    apiKey: window.adobeid.client_id,
+    apiKey: window.adobeid?.client_id,
   },
 };
 
