@@ -2,6 +2,7 @@ import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 import {
   buildValidationSearchUrl,
+  createRenewalValidation,
   fetchRenewalValidation,
   formatPersonId,
   parseEffectiveDate,
@@ -40,6 +41,41 @@ describe('commerce-validation', () => {
     expect(resolveValidationResult('PENDING', {}).type).to.equal('status');
     expect(resolveValidationResult('DECLINED', {}).type).to.equal('status');
     expect(resolveValidationResult('UNKNOWN', {}).type).to.equal('form');
+  });
+
+  it('should create renewal validation using the edu validation POST API for organization flow', async () => {
+    const fetchStub = sinon.stub(window, 'fetch').resolves({
+      ok: true,
+      status: 200,
+      json: () => Promise.resolve({
+        id: '24D9888DE5D017722128747841857-D',
+        status: 'PENDING',
+        'person-id': 'ABC123@AdobeID',
+      }),
+    });
+
+    const result = await createRenewalValidation({
+      baseUrl: 'https://commerce-stg.adobe.com/v1/edu-validations',
+      apiKey: 'test-key',
+      accessToken: 'token',
+      personId: 'ABC123@AdobeID',
+      emailId: 'test@example.com',
+      firstName: 'Jane',
+      lastName: 'Doe',
+      country: 'US',
+      organizationId: '331444',
+      nonprofitDetails: { language: 'en' },
+    });
+
+    expect(fetchStub.calledOnce).to.be.true;
+    expect(fetchStub.firstCall.args[0]).to.equal('https://commerce-stg.adobe.com/v1/edu-validations');
+    const request = JSON.parse(fetchStub.firstCall.args[1].body);
+    expect(request['verification-segment']).to.equal('NONPROFIT');
+    expect(request['organization-id']).to.equal('331444');
+    expect(request['nonprofit-details'].language).to.equal('en');
+    expect(result.status).to.equal('PENDING');
+
+    fetchStub.restore();
   });
 
   it('should treat 404 as form flow', async () => {

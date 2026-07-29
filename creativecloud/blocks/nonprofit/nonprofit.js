@@ -4,10 +4,11 @@
 /* eslint-disable max-len */
 import ReactiveStore from './reactiveStore.js';
 import { setLibs, getGeoLocaleInfo, isSignedInInitialized } from '../../scripts/utils.js';
-import { countries, PRODUCT_VALIDATION_CONFIG } from './constants.js';
+import { countries, PRODUCT_VALIDATION_CONFIG, normalizeCountryCode } from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
 import {
+  createRenewalValidation,
   fetchRenewalValidation,
   formatPersonId,
   getEduValidationConfig,
@@ -205,6 +206,50 @@ async function initRenewalValidation() {
   } catch (error) {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
     return { type: 'error', error };
+  }
+}
+
+async function submitRenewalValidation() {
+  const { profile } = renewalStore.data;
+  const personId = formatPersonId(profile);
+  if (!personId) return false;
+
+  try {
+    const { ietf } = await getGeoLocaleInfo();
+    const { baseUrl, apiKey } = getEduValidationRequestConfig();
+    const accessTokenResponse = await window.adobeIMS.getAccessToken();
+    const accessToken = accessTokenResponse?.token || accessTokenResponse;
+    const language = String(ietf).split('-')[0] || 'en';
+
+    const selectedOrganization = selectedOrganizationStore.data;
+    const requestCountry = normalizeCountryCode(
+      profile?.country
+      || nonprofitFormData.countryCode
+      || selectedOrganization?.countryCode,
+    );
+
+    const request = {
+      baseUrl,
+      apiKey,
+      accessToken,
+      personId,
+      emailId: nonprofitFormData.email,
+      firstName: nonprofitFormData.firstName,
+      lastName: nonprofitFormData.lastName,
+      country: requestCountry,
+      nonprofitDetails: { language },
+    };
+
+    if (stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH) {
+      request.organizationId = nonprofitFormData.organizationId;
+    }
+
+    const validation = await createRenewalValidation(request);
+    renewalStore.update({ validation, validationStatus: validation?.status });
+    return true;
+  } catch (error) {
+    window.lana?.log(`Renewal validation POST failed: ${error}`, LANA_OPTIONS);
+    return false;
   }
 }
 
@@ -1199,7 +1244,7 @@ function renderPersonalData(containerTag, product) {
 
     stepperStore.update((prev) => ({ ...prev, pending: true }));
 
-    const ok = await sendOrganizationData(product);
+    const ok = await (isRenewalPath() ? submitRenewalValidation() : sendOrganizationData(product));
 
     if (!ok) {
       inputs.forEach((input) => {

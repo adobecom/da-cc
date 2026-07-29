@@ -13,7 +13,15 @@ const TERMINAL_STATUSES = new Set([
 export function formatPersonId(profile) {
   const userId = profile?.userId || profile?.sub;
   if (!userId) return null;
-  return userId.includes('@AdobeID') ? userId : `${userId}@AdobeID`;
+
+  // Some IMS identifiers may include additional domain/tenant parts (e.g.
+  // "abc@tenant@..."), which would produce invalid person-id values when we
+  // append the expected "@AdobeID" suffix. Normalize by taking the left-most
+  // identifier portion before any "@" and then ensure the canonical AdobeID
+  // suffix is present.
+  const decoded = String(userId);
+  const base = decoded.split('@')[0];
+  return base.includes('@AdobeID') ? base : `${base}@AdobeID`;
 }
 
 export function parseEffectiveDate(raw) {
@@ -36,6 +44,83 @@ export function buildValidationSearchUrl({
   if (effectiveDate) params.set('effective-date', effectiveDate);
   if (country) params.set('country', country);
   return `${baseUrl}?${params.toString()}`;
+}
+
+export async function createRenewalValidation({
+  baseUrl,
+  apiKey,
+  accessToken,
+  personId,
+  emailId,
+  firstName,
+  lastName,
+  country,
+  organizationId,
+  organizationName,
+  nonprofitDetails = {},
+  verificationSegment = VERIFICATION_SEGMENT.NONPROFIT,
+}) {
+  const payload = {
+    'verification-segment': verificationSegment,
+    'person-id': personId,
+    'email-id': emailId,
+    'first-name': firstName,
+    'last-name': lastName,
+    country,
+    'nonprofit-details': { language: nonprofitDetails.language },
+  };
+
+  if (organizationId) {
+    payload['organization-id'] = organizationId;
+  } else {
+    if (organizationName) {
+      payload['organization-name'] = organizationName;
+    }
+
+    if (nonprofitDetails['registry-id']) {
+      payload['nonprofit-details']['registry-id'] = nonprofitDetails['registry-id'];
+    }
+    if (nonprofitDetails['registry-name']) {
+      payload['nonprofit-details']['registry-name'] = nonprofitDetails['registry-name'];
+    }
+    if (nonprofitDetails.website) {
+      payload['nonprofit-details'].website = nonprofitDetails.website;
+    }
+    if (nonprofitDetails['address-line-1']) {
+      payload['nonprofit-details']['address-line-1'] = nonprofitDetails['address-line-1'];
+    }
+    if (nonprofitDetails['address-line-2']) {
+      payload['nonprofit-details']['address-line-2'] = nonprofitDetails['address-line-2'];
+    }
+    if (nonprofitDetails.city) {
+      payload['nonprofit-details'].city = nonprofitDetails.city;
+    }
+    if (nonprofitDetails.postal) {
+      payload['nonprofit-details'].postal = nonprofitDetails.postal;
+    }
+    if (nonprofitDetails.state) {
+      payload['nonprofit-details'].state = nonprofitDetails.state;
+    }
+  }
+
+  const response = await fetch(baseUrl, {
+    method: 'POST',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const error = new Error(`Edu validation POST failed with status ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
+
+  return response.json();
 }
 
 export function resolveValidationResult(status, validation) {
