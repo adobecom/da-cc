@@ -394,11 +394,23 @@
   z-index: 4;
   position: relative;
 }
+.gallery-cell-media-wrapper {
+  height: 100%;
+}
+
+.gallery-cell .animation-controls {
+  height: 100%;
+}
+
+.gallery-cell .pause-play-wrapper {
+  bottom: 43px;
+  right: 31px;
+}
 
 .firefly-model-showcase .animation-controls .pause-play-wrapper {
   position: absolute;
-  top: 169px;
-  left: 167px;
+  /* top: 169px;
+  left: 167px; */
   display: flex;
   justify-content: center;
   align-items: center;
