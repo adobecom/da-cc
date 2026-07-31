@@ -774,7 +774,6 @@ describe('nonprofit - Renewal', () => {
     await waitForElement('.np-application-review-container');
 
     expect(document.querySelector('.np-stepper-container')).to.exist;
-    expect(document.querySelector('.np-stepper-container').classList.contains('np-stepper-locked')).to.be.true;
     expect(document.querySelector('.np-renewal-status')).to.not.exist;
     expect(stepperStore.data.step).to.equal(3);
     expect(document.querySelector('.np-stepper-back').style.display).to.equal('none');

@@ -242,6 +242,14 @@ async function submitRenewalValidation() {
 
     if (stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH) {
       request.organizationId = nonprofitFormData.organizationId;
+    } else {
+      request.organizationName = nonprofitFormData.organizationName;
+      request.nonprofitDetails = {
+        ...request.nonprofitDetails,
+        'registry-id': nonprofitFormData.organizationRegistrationId,
+        'registry-name': nonprofitFormData.registryName,
+        website: nonprofitFormData.website,
+      };
     }
 
     const validation = await createRenewalValidation(request);
@@ -553,6 +561,11 @@ function renderStepper(containerTag) {
 
   stepperStore.subscribe(({ step, scenario }) => {
     if (isRenewalStepperLocked()) {
+      // Clear any residual active/cleared classes before applying locked state
+      step1.classList.remove('is-active');
+      step2.classList.remove('is-active');
+      step3.classList.remove('is-cleared');
+
       stepperContainerTag.classList.add('np-stepper-locked');
       step1.classList.add('is-cleared');
       step2.classList.add('is-cleared');
