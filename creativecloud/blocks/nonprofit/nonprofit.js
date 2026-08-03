@@ -33,8 +33,14 @@ const removeOptionElements = (element) => {
 
 // #region Constants
 
+// Production API constants (acquisition flow)
 const PERCENT_API_URL = 'https://api.goodstack.io/v1';
 const PERCENT_PUBLISHABLE_KEY = 'pk_ea675372-2eb2-4cf1-8b6a-358087bf8df5';
+
+// Sandbox API constants (renewal flow)
+const PERCENT_SANDBOX_API_URL = 'https://sandbox-api.goodstack.io/v1';
+const PERCENT_SANDBOX_PUBLISHABLE_KEY = 'sandbox_pk_8b320cc4-5950-4263-a3ac-828c64f6e19b';
+
 export const SCENARIOS = Object.freeze({
   FOUND_IN_SEARCH: 'FOUND_IN_SEARCH',
   NOT_FOUND_IN_SEARCH: 'NOT_FOUND_IN_SEARCH',
@@ -66,6 +72,23 @@ export const renewalStore = new ReactiveStore({ profile: null, validation: null,
 
 export function isRenewalPath() {
   return stepperStore.data.workflow === 'renewal';
+}
+
+// Helper to get API endpoint and key based on workflow
+function getPercentApiConfig() {
+  const { env } = getConfig();
+  const isStage = env?.name !== 'prod';
+
+  if (isRenewalPath() && isStage) {
+    return {
+      url: PERCENT_SANDBOX_API_URL,
+      key: PERCENT_SANDBOX_PUBLISHABLE_KEY,
+    };
+  }
+  return {
+    url: PERCENT_API_URL,
+    key: PERCENT_PUBLISHABLE_KEY,
+  };
 }
 
 export const organizationsStore = new ReactiveStore([]);
@@ -368,12 +391,13 @@ let nextOrganizationsPageUrl;
 async function fetchOrganizations(search, countryCode, abortController) {
   try {
     organizationsStore.startLoading(true);
+    const { url, key } = getPercentApiConfig();
     const response = await fetch(
-      `${PERCENT_API_URL}/organisations?countryCode=${countryCode}&query=${search}`,
+      `${url}/organisations?countryCode=${countryCode}&query=${search}`,
       {
         cache: 'force-cache',
         signal: abortController.signal,
-        headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+        headers: { Authorization: key },
       },
     );
 
@@ -394,10 +418,11 @@ async function fetchNextOrganizations(abortController) {
   if (!nextOrganizationsPageUrl) return;
   try {
     organizationsStore.startLoading();
+    const { key } = getPercentApiConfig();
     const response = await fetch(nextOrganizationsPageUrl, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+      headers: { Authorization: key },
     });
 
     const result = await validatePercentResponse(response);
@@ -413,10 +438,11 @@ async function fetchNextOrganizations(abortController) {
 async function fetchRegistries(countryCode, abortController) {
   try {
     registriesStore.startLoading(true);
-    const response = await fetch(`${PERCENT_API_URL}/registries?countryCode=${countryCode}`, {
+    const { url, key } = getPercentApiConfig();
+    const response = await fetch(`${url}/registries?countryCode=${countryCode}`, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+      headers: { Authorization: key },
     });
 
     const result = await validatePercentResponse(response);
