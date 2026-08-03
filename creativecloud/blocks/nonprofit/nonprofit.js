@@ -68,7 +68,7 @@ export const stepperStore = new ReactiveStore({
   })(),
 });
 
-export const renewalStore = new ReactiveStore({ profile: null, validation: null, validationStatus: null }); // IMS profile + EduValidation status for renewal
+export const renewalStore = new ReactiveStore({ profile: null, validation: null, validationStatus: null, showStatusScreen: false }); // IMS profile + EduValidation status for renewal
 
 export function isRenewalPath() {
   return stepperStore.data.workflow === 'renewal';
@@ -222,6 +222,7 @@ async function initRenewalValidation() {
       ...prev,
       validation: result.validation,
       validationStatus: result.status,
+      showStatusScreen: result.type === 'status',
     }));
 
     if (result.type === 'form') applyValidationPrefill(result.validation);
@@ -276,7 +277,7 @@ async function submitRenewalValidation() {
     }
 
     const validation = await createRenewalValidation(request);
-    renewalStore.update({ validation, validationStatus: validation?.status });
+    renewalStore.update({ validation, validationStatus: validation?.status, showStatusScreen: false });
     return true;
   } catch (error) {
     window.lana?.log(`Renewal validation POST failed: ${error}`, LANA_OPTIONS);
@@ -294,21 +295,23 @@ function getRenewalStatusCopy(status) {
   const statusKey = status?.toLowerCase();
   const fallbacks = {
     approved: {
-      title: 'Your renewal request has been approved',
-      detail: 'No further action is needed. You can return to Acrobat for nonprofits.',
+      title: 'Your education status is confirmed.',
+      detail1: "Thank you for submitting your information. You're eligible for the education discount again, and there will not be any changes to your plan.",
+      detail2: 'To view details about your current plan, go to Adobe Account (account.adobe.com).',
     },
     pending: {
       title: 'Your renewal request is pending',
-      detail: 'We are reviewing your submission. You will receive an email once a decision is made.',
+      detail1: 'We are reviewing your submission. You will receive an email once a decision is made.',
     },
     declined: {
       title: 'Your renewal request was declined',
-      detail: 'Your nonprofit status could not be verified. Please contact support for next steps.',
+      detail1: 'Your nonprofit status could not be verified. Please contact support for next steps.',
     },
   };
   return {
     title: window.mph?.[`nonprofit-renewal-status-${statusKey}-title`] || fallbacks[statusKey]?.title,
-    detail: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail`] || fallbacks[statusKey]?.detail,
+    detail1: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-1`] || fallbacks[statusKey]?.detail1,
+    detail2: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-2`] || fallbacks[statusKey]?.detail2,
   };
 }
 
@@ -316,21 +319,33 @@ function renderRenewalVerificationStatus(containerTag, status, validation) {
   containerTag.setAttribute('daa-lh', 'verification');
 
   const email = validation?.['email-id'] || renewalStore.data.profile?.email || nonprofitFormData.email;
-  const { title, detail } = getRenewalStatusCopy(status);
+  const { title, detail1, detail2 } = getRenewalStatusCopy(status);
+  const statusKey = String(status || '').toLowerCase();
+
   const applicationReviewTag = createTag('div', { class: 'np-application-review-container' });
   const titleTag = createTag('h1', { class: 'np-title' }, title);
-  const detailTag = createTag('span', { class: 'np-application-review-detail' }, detail);
-  const emailDetailTag = email
+
+  const detail1Tag = detail1
+    ? createTag('span', { class: 'np-application-review-detail' }, detail1)
+    : null;
+
+  const detail2Tag = detail2
+    ? createTag('span', { class: 'np-application-review-detail' }, detail2)
+    : null;
+
+  const emailDetailTag = (statusKey !== 'approved' && email)
     ? createTag(
       'span',
       { class: 'np-application-review-detail' },
       (window.mph?.['nonprofit-renewal-status-email-detail']
-        || 'Updates will be sent to <strong>__EMAIL__</strong>.')
+          || 'Updates will be sent to <strong>__EMAIL__</strong>.')
         .replace('__EMAIL__', email),
     )
     : null;
 
-  applicationReviewTag.append(titleTag, detailTag);
+  applicationReviewTag.append(titleTag);
+  if (detail1Tag) applicationReviewTag.append(detail1Tag);
+  if (detail2Tag) applicationReviewTag.append(detail2Tag);
   if (emailDetailTag) applicationReviewTag.append(emailDetailTag);
 
   const returnTag = createTag(
@@ -1312,12 +1327,10 @@ function renderApplicationReview(containerTag) {
       ? (window.mph['nonprofit-renewal-title-application-review'] || 'Thank you for confirming your nonprofit details.')
       : window.mph['nonprofit-title-application-review'],
   );
-  const detail1Tag = createTag(
+  const detail1Tag = isRenewal ? null : createTag(
     'span',
     { class: 'np-application-review-detail' },
-    isRenewal
-      ? (window.mph['nonprofit-renewal-detail-1-application-review'] || 'Thank you for your interest in Adobe for Nonprofits.')
-      : window.mph['nonprofit-detail-1-application-review'],
+    window.mph['nonprofit-detail-1-application-review'],
   );
   const detail2Tag = createTag(
     'span',
@@ -1368,12 +1381,19 @@ function renderStepContent(containerTag, product) {
     if (step === 2 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderPersonalData(contentContainerTag, product);
     if (step === 2 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderOrganizationDetails(contentContainerTag);
     if (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) {
-      if (isRenewalStepperLocked()) {
-        renderRenewalVerificationStatus(
-          contentContainerTag,
-          renewalStore.data.validationStatus,
-          renewalStore.data.validation,
-        );
+      // For renewal: only show the terminal status screen for non-pending statuses
+      if (isRenewalPath()) {
+        const status = renewalStore.data.validationStatus;
+        if (renewalStore.data.showStatusScreen && status && String(status).toUpperCase() !== 'PENDING') {
+          renderRenewalVerificationStatus(
+            contentContainerTag,
+            renewalStore.data.validationStatus,
+            renewalStore.data.validation,
+          );
+        } else {
+          // For pending (or when not showing status), show the application review screen
+          renderApplicationReview(contentContainerTag);
+        }
       } else {
         renderApplicationReview(contentContainerTag);
       }
