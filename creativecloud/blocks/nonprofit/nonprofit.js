@@ -360,9 +360,10 @@ function getSubmitTag() {
 }
 
 function getNonprofitInput(params) {
-  const { type, name, label, placeholder, required } = params;
+  const { type, name, label, placeholder, required, value } = params;
   const baseParams = { name, placeholder };
   if (required) baseParams.required = 'required';
+  if (value) baseParams.value = value;
   const controlTag = createTag('div', { class: 'np-control' });
   const labelTag = createTag('label', { class: 'np-label', for: name }, label);
   const inputTag = createTag('input', {
@@ -871,6 +872,7 @@ function renderPersonalData(containerTag, product) {
     label: window.mph['nonprofit-first-name'],
     placeholder: window.mph['nonprofit-first-name-placeholder'],
     required: true,
+    value: nonprofitFormData.firstName,
   });
 
   const lastNameTag = getNonprofitInput({
@@ -879,6 +881,7 @@ function renderPersonalData(containerTag, product) {
     label: window.mph['nonprofit-last-name'],
     placeholder: window.mph['nonprofit-last-name-placeholder'],
     required: true,
+    value: nonprofitFormData.lastName,
   });
 
   const emailTag = getNonprofitInput({
@@ -887,6 +890,7 @@ function renderPersonalData(containerTag, product) {
     label: window.mph['nonprofit-email'],
     placeholder: window.mph['nonprofit-email-placeholder'],
     required: true,
+    value: nonprofitFormData.email,
   });
 
   const disclaimerTag = createTag(
@@ -1067,7 +1071,7 @@ async function initRenewalValidation() {
       'person-id': personId,
       'verification-segment': 'NONPROFIT',
       ...(renewalDate && { 'effective-date': renewalDate }),
-      ...(renewalProfile?.country && { country: renewalProfile.country }),
+      ...(renewalProfile?.countryCode && { country: renewalProfile.countryCode }),
     };
 
     const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, {
@@ -1089,6 +1093,13 @@ async function initRenewalValidation() {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
     return { type: 'error', error };
   }
+}
+
+// Prefill the personal-details form from the IMS profile and any prior validation.
+function prefillRenewalForm(validation) {
+  nonprofitFormData.firstName = renewalProfile?.first_name || '';
+  nonprofitFormData.lastName = renewalProfile?.last_name || '';
+  nonprofitFormData.email = validation?.['email-id'] || renewalProfile?.email || '';
 }
 
 function getProductFromClassList(element) {
@@ -1119,9 +1130,10 @@ export default function init(element) {
       }
       // Get the signed-in customer's profile and store it.
       renewalProfile = await window.adobeIMS.getProfile();
-      console.log('renewalProfile', renewalProfile);
       // Look up the customer's existing renewal validation using their profile.
-      await initRenewalValidation();
+      const result = await initRenewalValidation();
+      // Unknown / no existing validation: prefill the customer's details and show the form.
+      if (result.type === 'form') prefillRenewalForm(result.validation);
       return initNonprofit(element);
     });
     return;
