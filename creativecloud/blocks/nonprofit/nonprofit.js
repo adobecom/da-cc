@@ -3,7 +3,7 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable max-len */
 import ReactiveStore from './reactiveStore.js';
-import { setLibs, getGeoLocaleInfo } from '../../scripts/utils.js';
+import { setLibs, getGeoLocaleInfo, isSignedInInitialized } from '../../scripts/utils.js';
 import { countries, PRODUCT_VALIDATION_CONFIG } from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
@@ -1023,6 +1023,12 @@ function renderStepContent(containerTag, product) {
 }
 // #endregion
 
+// True when the current URL requests the renewal workflow.
+function hasRenewalUrlParam() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('workflow') === 'renewal';
+}
+
 function getProductFromClassList(element) {
   const classes = [...element.classList];
   if (classes.length === 1) return 'acrobat';
@@ -1041,7 +1047,16 @@ function initNonprofit(element) {
 }
 
 export default function init(element) {
-  // Get metadata
   removeOptionElements(element);
+
+  // Renewal: require Adobe sign-in before rendering the form.
+  if (hasRenewalUrlParam()) {
+    isSignedInInitialized().then(() => {
+      if (!window.adobeIMS.isSignedInUser()) return window.adobeIMS.signIn();
+      return initNonprofit(element);
+    });
+    return;
+  }
+
   initNonprofit(element);
 }
