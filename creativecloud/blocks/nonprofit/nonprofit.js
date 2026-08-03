@@ -15,7 +15,7 @@ const LANA_OPTIONS = {
 };
 
 const miloLibs = setLibs('/libs');
-const { createTag, getConfig } = await import(`${miloLibs}/utils/utils.js`);
+const { createTag, getConfig, getMetadata } = await import(`${miloLibs}/utils/utils.js`);
 
 const removeOptionElements = (element) => {
   const children = element.querySelectorAll(':scope > div');
@@ -1023,10 +1023,72 @@ function renderStepContent(containerTag, product) {
 }
 // #endregion
 
+// Signed-in customer's IMS profile, stored for the renewal workflow.
+let renewalProfile = null;
+
+// EduValidation record for the signed-in customer's renewal.
+let renewalValidation = null;
+
+// Edu-validations endpoint per environment.
+const EDU_VALIDATION_URL = {
+  prod: 'https://commerce.adobe.com/v1/edu-validations',
+  stage: 'https://commerce-stg.adobe.com/v1/edu-validations',
+};
+
+// Statuses that mean a final decision has been reached (no form needed).
+const TERMINAL_STATUSES = new Set(['APPROVED', 'DECLINED', 'PENDING']);
+
 // True when the current URL requests the renewal workflow.
 function hasRenewalUrlParam() {
   const params = new URLSearchParams(window.location.search);
   return params.get('workflow') === 'renewal';
+}
+
+// Build the IMS person-id (e.g. "abc@AdobeID") from the signed-in profile.
+function formatPersonId(profile) {
+  const userId = profile?.userId || profile?.sub;
+  return userId ? `${String(userId).split('@')[0]}@AdobeID` : null;
+}
+
+// Look up an existing renewal validation for the signed-in customer.
+async function initRenewalValidation() {
+  const personId = formatPersonId(renewalProfile);
+  if (!personId) return { type: 'error' };
+
+  try {
+    const { env } = getConfig();
+    const baseUrl = env?.name === 'prod' ? EDU_VALIDATION_URL.prod : EDU_VALIDATION_URL.stage;
+    const apiKey = getMetadata('edu-validation-api-key') || window.adobeid?.client_id;
+    const token = await window.adobeIMS.getAccessToken();
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const renewalDate = (urlParams.get('renewalDate') || urlParams.get('renewal-date') || '').match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    const query = {
+      'person-id': personId,
+      'verification-segment': 'NONPROFIT',
+      ...(renewalDate && { 'effective-date': renewalDate }),
+      ...(renewalProfile?.country && { country: renewalProfile.country }),
+    };
+
+    const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${token?.token || token}`,
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+      },
+    });
+
+    if (response.status === 404) return { type: 'form', status: null, validation: null };
+    if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
+
+    renewalValidation = await response.json();
+    const status = renewalValidation.status?.toUpperCase?.() || 'UNKNOWN';
+    return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
+  } catch (error) {
+    window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
+    return { type: 'error', error };
+  }
 }
 
 function getProductFromClassList(element) {
@@ -1051,8 +1113,15 @@ export default function init(element) {
 
   // Renewal: require Adobe sign-in before rendering the form.
   if (hasRenewalUrlParam()) {
-    isSignedInInitialized().then(() => {
-      if (!window.adobeIMS.isSignedInUser()) return window.adobeIMS.signIn();
+    isSignedInInitialized().then(async () => {
+      if (!window.adobeIMS.isSignedInUser()) {
+        return window.adobeIMS.signIn({ redirect_uri: window.location.href });
+      }
+      // Get the signed-in customer's profile and store it.
+      renewalProfile = await window.adobeIMS.getProfile();
+      console.log('renewalProfile', renewalProfile);
+      // Look up the customer's existing renewal validation using their profile.
+      await initRenewalValidation();
       return initNonprofit(element);
     });
     return;
