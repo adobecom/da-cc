@@ -899,6 +899,11 @@ function renderPersonalData(containerTag, product) {
     window.mph['nonprofit-personal-data-disclaimer'],
   );
   const emailInput = emailTag.querySelector('input');
+  // Renewal email comes from the customer's profile/validation and must not be edited.
+  if (hasRenewalUrlParam() && nonprofitFormData.email) {
+    emailInput.setAttribute('readonly', 'readonly');
+    emailInput.classList.add('np-input-readonly');
+  }
   const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const validateEmail = () => {
