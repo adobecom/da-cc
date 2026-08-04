@@ -32,24 +32,6 @@ const removeOptionElements = (element) => {
 
 const PERCENT_API_URL = 'https://api.goodstack.io/v1';
 const PERCENT_PUBLISHABLE_KEY = 'pk_ea675372-2eb2-4cf1-8b6a-358087bf8df5';
-
-// ─── TEMP: sandbox GoodStack for renewal testing on stage ───────────────────
-// Stage edu-validations resolves orgs against the GoodStack *sandbox*, so org/
-// registry search must use the sandbox API on the renewal path to return ids
-// the backend can validate. To remove: delete this block and revert the
-// getPercentConfig() call sites back to PERCENT_API_URL / PERCENT_PUBLISHABLE_KEY.
-const PERCENT_SANDBOX_API_URL = 'https://sandbox-api.goodstack.io/v1';
-const PERCENT_SANDBOX_PUBLISHABLE_KEY = 'sandbox_pk_8b320cc4-5950-4263-a3ac-828c64f6e19b';
-
-function getPercentConfig() {
-  const { env } = getConfig();
-  const isStage = env?.name !== 'prod';
-  if (hasRenewalUrlParam() && isStage) {
-    return { url: PERCENT_SANDBOX_API_URL, key: PERCENT_SANDBOX_PUBLISHABLE_KEY };
-  }
-  return { url: PERCENT_API_URL, key: PERCENT_PUBLISHABLE_KEY };
-}
-// ────────────────────────────────────────────────────────────────────────────
 export const SCENARIOS = Object.freeze({
   FOUND_IN_SEARCH: 'FOUND_IN_SEARCH',
   NOT_FOUND_IN_SEARCH: 'NOT_FOUND_IN_SEARCH',
@@ -99,13 +81,12 @@ let nextOrganizationsPageUrl;
 async function fetchOrganizations(search, countryCode, abortController) {
   try {
     organizationsStore.startLoading(true);
-    const { url, key } = getPercentConfig();
     const response = await fetch(
-      `${url}/organisations?countryCode=${countryCode}&query=${search}`,
+      `${PERCENT_API_URL}/organisations?countryCode=${countryCode}&query=${search}`,
       {
         cache: 'force-cache',
         signal: abortController.signal,
-        headers: { Authorization: key },
+        headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
       },
     );
 
@@ -126,11 +107,10 @@ async function fetchNextOrganizations(abortController) {
   if (!nextOrganizationsPageUrl) return;
   try {
     organizationsStore.startLoading();
-    const { key } = getPercentConfig();
     const response = await fetch(nextOrganizationsPageUrl, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: key },
+      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
     });
 
     const result = await validatePercentResponse(response);
@@ -146,11 +126,10 @@ async function fetchNextOrganizations(abortController) {
 async function fetchRegistries(countryCode, abortController) {
   try {
     registriesStore.startLoading(true);
-    const { url, key } = getPercentConfig();
-    const response = await fetch(`${url}/registries?countryCode=${countryCode}`, {
+    const response = await fetch(`${PERCENT_API_URL}/registries?countryCode=${countryCode}`, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: key },
+      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
     });
 
     const result = await validatePercentResponse(response);
@@ -1045,9 +1024,11 @@ function getRenewalStatusCopy(status) {
   };
   return {
     title: window.mph?.[`nonprofit-renewal-status-${statusKey}-title`] || fallbacks[statusKey]?.title,
-    detail1: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-1`] || fallbacks[statusKey]?.detail1,
-    detail2: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-2`] || fallbacks[statusKey]?.detail2,
-    detail3: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-3`] || fallbacks[statusKey]?.detail3,
+    details: [
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-1`] || fallbacks[statusKey]?.detail1,
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-2`] || fallbacks[statusKey]?.detail2,
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-3`] || fallbacks[statusKey]?.detail3,
+    ],
   };
 }
 
@@ -1063,19 +1044,12 @@ function getReturnToNonprofitsButton() {
   );
 }
 
-// Maps a terminal renewal status onto the review layout's title + detail lines.
-// The email line (non-approved only) keeps the __EMAIL__ token for renderApplicationReview.
-function getStatusReviewCopy(status) {
-  const { title, detail1, detail2, detail3 } = getRenewalStatusCopy(status);
-  return { title, details: [detail1, detail2, detail3] };
-}
-
 // Verification step: reuse the review screen with status-specific copy for a terminal
 // renewal status, otherwise the default review copy.
 function renderVerification(containerTag) {
   const status = renewalValidation?.status?.toUpperCase?.();
   if (hasRenewalUrlParam() && TERMINAL_STATUSES.has(status)) {
-    renderApplicationReview(containerTag, getStatusReviewCopy(status));
+    renderApplicationReview(containerTag, getRenewalStatusCopy(status));
   } else {
     renderApplicationReview(containerTag);
   }
