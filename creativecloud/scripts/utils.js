@@ -584,6 +584,10 @@ const CONFIG = {
     pdfViewerReportSuite: 'adbadobenonacdcqa',
     psUrl: 'https://stage.photoshop.adobe.com',
     odinEndpoint: 'https://stage-odin.adobe.com/',
+    nonprofit: {
+      apiUrl: 'https://sandbox-api.goodstack.io/v1',
+      publishableKey: 'sandbox_pk_8b320cc4-5950-4263-a3ac-828c64f6e19b',
+    },
   },
   live: {
     pdfViewerClientId: 'feb0b9f286f14b2480aed397e1d1f055',
@@ -594,6 +598,10 @@ const CONFIG = {
     pdfViewerReportSuite: 'adbadobenonacdcprod',
     psUrl: 'https://photoshop.adobe.com',
     odinEndpoint: 'https://odin.adobe.com/',
+    nonprofit: {
+      apiUrl: 'https://api.goodstack.io/v1',
+      publishableKey: 'pk_ea675372-2eb2-4cf1-8b6a-358087bf8df5',
+    },
   },
   page: { pdfViewerClientId: 'c5d622cbd8d64c618c1802587e022e05' },
   hlxPage: { pdfViewerClientId: 'b70362e4031e4fdfb4ad5ce1ffef61a0' },
