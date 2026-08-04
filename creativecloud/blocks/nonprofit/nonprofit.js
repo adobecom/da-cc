@@ -1130,6 +1130,24 @@ async function getEduValidationRequest() {
   };
 }
 
+function renderRenewalErrorScreen(element) {
+  const containerTag = createTag('div', { class: 'np-container np-renewal-error' });
+  const errorTag = createTag('div', { class: 'np-application-review-container' });
+  const titleTag = createTag(
+    'h1',
+    { class: 'np-title' },
+    window.mph?.['nonprofit-renewal-error-title'] || 'Unable to load your renewal status',
+  );
+  const detailTag = createTag(
+    'span',
+    { class: 'np-application-review-detail' },
+    window.mph?.['nonprofit-renewal-error-detail'] || 'Please refresh the page and try again.',
+  );
+  errorTag.append(titleTag, detailTag);
+  containerTag.append(errorTag);
+  element.append(containerTag);
+}
+
 // Look up an existing renewal validation for the signed-in customer.
 async function initRenewalValidation() {
   const personId = formatPersonId(renewalProfile);
@@ -1147,7 +1165,6 @@ async function initRenewalValidation() {
     };
 
     const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, { headers });
-    if (response.status === 404) return { type: 'form', status: null, validation: null };
     if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
 
     renewalValidation = await response.json();
@@ -1245,8 +1262,8 @@ export default function init(element) {
       if (result.type === 'status') {
         prefillRenewalForm(result.validation);
         stepperStore.update((prev) => ({ ...prev, step: 3, scenario: SCENARIOS.FOUND_IN_SEARCH }));
-      } else if (result.type === 'form') {
-        prefillRenewalForm(result.validation);
+      } if (result.type === 'error') {
+        renderRenewalErrorScreen(element);
       }
       return initNonprofit(element);
     });
