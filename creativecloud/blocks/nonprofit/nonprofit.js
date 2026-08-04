@@ -31,13 +31,9 @@ const removeOptionElements = (element) => {
 
 // #region Constants
 
-// GoodStack (Percent) API config lives in CONFIG.stage / CONFIG.prod in utils.js.
-// The renewal path on stage resolves orgs against the GoodStack *sandbox*; every
-// other path (stage non-renewal, prod) uses the live API.
 function getPercentConfig() {
   const { env, stage, prod } = getConfig();
   const isStage = env?.name !== 'prod';
-  // eslint-disable-next-line no-use-before-define
   const { apiUrl, publishableKey } = isStage && hasRenewalUrlParam()
     ? stage.nonprofit
     : prod.nonprofit;
@@ -379,7 +375,9 @@ function getSubmitTag() {
 }
 
 function getNonprofitInput(params) {
-  const { type, name, label, placeholder, required, value } = params;
+  const {
+    type, name, label, placeholder, required, value,
+  } = params;
   const baseParams = { name, placeholder };
   if (required) baseParams.required = 'required';
   if (value) baseParams.value = value;
@@ -716,7 +714,6 @@ function renderOrganizationDetails(containerTag) {
   });
 
   countryTag.onSelect((option) => {
-    // eslint-disable-next-line no-use-before-define
     if (hasRenewalUrlParam()) nonprofitFormData.countryAlpha2 = option.alpha2;
     abortController?.abort();
     abortController = new AbortController();
@@ -923,7 +920,6 @@ function renderPersonalData(containerTag, product) {
     window.mph['nonprofit-personal-data-disclaimer'],
   );
   const emailInput = emailTag.querySelector('input');
-  // Renewal email comes from the customer's profile/validation and must not be edited.
   if (hasRenewalUrlParam() && nonprofitFormData.email) {
     emailInput.setAttribute('readonly', 'readonly');
     emailInput.classList.add('np-input-readonly');
@@ -987,8 +983,6 @@ function renderPersonalData(containerTag, product) {
   containerTag.replaceChildren(descriptionTag, formTag);
 }
 
-// Renders the verification screen. `copy` overrides the default review text
-// (title + detail lines) without changing the layout; omit it for the default.
 function renderApplicationReview(containerTag, copy) {
   containerTag.setAttribute('daa-lh', 'verification');
 
@@ -1043,8 +1037,6 @@ function getReturnToNonprofitsButton() {
   );
 }
 
-// Verification step: reuse the review screen with status-specific copy for a terminal
-// renewal status, otherwise the default review copy.
 function renderVerification(containerTag) {
   const status = renewalValidation?.status?.toUpperCase?.();
   if (hasRenewalUrlParam() && TERMINAL_STATUSES.has(status)) {
@@ -1077,28 +1069,22 @@ function renderStepContent(containerTag, product) {
 }
 // #endregion
 
-// Signed-in customer's IMS profile, stored for the renewal workflow.
 let renewalProfile = null;
 
-// EduValidation record for the signed-in customer's renewal.
 let renewalValidation = null;
 
-// Statuses that mean a final decision has been reached (no form needed).
 const TERMINAL_STATUSES = new Set(['APPROVED', 'DECLINED', 'PENDING']);
 
-// True when the current URL requests the renewal workflow.
 function hasRenewalUrlParam() {
   const params = new URLSearchParams(window.location.search);
   return params.get('workflow') === 'renewal';
 }
 
-// Build the IMS person-id (e.g. "abc@AdobeID") from the signed-in profile.
 function formatPersonId(profile) {
   const userId = profile?.userId || profile?.sub;
   return userId ? `${String(userId).split('@')[0]}@AdobeID` : null;
 }
 
-// Endpoint URL + auth headers shared by the edu-validations GET and POST calls.
 async function getEduValidationRequest() {
   const { env } = getConfig();
   const config = env?.name === 'prod' ? EDU_VALIDATION_CONFIG.prod : EDU_VALIDATION_CONFIG.stage;
@@ -1161,8 +1147,6 @@ async function initRenewalValidation() {
   }
 }
 
-// Submit a renewal validation. FOUND_IN_SEARCH references the org by id;
-// otherwise (registry flow) it sends the full registry details.
 async function submitRenewalValidation() {
   const personId = formatPersonId(renewalProfile);
   if (!personId) return false;
@@ -1207,7 +1191,6 @@ async function submitRenewalValidation() {
   }
 }
 
-// Prefill the personal-details form from the IMS profile and any prior validation.
 function prefillRenewalForm(validation) {
   nonprofitFormData.firstName = renewalProfile?.first_name || '';
   nonprofitFormData.lastName = renewalProfile?.last_name || '';
