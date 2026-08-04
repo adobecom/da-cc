@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-alert */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-underscore-dangle */
