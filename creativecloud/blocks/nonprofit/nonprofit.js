@@ -4,7 +4,11 @@
 /* eslint-disable max-len */
 import ReactiveStore from './reactiveStore.js';
 import { setLibs, getGeoLocaleInfo, isSignedInInitialized } from '../../scripts/utils.js';
-import { countries, PRODUCT_VALIDATION_CONFIG, EDU_VALIDATION_CONFIG } from './constants.js';
+import {
+  countries,
+  PRODUCT_VALIDATION_CONFIG,
+  EDU_VALIDATION_CONFIG,
+} from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
 
@@ -657,7 +661,9 @@ function renderSelectNonprofit(containerTag) {
     }
   });
 
-  countryTag.onSelect(() => {
+  countryTag.onSelect((option) => {
+    // eslint-disable-next-line no-use-before-define
+    if (hasRenewalUrlParam()) nonprofitFormData.countryAlpha2 = option.alpha2;
     organizationTag.enable();
     organizationTag.clear();
     if (selectedOrganizationStore.data) {
@@ -716,6 +722,8 @@ function renderOrganizationDetails(containerTag) {
   });
 
   countryTag.onSelect((option) => {
+    // eslint-disable-next-line no-use-before-define
+    if (hasRenewalUrlParam()) nonprofitFormData.countryAlpha2 = option.alpha2;
     abortController?.abort();
     abortController = new AbortController();
     fetchRegistries(option.code, abortController);
@@ -1082,7 +1090,7 @@ function formatPersonId(profile) {
 async function getEduValidationRequest() {
   const { env } = getConfig();
   const config = env?.name === 'prod' ? EDU_VALIDATION_CONFIG.prod : EDU_VALIDATION_CONFIG.stage;
-  const apiKey = getMetadata('edu-validation-api-key') || config.apiKey;
+  const apiKey = getMetadata('edu-validation-api-key') || window.adobeid?.client_id;
   const token = await window.adobeIMS.getAccessToken();
   return {
     baseUrl: config.baseUrl,
@@ -1112,6 +1120,7 @@ async function initRenewalValidation() {
     };
 
     const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, { headers });
+    console.log('----------------------response', response);
 
     if (response.status === 404) return { type: 'form', status: null, validation: null };
     if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
@@ -1142,7 +1151,7 @@ async function submitRenewalValidation() {
       'email-id': nonprofitFormData.email,
       'first-name': nonprofitFormData.firstName,
       'last-name': nonprofitFormData.lastName,
-      country: renewalProfile?.countryCode,
+      country: nonprofitFormData.countryAlpha2 || renewalProfile?.countryCode,
       'nonprofit-details': { language },
     };
 
