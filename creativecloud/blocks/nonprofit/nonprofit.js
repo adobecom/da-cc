@@ -4,7 +4,7 @@
 /* eslint-disable max-len */
 import ReactiveStore from './reactiveStore.js';
 import { setLibs, getGeoLocaleInfo, isSignedInInitialized } from '../../scripts/utils.js';
-import { countries, PRODUCT_VALIDATION_CONFIG } from './constants.js';
+import { countries, PRODUCT_VALIDATION_CONFIG, EDU_VALIDATION_CONFIG } from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
 
@@ -939,15 +939,17 @@ function renderPersonalData(containerTag, product) {
   replaceURL(disclaimerTag);
   const submitTag = getSubmitTag();
 
-  formTag.addEventListener('input', () => {
+  const updateSubmitState = () => {
     const isFormValid = formTag.checkValidity() && validateEmail();
     submitTag.toggleAttribute('disabled', !isFormValid);
-  });
+  };
+  formTag.addEventListener('input', updateSubmitState);
 
   formTag.append(firstNameTag, lastNameTag, emailTag, disclaimerTag, submitTag);
 
   formTag.append(firstNameTag, lastNameTag, emailTag, submitTag);
   trackSubmitCondition(formTag);
+  if (nonprofitFormData.email) updateSubmitState();
 
   formTag.addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -1061,12 +1063,6 @@ let renewalProfile = null;
 // EduValidation record for the signed-in customer's renewal.
 let renewalValidation = null;
 
-// Edu-validations endpoint per environment.
-const EDU_VALIDATION_URL = {
-  prod: 'https://commerce.adobe.com/v1/edu-validations',
-  stage: 'https://commerce-stg.adobe.com/v1/edu-validations',
-};
-
 // Statuses that mean a final decision has been reached (no form needed).
 const TERMINAL_STATUSES = new Set(['APPROVED', 'DECLINED', 'PENDING']);
 
@@ -1085,11 +1081,11 @@ function formatPersonId(profile) {
 // Endpoint URL + auth headers shared by the edu-validations GET and POST calls.
 async function getEduValidationRequest() {
   const { env } = getConfig();
-  const baseUrl = env?.name === 'prod' ? EDU_VALIDATION_URL.prod : EDU_VALIDATION_URL.stage;
-  const apiKey = getMetadata('edu-validation-api-key') || window.adobeid?.client_id;
+  const config = env?.name === 'prod' ? EDU_VALIDATION_CONFIG.prod : EDU_VALIDATION_CONFIG.stage;
+  const apiKey = getMetadata('edu-validation-api-key') || config.apiKey;
   const token = await window.adobeIMS.getAccessToken();
   return {
-    baseUrl,
+    baseUrl: config.baseUrl,
     headers: {
       Accept: 'application/json',
       Authorization: `Bearer ${token?.token || token}`,
@@ -1122,7 +1118,6 @@ async function initRenewalValidation() {
 
     renewalValidation = await response.json();
     const status = renewalValidation.status?.toUpperCase?.() || 'UNKNOWN';
-    console.log('-----------------status', status);
     return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
   } catch (error) {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
