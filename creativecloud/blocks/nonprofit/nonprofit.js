@@ -1086,7 +1086,7 @@ function formatPersonId(profile) {
 async function getEduValidationRequest() {
   const { env } = getConfig();
   const baseUrl = env?.name === 'prod' ? EDU_VALIDATION_URL.prod : EDU_VALIDATION_URL.stage;
-  const apiKey = getMetadata('edu-validation-api-key') || window.adobeid?.client_id;
+  const apiKey = window.adobeid?.client_id;
   const token = await window.adobeIMS.getAccessToken();
   return {
     baseUrl,
@@ -1213,8 +1213,13 @@ export default function init(element) {
       renewalProfile = await window.adobeIMS.getProfile();
       // Look up the customer's existing renewal validation using their profile.
       const result = await initRenewalValidation();
-      // Unknown / no existing validation: prefill the customer's details and show the form.
-      if (result.type === 'form') prefillRenewalForm(result.validation);
+      if (result.type === 'status') {
+        // todo
+        // prefillRenewalForm(result.validation);
+        // stepperStore.update((prev) => ({ ...prev, step: 3, scenario: SCENARIOS.FOUND_IN_SEARCH }));
+      } else if (result.type === 'form') {
+        prefillRenewalForm(result.validation);
+      }
       return initNonprofit(element);
     });
     return;
