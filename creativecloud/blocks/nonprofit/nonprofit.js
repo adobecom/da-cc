@@ -1168,7 +1168,8 @@ async function initRenewalValidation() {
     if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
 
     renewalValidation = await response.json();
-    const status = renewalValidation.status?.toUpperCase?.() || 'UNKNOWN';
+    // const status = renewalValidation.status?.toUpperCase?.() || 'UNKNOWN';
+    const status = 'UNKOWN';
     return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
   } catch (error) {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
@@ -1262,7 +1263,9 @@ export default function init(element) {
       if (result.type === 'status') {
         prefillRenewalForm(result.validation);
         stepperStore.update((prev) => ({ ...prev, step: 3, scenario: SCENARIOS.FOUND_IN_SEARCH }));
-      } if (result.type === 'error') {
+      } else if (result.type === 'form') {
+        prefillRenewalForm(result.validation);
+      } else if (result.type === 'error') {
         renderRenewalErrorScreen(element);
       }
       return initNonprofit(element);
