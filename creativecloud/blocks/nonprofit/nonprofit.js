@@ -38,8 +38,8 @@ function getPercentConfig() {
   const isStage = env?.name !== 'prod';
   // eslint-disable-next-line no-use-before-define
   const { apiUrl, publishableKey } = isStage && hasRenewalUrlParam()
-    ? stage.nonprofit
-    : prod.nonprofit;
+    ? stage.percent
+    : prod.percent;
   return { url: apiUrl, key: publishableKey };
 }
 export const SCENARIOS = Object.freeze({
