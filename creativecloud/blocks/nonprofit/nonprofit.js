@@ -889,7 +889,8 @@ function renderPersonalData(containerTag, product) {
   // Description
   const descriptionTag = getDescriptionTag(
     window.mph['nonprofit-title-personal-details'],
-    window.mph['nonprofit-subtitle-personal-details'],
+    // eslint-disable-next-line no-use-before-define
+    hasRenewalUrlParam() ? null : window.mph['nonprofit-subtitle-personal-details'],
   );
 
   // Form
@@ -1151,7 +1152,7 @@ async function submitRenewalValidation() {
       'email-id': nonprofitFormData.email,
       'first-name': nonprofitFormData.firstName,
       'last-name': nonprofitFormData.lastName,
-      country: nonprofitFormData.countryAlpha2 || renewalProfile?.countryCode,
+      country: nonprofitFormData.countryAlpha2,
       'nonprofit-details': { language },
     };
 
