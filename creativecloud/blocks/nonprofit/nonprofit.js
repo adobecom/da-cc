@@ -1168,8 +1168,7 @@ async function initRenewalValidation() {
     if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
 
     renewalValidation = await response.json();
-    // const status = renewalValidation.status?.toUpperCase?.() || 'UNKNOWN';
-    const status = 'UNKOWN';
+    const status = renewalValidation.status?.toUpperCase?.();
     return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
   } catch (error) {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
