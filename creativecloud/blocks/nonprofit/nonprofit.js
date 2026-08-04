@@ -993,54 +993,92 @@ function renderPersonalData(containerTag, product) {
   containerTag.replaceChildren(descriptionTag, formTag);
 }
 
-function renderApplicationReview(containerTag) {
+// Renders the verification screen. `copy` overrides the default review text
+// (title + detail lines) without changing the layout; omit it for the default.
+function renderApplicationReview(containerTag, copy) {
   containerTag.setAttribute('daa-lh', 'verification');
 
   const applicationReviewTag = createTag('div', { class: 'np-application-review-container' });
 
-  const titleTag = createTag(
-    'h1',
-    { class: 'np-title' },
-    window.mph['nonprofit-title-application-review'],
-  );
-  const detail1Tag = createTag(
-    'span',
-    { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-1-application-review'],
-  );
-  const detail2Tag = createTag(
-    'span',
-    { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-2-application-review']?.replace(
-      '__EMAIL__',
-      nonprofitFormData.email,
-    ),
-  );
-  const detail3Tag = createTag(
-    'span',
-    { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-3-application-review']?.replace(
-      '__EMAIL__',
-      nonprofitFormData.email,
-    ),
-  );
-  replaceURL(detail1Tag);
-  replaceURL(detail2Tag);
-  replaceURL(detail3Tag);
-  applicationReviewTag.append(titleTag, detail1Tag, detail2Tag, detail3Tag);
+  const { title, details } = copy || {
+    title: window.mph['nonprofit-title-application-review'],
+    details: [
+      window.mph['nonprofit-detail-1-application-review'],
+      window.mph['nonprofit-detail-2-application-review'],
+      window.mph['nonprofit-detail-3-application-review'],
+    ],
+  };
 
-  const returnToAcrobatForNonprofitsTag = createTag(
+  const titleTag = createTag('h1', { class: 'np-title' }, title);
+  const detailTags = details.filter(Boolean).map((text) => {
+    const detailTag = createTag(
+      'span',
+      { class: 'np-application-review-detail' },
+      text.replace('__EMAIL__', nonprofitFormData.email),
+    );
+    replaceURL(detailTag);
+    return detailTag;
+  });
+  applicationReviewTag.append(titleTag, ...detailTags);
+
+  containerTag.replaceChildren(applicationReviewTag, getReturnToNonprofitsButton());
+}
+
+// Status-specific copy for the renewal verification screen (approved/pending/declined).
+function getRenewalStatusCopy(status) {
+  const statusKey = status?.toLowerCase();
+  const fallbacks = {
+    approved: {
+      title: 'Your education status is confirmed.',
+      detail1: "Thank you for submitting your information. You're eligible for the education discount again, and there will not be any changes to your plan.",
+      detail2: 'To view details about your current plan, go to Adobe Account (account.adobe.com).',
+    },
+    pending: {
+      detail1: 'Thank you for confirming your nonprofit details.',
+      detail2: 'Your submission is now under review by our partners at Goodstack.',
+      detail3: 'You’ll be notified at test@gmail.com within 2–4 business days.',
+    },
+    declined: {
+      title: 'Your renewal request was declined',
+      detail1: 'Your nonprofit status could not be verified. Please contact support for next steps.',
+    },
+  };
+  return {
+    title: window.mph?.[`nonprofit-renewal-status-${statusKey}-title`] || fallbacks[statusKey]?.title,
+    detail1: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-1`] || fallbacks[statusKey]?.detail1,
+    detail2: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-2`] || fallbacks[statusKey]?.detail2,
+    detail3: window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-3`] || fallbacks[statusKey]?.detail3,
+  };
+}
+
+function getReturnToNonprofitsButton() {
+  return createTag(
     'a',
     {
       class: 'np-button',
       href: 'https://www.adobe.com/nonprofits.html',
       'daa-ll': 'return to acrobat for nonprofits',
     },
-
-    window.mph['nonprofit-return-to-acrobat-for-nonprofits'],
+    window.mph?.['nonprofit-return-to-acrobat-for-nonprofits'],
   );
+}
 
-  containerTag.replaceChildren(applicationReviewTag, returnToAcrobatForNonprofitsTag);
+// Maps a terminal renewal status onto the review layout's title + detail lines.
+// The email line (non-approved only) keeps the __EMAIL__ token for renderApplicationReview.
+function getStatusReviewCopy(status) {
+  const { title, detail1, detail2, detail3 } = getRenewalStatusCopy(status);
+  return { title, details: [detail1, detail2, detail3] };
+}
+
+// Verification step: reuse the review screen with status-specific copy for a terminal
+// renewal status, otherwise the default review copy.
+function renderVerification(containerTag) {
+  const status = renewalValidation?.status?.toUpperCase?.();
+  if (hasRenewalUrlParam() && TERMINAL_STATUSES.has(status)) {
+    renderApplicationReview(containerTag, getStatusReviewCopy(status));
+  } else {
+    renderApplicationReview(containerTag);
+  }
 }
 
 function renderStepContent(containerTag, product) {
@@ -1056,10 +1094,10 @@ function renderStepContent(containerTag, product) {
     if (step === 1) renderSelectNonprofit(contentContainerTag);
     if (step === 2 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderPersonalData(contentContainerTag, product);
     if (step === 2 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderOrganizationDetails(contentContainerTag);
-    if (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderApplicationReview(contentContainerTag);
+    if (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderVerification(contentContainerTag);
     if (step === 3 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderOrganizationAddress(contentContainerTag);
     if (step === 4 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderPersonalData(contentContainerTag, product);
-    if (step === 5 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderApplicationReview(contentContainerTag);
+    if (step === 5 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderVerification(contentContainerTag);
   });
 
   containerTag.append(contentContainerTag);
@@ -1120,14 +1158,12 @@ async function initRenewalValidation() {
       ...(renewalProfile?.countryCode && { country: renewalProfile.countryCode }),
     };
 
-    const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, { headers });
-    console.log('----------------------response', response);
-
-    if (response.status === 404) return { type: 'form', status: null, validation: null };
+    const response = await fetch(`${baseUrl}/v345?${new URLSearchParams(query)}`, { headers });
+    // if (response.status === 404) return { type: 'form', status: null, validation: null };
     if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
 
     renewalValidation = await response.json();
-    const status = renewalValidation.status?.toUpperCase?.() || 'UNKNOWN';
+    const status = renewalValidation.status?.toUpperCase?.();
     return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
   } catch (error) {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
