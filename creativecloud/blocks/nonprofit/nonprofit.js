@@ -1020,28 +1020,12 @@ function renderApplicationReview(containerTag, copy) {
 // Status-specific copy for the renewal verification screen (approved/pending/declined).
 function getRenewalStatusCopy(status) {
   const statusKey = status?.toLowerCase();
-  const fallbacks = {
-    approved: {
-      title: 'Your education status is confirmed.',
-      detail1: "Thank you for submitting your information. You're eligible for the education discount again, and there will not be any changes to your plan.",
-      detail2: 'To view details about your current plan, go to Adobe Account (account.adobe.com).',
-    },
-    pending: {
-      detail1: 'Thank you for confirming your nonprofit details.',
-      detail2: 'Your submission is now under review by our partners at Goodstack.',
-      detail3: 'You’ll be notified at __EMAIL__ within 2–4 business days.',
-    },
-    declined: {
-      title: 'Your renewal request was declined',
-      detail1: 'Your nonprofit status could not be verified. Please contact support for next steps.',
-    },
-  };
   return {
-    title: window.mph?.[`nonprofit-renewal-status-${statusKey}-title`] || fallbacks[statusKey]?.title,
+    title: window.mph?.[`nonprofit-renewal-status-${statusKey}-title`],
     details: [
-      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-1`] || fallbacks[statusKey]?.detail1,
-      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-2`] || fallbacks[statusKey]?.detail2,
-      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-3`] || fallbacks[statusKey]?.detail3,
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-1`],
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-2`],
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-3`],
     ],
   };
 }
