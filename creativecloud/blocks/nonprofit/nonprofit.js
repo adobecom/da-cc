@@ -654,7 +654,6 @@ function renderSelectNonprofit(containerTag) {
   });
 
   countryTag.onSelect((option) => {
-    // eslint-disable-next-line no-use-before-define
     if (hasRenewalUrlParam()) nonprofitFormData.countryAlpha2 = option.alpha2;
     organizationTag.enable();
     organizationTag.clear();
@@ -880,7 +879,6 @@ function renderPersonalData(containerTag, product) {
   // Description
   const descriptionTag = getDescriptionTag(
     window.mph['nonprofit-title-personal-details'],
-    // eslint-disable-next-line no-use-before-define
     hasRenewalUrlParam() ? null : window.mph['nonprofit-subtitle-personal-details'],
   );
 
@@ -1012,7 +1010,6 @@ function renderApplicationReview(containerTag, copy) {
   containerTag.replaceChildren(applicationReviewTag, getReturnToNonprofitsButton());
 }
 
-// Status-specific copy for the renewal verification screen (approved/pending/declined).
 function getRenewalStatusCopy(status) {
   const statusKey = status?.toLowerCase();
   return {
@@ -1119,7 +1116,6 @@ function renderRenewalErrorScreen(element) {
   element.append(containerTag);
 }
 
-// Look up an existing renewal validation for the signed-in customer.
 async function initRenewalValidation() {
   const personId = formatPersonId(renewalProfile);
   if (!personId) return { type: 'error' };
@@ -1167,10 +1163,8 @@ async function submitRenewalValidation() {
     };
 
     if (stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH) {
-      // Org matched in search — reference it by id.
       payload['organization-id'] = nonprofitFormData.organizationId;
     } else {
-      // Org not matched — send the full registry details.
       payload['organization-name'] = nonprofitFormData.organizationName;
       payload['nonprofit-details'] = {
         language,
@@ -1217,15 +1211,12 @@ function initNonprofit(element) {
 export default function init(element) {
   removeOptionElements(element);
 
-  // Renewal: require Adobe sign-in before rendering the form.
   if (hasRenewalUrlParam()) {
     isSignedInInitialized().then(async () => {
       if (!window.adobeIMS.isSignedInUser()) {
         return window.adobeIMS.signIn({ redirect_uri: window.location.href });
       }
-      // Get the signed-in customer's profile and store it.
       renewalProfile = await window.adobeIMS.getProfile();
-      // Look up the customer's existing renewal validation using their profile.
       const result = await initRenewalValidation();
       if (result.type === 'status') {
         prefillRenewalForm(result.validation);
