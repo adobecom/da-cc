@@ -28,6 +28,24 @@ const removeOptionElements = (element) => {
 
 const PERCENT_API_URL = 'https://api.goodstack.io/v1';
 const PERCENT_PUBLISHABLE_KEY = 'pk_ea675372-2eb2-4cf1-8b6a-358087bf8df5';
+
+// ─── TEMP: sandbox GoodStack for renewal testing on stage ───────────────────
+// Stage edu-validations resolves orgs against the GoodStack *sandbox*, so org/
+// registry search must use the sandbox API on the renewal path to return ids
+// the backend can validate. To remove: delete this block and revert the
+// getPercentConfig() call sites back to PERCENT_API_URL / PERCENT_PUBLISHABLE_KEY.
+const PERCENT_SANDBOX_API_URL = 'https://sandbox-api.goodstack.io/v1';
+const PERCENT_SANDBOX_PUBLISHABLE_KEY = 'sandbox_pk_8b320cc4-5950-4263-a3ac-828c64f6e19b';
+
+function getPercentConfig() {
+  const { env } = getConfig();
+  const isStage = env?.name !== 'prod';
+  if (hasRenewalUrlParam() && isStage) {
+    return { url: PERCENT_SANDBOX_API_URL, key: PERCENT_SANDBOX_PUBLISHABLE_KEY };
+  }
+  return { url: PERCENT_API_URL, key: PERCENT_PUBLISHABLE_KEY };
+}
+// ────────────────────────────────────────────────────────────────────────────
 export const SCENARIOS = Object.freeze({
   FOUND_IN_SEARCH: 'FOUND_IN_SEARCH',
   NOT_FOUND_IN_SEARCH: 'NOT_FOUND_IN_SEARCH',
@@ -77,12 +95,13 @@ let nextOrganizationsPageUrl;
 async function fetchOrganizations(search, countryCode, abortController) {
   try {
     organizationsStore.startLoading(true);
+    const { url, key } = getPercentConfig();
     const response = await fetch(
-      `${PERCENT_API_URL}/organisations?countryCode=${countryCode}&query=${search}`,
+      `${url}/organisations?countryCode=${countryCode}&query=${search}`,
       {
         cache: 'force-cache',
         signal: abortController.signal,
-        headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+        headers: { Authorization: key },
       },
     );
 
@@ -103,10 +122,11 @@ async function fetchNextOrganizations(abortController) {
   if (!nextOrganizationsPageUrl) return;
   try {
     organizationsStore.startLoading();
+    const { key } = getPercentConfig();
     const response = await fetch(nextOrganizationsPageUrl, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+      headers: { Authorization: key },
     });
 
     const result = await validatePercentResponse(response);
@@ -122,10 +142,11 @@ async function fetchNextOrganizations(abortController) {
 async function fetchRegistries(countryCode, abortController) {
   try {
     registriesStore.startLoading(true);
-    const response = await fetch(`${PERCENT_API_URL}/registries?countryCode=${countryCode}`, {
+    const { url, key } = getPercentConfig();
+    const response = await fetch(`${url}/registries?countryCode=${countryCode}`, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+      headers: { Authorization: key },
     });
 
     const result = await validatePercentResponse(response);
@@ -943,7 +964,9 @@ function renderPersonalData(containerTag, product) {
 
     stepperStore.update((prev) => ({ ...prev, pending: true }));
 
-    const ok = await sendOrganizationData(product);
+    const ok = hasRenewalUrlParam()
+      ? await submitRenewalValidation()
+      : await sendOrganizationData(product);
 
     if (!ok) {
       inputs.forEach((input) => {
@@ -1059,17 +1082,30 @@ function formatPersonId(profile) {
   return userId ? `${String(userId).split('@')[0]}@AdobeID` : null;
 }
 
+// Endpoint URL + auth headers shared by the edu-validations GET and POST calls.
+async function getEduValidationRequest() {
+  const { env } = getConfig();
+  const baseUrl = env?.name === 'prod' ? EDU_VALIDATION_URL.prod : EDU_VALIDATION_URL.stage;
+  const apiKey = getMetadata('edu-validation-api-key') || window.adobeid?.client_id;
+  const token = await window.adobeIMS.getAccessToken();
+  return {
+    baseUrl,
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token?.token || token}`,
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+  };
+}
+
 // Look up an existing renewal validation for the signed-in customer.
 async function initRenewalValidation() {
   const personId = formatPersonId(renewalProfile);
   if (!personId) return { type: 'error' };
 
   try {
-    const { env } = getConfig();
-    const baseUrl = env?.name === 'prod' ? EDU_VALIDATION_URL.prod : EDU_VALIDATION_URL.stage;
-    const apiKey = getMetadata('edu-validation-api-key') || window.adobeid?.client_id;
-    const token = await window.adobeIMS.getAccessToken();
-
+    const { baseUrl, headers } = await getEduValidationRequest();
     const urlParams = new URLSearchParams(window.location.search);
     const renewalDate = (urlParams.get('renewalDate') || urlParams.get('renewal-date') || '').match(/\d{4}-\d{2}-\d{2}/)?.[0];
     const query = {
@@ -1079,24 +1115,64 @@ async function initRenewalValidation() {
       ...(renewalProfile?.countryCode && { country: renewalProfile.countryCode }),
     };
 
-    const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${token?.token || token}`,
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-      },
-    });
+    const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, { headers });
 
     if (response.status === 404) return { type: 'form', status: null, validation: null };
     if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
 
     renewalValidation = await response.json();
     const status = renewalValidation.status?.toUpperCase?.() || 'UNKNOWN';
+    console.log('-----------------status', status);
     return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
   } catch (error) {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
     return { type: 'error', error };
+  }
+}
+
+// Submit a renewal validation. FOUND_IN_SEARCH references the org by id;
+// otherwise (registry flow) it sends the full registry details.
+async function submitRenewalValidation() {
+  const personId = formatPersonId(renewalProfile);
+  if (!personId) return false;
+
+  try {
+    const { ietf } = await getGeoLocaleInfo();
+    const { baseUrl, headers } = await getEduValidationRequest();
+    const language = String(ietf).split('-')[0] || 'en';
+
+    const payload = {
+      'verification-segment': 'NONPROFIT',
+      'person-id': personId,
+      'email-id': nonprofitFormData.email,
+      'first-name': nonprofitFormData.firstName,
+      'last-name': nonprofitFormData.lastName,
+      country: renewalProfile?.countryCode,
+      'nonprofit-details': { language },
+    };
+
+    if (stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH) {
+      // Org matched in search — reference it by id.
+      payload['organization-id'] = nonprofitFormData.organizationId;
+    } else {
+      // Org not matched — send the full registry details.
+      payload['organization-name'] = nonprofitFormData.organizationName;
+      payload['nonprofit-details'] = {
+        language,
+        'registry-id': nonprofitFormData.organizationRegistrationId,
+        'registry-name': nonprofitFormData.registryName,
+        website: nonprofitFormData.website,
+      };
+    }
+
+    const response = await fetch(baseUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error(`Edu validation POST failed with status ${response.status}`);
+
+    renewalValidation = await response.json();
+    return true;
+  } catch (error) {
+    window.lana?.log(`Renewal validation POST failed: ${error}`, LANA_OPTIONS);
+    return false;
   }
 }
 
