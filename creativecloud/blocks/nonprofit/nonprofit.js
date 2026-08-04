@@ -30,8 +30,17 @@ const removeOptionElements = (element) => {
 
 // #region Constants
 
-const PERCENT_API_URL = 'https://api.goodstack.io/v1';
-const PERCENT_PUBLISHABLE_KEY = 'pk_ea675372-2eb2-4cf1-8b6a-358087bf8df5';
+// GoodStack (Percent) API config lives in CONFIG.stage / CONFIG.prod in utils.js.
+// The renewal path on stage resolves orgs against the GoodStack *sandbox*; every
+// other path (stage non-renewal, prod) uses the live API.
+function getPercentConfig() {
+  const { env, stage, prod } = getConfig();
+  const isStage = env?.name !== 'prod';
+  const { apiUrl, publishableKey } = isStage && hasRenewalUrlParam()
+    ? stage.percent
+    : prod.percent;
+  return { url: apiUrl, key: publishableKey };
+}
 export const SCENARIOS = Object.freeze({
   FOUND_IN_SEARCH: 'FOUND_IN_SEARCH',
   NOT_FOUND_IN_SEARCH: 'NOT_FOUND_IN_SEARCH',
@@ -81,12 +90,13 @@ let nextOrganizationsPageUrl;
 async function fetchOrganizations(search, countryCode, abortController) {
   try {
     organizationsStore.startLoading(true);
+    const { url, key } = getPercentConfig();
     const response = await fetch(
-      `${PERCENT_API_URL}/organisations?countryCode=${countryCode}&query=${search}`,
+      `${url}/organisations?countryCode=${countryCode}&query=${search}`,
       {
         cache: 'force-cache',
         signal: abortController.signal,
-        headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+        headers: { Authorization: key },
       },
     );
 
@@ -107,10 +117,11 @@ async function fetchNextOrganizations(abortController) {
   if (!nextOrganizationsPageUrl) return;
   try {
     organizationsStore.startLoading();
+    const { key } = getPercentConfig();
     const response = await fetch(nextOrganizationsPageUrl, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+      headers: { Authorization: key },
     });
 
     const result = await validatePercentResponse(response);
@@ -126,10 +137,11 @@ async function fetchNextOrganizations(abortController) {
 async function fetchRegistries(countryCode, abortController) {
   try {
     registriesStore.startLoading(true);
-    const response = await fetch(`${PERCENT_API_URL}/registries?countryCode=${countryCode}`, {
+    const { url, key } = getPercentConfig();
+    const response = await fetch(`${url}/registries?countryCode=${countryCode}`, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+      headers: { Authorization: key },
     });
 
     const result = await validatePercentResponse(response);
@@ -143,11 +155,12 @@ async function fetchRegistries(countryCode, abortController) {
 
 async function sendOrganizationData(product) {
   try {
+    const { url: apiUrl, key: publishableKey } = getPercentConfig();
     const { ietf } = await getGeoLocaleInfo();
     const { VALIDATION_URL, CONFIGURATION_ID } = PRODUCT_VALIDATION_CONFIG[product];
     const inviteResponse = await fetch(`${VALIDATION_URL}?lng=${ietf}`, {
       method: 'POST',
-      headers: { Authorization: `Bearer ${PERCENT_PUBLISHABLE_KEY}` },
+      headers: { Authorization: `Bearer ${publishableKey}` },
       body: JSON.stringify({ configurationId: CONFIGURATION_ID }),
     });
 
@@ -162,9 +175,9 @@ async function sendOrganizationData(product) {
       evidenceUploadData.append('file', nonprofitFormData.evidenceNonProfitStatus);
       evidenceUploadData.append('validationInviteId', validationInviteId);
 
-      const uploadResponse = await fetch(`${PERCENT_API_URL}/validation-submission-documents`, {
+      const uploadResponse = await fetch(`${apiUrl}/validation-submission-documents`, {
         method: 'POST',
-        headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+        headers: { Authorization: publishableKey },
         body: evidenceUploadData,
       });
 
@@ -201,11 +214,11 @@ async function sendOrganizationData(product) {
       });
     }
 
-    const submissionResponse = await fetch(`${PERCENT_API_URL}/validation-submissions`, {
+    const submissionResponse = await fetch(`${apiUrl}/validation-submissions`, {
       method: 'POST',
       body,
       headers: {
-        Authorization: PERCENT_PUBLISHABLE_KEY,
+        Authorization: publishableKey,
         'Content-Type': 'application/json; charset=utf-8',
       },
     });
@@ -1015,7 +1028,7 @@ function getRenewalStatusCopy(status) {
     pending: {
       detail1: 'Thank you for confirming your nonprofit details.',
       detail2: 'Your submission is now under review by our partners at Goodstack.',
-      detail3: 'You’ll be notified at test@gmail.com within 2–4 business days.',
+      detail3: 'You’ll be notified at __EMAIL__ within 2–4 business days.',
     },
     declined: {
       title: 'Your renewal request was declined',
