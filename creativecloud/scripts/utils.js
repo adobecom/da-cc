@@ -448,9 +448,7 @@ const CONFIG = {
     pdfViewerReportSuite: 'adbadobenonacdcqa',
     psUrl: 'https://stage.photoshop.adobe.com',
     odinEndpoint: 'https://stage-odin.adobe.com/',
-    // GoodStack sandbox — used only on the stage renewal path (see
-    // getPercentConfig in nonprofit.js). Stage non-renewal uses prod.percent.
-    percent: {
+    nonprofit: {
       apiUrl: 'https://sandbox-api.goodstack.io/v1',
       publishableKey: 'sandbox_pk_8b320cc4-5950-4263-a3ac-828c64f6e19b',
     },
@@ -464,7 +462,7 @@ const CONFIG = {
     pdfViewerReportSuite: 'adbadobenonacdcprod',
     psUrl: 'https://photoshop.adobe.com',
     odinEndpoint: 'https://odin.adobe.com/',
-    percent: {
+    nonprofit: {
       apiUrl: 'https://api.goodstack.io/v1',
       publishableKey: 'pk_ea675372-2eb2-4cf1-8b6a-358087bf8df5',
     },
