@@ -1158,12 +1158,12 @@ async function initRenewalValidation() {
       ...(renewalProfile?.countryCode && { country: renewalProfile.countryCode }),
     };
 
-    const response = await fetch(`${baseUrl}/v345?${new URLSearchParams(query)}`, { headers });
-    // if (response.status === 404) return { type: 'form', status: null, validation: null };
+    const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, { headers });
+    if (response.status === 404) return { type: 'form', status: null, validation: null };
     if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
 
     renewalValidation = await response.json();
-    const status = renewalValidation.status?.toUpperCase?.();
+    const status = renewalValidation.status?.toUpperCase?.() || 'UNKNOWN';
     return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
   } catch (error) {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
