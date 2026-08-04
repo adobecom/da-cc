@@ -36,6 +36,7 @@ const removeOptionElements = (element) => {
 function getPercentConfig() {
   const { env, stage, prod } = getConfig();
   const isStage = env?.name !== 'prod';
+  // eslint-disable-next-line no-use-before-define
   const { apiUrl, publishableKey } = isStage && hasRenewalUrlParam()
     ? stage.percent
     : prod.percent;
