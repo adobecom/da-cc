@@ -100,13 +100,11 @@
   scroll-margin-top: 400vh
 }
 
-/* Unity prompt-bar integration */
 .firefly-model-showcase.unity-enabled .interactive-area {
   width: 100%;
-  background: none; /* remove core checkerboard placeholder background */
+  background: none;
 }
 
-/* placeholder stands in for the CTA it replaces, so it reuses the CTA's own spacing */
 .firefly-model-showcase-prompt-container {
   margin: var(--cta-margin);
 }
@@ -117,9 +115,6 @@
   width: 100%;
 }
 
-/* core widget CSS adds horizontal padding here by default (content-box sizing),
-   which pushes the widget past the container's right edge instead of shrinking
-   into the 100% width above; zero it so the widget aligns flush with the heading/copy */
 .firefly-model-showcase.unity-enabled .interactive-area .ex-unity-wrap:not(.sticky) .ex-unity-widget {
   padding: 0;
 }
