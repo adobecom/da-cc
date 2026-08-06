@@ -232,29 +232,53 @@ export default async function init(el) {
     replaceKeyArray,
   );
   const children = el.querySelectorAll(':scope > div');
-  const foreground = children[children.length - 2];
+  const isLogoGallery = el.classList.contains('logo-gallery');
 
-  // Setup background if exists
-  if (children.length > 1) {
-    children[0].classList.add('background');
-    decorateBlockBg(el, children[0], { useHandleFocalpoint: true });
+  if (!isLogoGallery) {
+    const foreground = children[children.length - 2];
+    // Setup background if exists
+    if (children.length > 1) {
+      children[0].classList.add('background');
+      decorateBlockBg(el, children[0], { useHandleFocalpoint: true });
+    }
+    foreground.classList.add('foreground', 'container');
+    const headline = foreground.querySelector('h1, h2, h3, h4, h5, h6');
+    const text = headline.closest('div');
+    headline.classList.add('heading');
+    headline.nextElementSibling?.classList.add('body');
+    text.classList.add('text');
+    text.classList.add('copy');
   }
-  foreground.classList.add('foreground', 'container');
-  const headline = foreground.querySelector('h1, h2, h3, h4, h5, h6');
-  const text = headline.closest('div');
-  headline.classList.add('heading');
-  headline.nextElementSibling?.classList.add('body');
-  text.classList.add('text');
-  text.classList.add('copy');
 
-  const logoRowContent = children[children.length - 1];
+  let logoRowContent;
+  let logos;
+  let logoLabels;
 
-  if (!logoRowContent) return;
+  if (isLogoGallery) {
+    logos = [];
+    logoLabels = [];
+    el.querySelectorAll('span.icon').forEach((icon) => {
+      logos.push(icon);
+      const nextText = icon.nextSibling;
+      if (nextText?.nodeType === Node.TEXT_NODE) {
+        const match = nextText.textContent.match(/\|\s*(.+)/);
+        logoLabels.push(match ? match[1].trim() : '');
+      } else {
+        logoLabels.push('');
+      }
+    });
+    [...children].forEach((child) => child.remove());
+    logoRowContent = createTag('div', {});
+    el.appendChild(logoRowContent);
+  } else {
+    logoRowContent = children[children.length - 1];
+    if (!logoRowContent) return;
+    logos = [...logoRowContent.querySelectorAll('span.icon')];
+    logoLabels = logos.map((logo) => getAuthorLogoLabel(logo));
+    logoRowContent.innerHTML = '';
+  }
 
   logoRowContent.classList.add('logo-row');
-  const logos = logoRowContent.querySelectorAll('span.icon');
-  const logoLabels = [...logos].map((logo) => getAuthorLogoLabel(logo));
-  logoRowContent.innerHTML = '';
   // TODO: cut down 1 level of DOM nesting
   const { logoContainer, addScrolling, setupLayout } = createRollingLogos(logos);
 
@@ -280,4 +304,48 @@ export default async function init(el) {
     setupLayout();
     addScrolling();
   }).observe(el);
+
+  if (isLogoGallery) {
+    const tabletMq = window.matchMedia('(min-width: 900px)');
+    let galleryGap = tabletMq.matches ? 130 : 50;
+    let elDocTop = null;
+
+    const adjustGalleryHeight = () => {
+      const galleryCells = document.querySelectorAll('.firefly-model-showcase-gallery .gallery-cell');
+      if (!galleryCells.length) return;
+
+      if (elDocTop === null) {
+        elDocTop = el.getBoundingClientRect().top + window.scrollY;
+      }
+
+      let maxBottom = -Infinity;
+      galleryCells.forEach((cell) => {
+        const bottom = cell.getBoundingClientRect().bottom + window.scrollY;
+        if (bottom > maxBottom) maxBottom = bottom;
+      });
+
+      const logoRowHeight = logoRowContent.offsetHeight;
+      const neededHeight = (maxBottom + galleryGap + logoRowHeight) - elDocTop;
+      el.style.minHeight = `${Math.max(0, neededHeight)}px`;
+    };
+
+    let ticking = false;
+    const onScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          adjustGalleryHeight();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', () => {
+      galleryGap = tabletMq.matches ? 130 : 50;
+      elDocTop = null;
+      onScroll();
+    });
+    requestAnimationFrame(() => requestAnimationFrame(adjustGalleryHeight));
+  }
 }

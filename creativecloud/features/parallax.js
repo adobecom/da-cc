@@ -21,12 +21,21 @@ function throttle(cb, delay, { trailing = false } = {}) {
   };
 }
 
-function addProgressIMPL(el, NAV_HEIGHT, markers) {
+function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   let screenHeight = window.innerHeight;
   let elHeight = el.offsetHeight;
   let previousButtonTop = 0;
   const content = el.querySelector('.firefly-model-showcase-content');
-  const initialContentHeight = content.clientHeight;
+  let initialContentHeight = content.clientHeight;
+  if (el.nextElementSibling?.classList.contains('unity')) {
+    const injectionObserver = new MutationObserver(() => {
+      if (!content.querySelector('.ex-unity-wrap')) return;
+      initialContentHeight = content.clientHeight;
+      elHeight = el.offsetHeight;
+      injectionObserver.disconnect();
+    });
+    injectionObserver.observe(content, { childList: true, subtree: true });
+  }
   window.addEventListener(
     'resize',
     throttle(() => {
@@ -66,8 +75,10 @@ function addProgressIMPL(el, NAV_HEIGHT, markers) {
       /* if content height changed due to additional spacing (e.g. dylan text spacing),
       skip the parallax animation */
       if (initialContentHeight !== content.clientHeight) return;
-      const buttonRect = el.querySelector('.firefly-model-showcase-content .action-area a:first-of-type').getBoundingClientRect();
-      const currentButtonTop = buttonRect.top;
+      const anchor = el.querySelector('.firefly-model-showcase-content .action-area a:first-of-type')
+        || el.querySelector('.firefly-model-showcase-prompt-container');
+      if (!anchor) return;
+      const currentButtonTop = anchor.getBoundingClientRect().top;
       // if the button is below the fold, skip the parallax animation
       if (previousButtonTop - screenHeight > 0 && !(previousButtonTop < 0)) return;
       if (!ticking) {

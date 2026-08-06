@@ -15,6 +15,12 @@
   margin-top: -10px;
 }
 
+.showcase-marquee.logo-gallery {
+  z-index: 4;
+  margin-top: 0;
+  min-height: 300px;
+}
+
 .showcase-marquee .background {
   position: absolute;
   inset: 0;
@@ -274,6 +280,10 @@
      min-height: 1607.43px;
   }
 
+  .showcase-marquee.logo-gallery {
+    min-height: 700px;
+  }
+
   .showcase-marquee .background .mobile-only,
   .showcase-marquee .background .tablet-only {
     display: none;
@@ -383,6 +393,10 @@
 @media screen and (min-width: 2500px) {
   .showcase-marquee.unity-enabled {
     padding-top: calc(100vw - 2500px);
+  }
+
+  .showcase-marquee.logo-gallery {
+    min-height: 1200px;
   }
 }
 
