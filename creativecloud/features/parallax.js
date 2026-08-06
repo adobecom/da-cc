@@ -25,8 +25,24 @@ function addProgressIMPL(el, NAV_HEIGHT, markers) {
   let screenHeight = window.innerHeight;
   let elHeight = el.offsetHeight;
   let previousButtonTop = 0;
+  let anchorEl = null;
   const content = el.querySelector('.firefly-model-showcase-content');
-  const initialContentHeight = content.clientHeight;
+  let initialContentHeight = content.clientHeight;
+  /* A Unity prompt bar may be injected asynchronously into the content, growing its
+     height after this baseline is taken. Unity authors the widget as the target block's
+     next sibling (a `.unity` block), so only then do we watch for the injected
+     `.ex-unity-wrap` and re-baseline once, keeping the height-change guard below from
+     permanently disabling the parallax. The CTA-only configuration has no `.unity`
+     sibling and keeps a stable height, so it needs no observer. */
+  if (el.nextElementSibling?.classList.contains('unity')) {
+    const injectionObserver = new MutationObserver(() => {
+      if (!content.querySelector('.ex-unity-wrap')) return;
+      initialContentHeight = content.clientHeight;
+      elHeight = el.offsetHeight;
+      injectionObserver.disconnect();
+    });
+    injectionObserver.observe(content, { childList: true, subtree: true });
+  }
   window.addEventListener(
     'resize',
     throttle(() => {
@@ -66,8 +82,17 @@ function addProgressIMPL(el, NAV_HEIGHT, markers) {
       /* if content height changed due to additional spacing (e.g. dylan text spacing),
       skip the parallax animation */
       if (initialContentHeight !== content.clientHeight) return;
-      const buttonRect = el.querySelector('.firefly-model-showcase-content .action-area a:first-of-type').getBoundingClientRect();
-      const currentButtonTop = buttonRect.top;
+      /* Anchor the progress calc to the first CTA (CTA configuration) or, when a prompt
+         is injected instead, to the Unity widget. Both are stable once present, so cache
+         them. Before the widget lands, fall back to its placeholder container (not cached,
+         since it's transient) so parallax still runs during that brief window. */
+      if (!anchorEl) {
+        anchorEl = content.querySelector('.action-area a:first-of-type')
+          || content.querySelector('.ex-unity-wrap');
+      }
+      const rectSource = anchorEl || content.querySelector('.firefly-model-showcase-prompt-container');
+      if (!rectSource) return;
+      const currentButtonTop = rectSource.getBoundingClientRect().top;
       // if the button is below the fold, skip the parallax animation
       if (previousButtonTop - screenHeight > 0 && !(previousButtonTop < 0)) return;
       if (!ticking) {
