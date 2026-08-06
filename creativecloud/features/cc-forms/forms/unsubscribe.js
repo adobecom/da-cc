@@ -150,7 +150,7 @@ class Unsubscribe extends Trials {
   }
 
   initializeClickHereLink() {
-    const clickHereLink = this.form.querySelector('a[href*="#click_here"]');
+    const clickHereLink = this.form.querySelector('a[href*="click_here"]');
     if (!clickHereLink) return;
 
     clickHereLink.addEventListener('click', (e) => {

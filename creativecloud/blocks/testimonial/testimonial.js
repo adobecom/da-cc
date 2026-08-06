@@ -178,6 +178,7 @@ export default async function init(el) {
   const count = cardData.length;
   const dir = isRTL ? 1 : -1;
   const state = { currentIndex: 0, isAnimating: false, hasScrolled: false };
+  let animationGen = 0;
   let autoplayTimer = null;
   let isPlaying = true;
   let tickStart = 0;
@@ -230,6 +231,8 @@ export default async function init(el) {
   function moveNext() {
     if (count <= 1 || state.isAnimating) return;
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     setCircularOrder(cards, state.currentIndex, count, before);
     applyBasePosition(false, before);
@@ -238,10 +241,12 @@ export default async function init(el) {
     markPeekCards(cards, nextIndex, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       track.style.transition = '';
       track.style.transform = `translateX(${dir * (before + 1) * step}px)`;
       waitTransition(track, () => {
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = nextIndex;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -256,6 +261,8 @@ export default async function init(el) {
   function movePrev() {
     if (count <= 1 || state.isAnimating) return;
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     const prevIndex = wrapIndex(state.currentIndex - 1, count);
 
@@ -264,10 +271,12 @@ export default async function init(el) {
     markPeekCards(cards, prevIndex, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       track.style.transition = '';
       track.style.transform = `translateX(${dir * before * step}px)`;
       waitTransition(track, () => {
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = prevIndex;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -292,6 +301,8 @@ export default async function init(el) {
     if (target === state.currentIndex) return;
 
     state.isAnimating = true;
+    animationGen += 1;
+    const gen = animationGen;
     const before = getBeforeActive(state.currentIndex, state.hasScrolled);
     const forwardDist = (target - state.currentIndex + count) % count;
     const backwardDist = (state.currentIndex - target + count) % count;
@@ -308,6 +319,7 @@ export default async function init(el) {
     markPeekCards(cards, target, count, before);
 
     requestAnimationFrame(() => requestAnimationFrame(() => {
+      if (gen !== animationGen) { state.isAnimating = false; return; }
       const step = getTrackStep(cards, track);
       const endTranslate = goForward
         ? dir * (before + steps) * step
@@ -315,6 +327,7 @@ export default async function init(el) {
       track.style.transition = '';
       track.style.transform = `translateX(${endTranslate}px)`;
       waitTransition(track, () => {
+        if (gen !== animationGen) { state.isAnimating = false; return; }
         state.hasScrolled = true;
         state.currentIndex = target;
         tickRemaining = AUTOPLAY_INTERVAL_MS;
@@ -432,7 +445,8 @@ export default async function init(el) {
     if (!container.classList.contains(`${BLOCK}-expanded`)) return;
     if (Math.abs(deltaX) < 50 || Math.abs(deltaY) >= Math.abs(deltaX)) return;
     stopAutoplay();
-    if (deltaX < 0) {
+    const forward = isRTL ? deltaX > 0 : deltaX < 0;
+    if (forward) {
       moveNext();
     } else {
       movePrev();
@@ -445,6 +459,14 @@ export default async function init(el) {
     startX = e.changedTouches[0].clientX;
     startY = e.changedTouches[0].clientY;
   }, { passive: true });
+
+  container.addEventListener('touchmove', (e) => {
+    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
+    if (e.touches.length !== 1) return;
+    const dx = Math.abs(e.touches[0].clientX - startX);
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (dx > dy) e.preventDefault();
+  }, { passive: false });
 
   container.addEventListener('touchend', (e) => {
     if (e.changedTouches.length !== 1) return;
@@ -475,14 +497,22 @@ export default async function init(el) {
   });
 
   el.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') {
+    const prevKey = isRTL ? 'ArrowRight' : 'ArrowLeft';
+    const nextKey = isRTL ? 'ArrowLeft' : 'ArrowRight';
+    if (e.key === prevKey) {
       e.preventDefault();
       movePrev();
-    } else if (e.key === 'ArrowRight') {
+    } else if (e.key === nextKey) {
       e.preventDefault();
       moveNext();
     }
   });
+
+  function updateBlockHeight() {
+    const vh150 = window.innerHeight * 1.5;
+    const minNeeded = container.offsetHeight + window.innerHeight * 0.5;
+    el.style.height = `${Math.max(vh150, minNeeded)}px`;
+  }
 
   if (!prefersReducedMotion()) {
     const getNavHeight = () => {
@@ -492,11 +522,11 @@ export default async function init(el) {
 
     let navHeight = getNavHeight();
 
-    el.style.height = '150vh';
     el.style.overflow = 'clip';
     container.style.position = 'sticky';
     container.style.top = `${navHeight}px`;
     container.style.zIndex = '1';
+    updateBlockHeight();
 
     const blockObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
@@ -533,7 +563,10 @@ export default async function init(el) {
       const stackCenter = containerWidth / 2;
       cards.forEach((card, i) => {
         const carouselCenter = marginStart + i * (cardWidth + gap) + cardWidth / 2;
-        card.style.setProperty('--expand-offset', `${carouselCenter - stackCenter}px`);
+        const offset = isRTL
+          ? stackCenter - carouselCenter
+          : carouselCenter - stackCenter;
+        card.style.setProperty('--expand-offset', `${offset}px`);
       });
     };
 
@@ -557,7 +590,6 @@ export default async function init(el) {
       dummyCards.forEach((d) => { d.style.display = 'none'; });
       state.currentIndex = 0;
       state.hasScrolled = false;
-      tickRemaining = AUTOPLAY_INTERVAL_MS;
       settle();
       requestAnimationFrame(() => {
         controls.classList.add(`${BLOCK}-controls-visible`);
@@ -574,22 +606,25 @@ export default async function init(el) {
     };
 
     const exitExpanded = () => {
-      stopAutoplay();
+      pauseAutoplay();
+      animationGen += 1;
+      state.isAnimating = false;
       controls.classList.remove(`${BLOCK}-controls-visible`);
       cards.forEach((card) => {
         card.classList.remove(`${BLOCK}-card-peek`);
         card.style.order = '';
         card.style.transform = '';
       });
+      track.style.transform = '';
+      track.style.transition = 'none';
+      container.classList.remove(`${BLOCK}-expanded`);
+      container.classList.add(`${BLOCK}-stack-collapsed`);
       container.style.setProperty('--stack-progress', '1');
       container.style.setProperty('--expand-progress', '1');
+      setStackPositions(cards);
       equalizeStackHeights();
       computeExpandOffsets();
       dummyCards.forEach((d) => { d.style.display = ''; });
-      container.classList.remove(`${BLOCK}-expanded`);
-      container.classList.add(`${BLOCK}-stack-collapsed`);
-      track.style.transform = '';
-      track.style.transition = 'none';
     };
 
     const handleScroll = () => {
@@ -627,7 +662,7 @@ export default async function init(el) {
 
       if (expandProgress >= 1 && !isExpanded) {
         enterExpanded();
-      } else if (expandProgress < 1 && isExpanded) {
+      } else if (expandProgress < 0.98 && isExpanded) {
         exitExpanded();
       }
 
@@ -675,6 +710,7 @@ export default async function init(el) {
       settle();
     } else if (!prefersReducedMotion()) {
       equalizeStackHeights();
+      updateBlockHeight();
     }
   });
   resizeObserver.observe(el);

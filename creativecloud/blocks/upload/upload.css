@@ -84,6 +84,24 @@
   align-items: center;
 }
 
+.upload-block .action-button:focus {
+  outline: none;
+}
+
+.upload-block .action-button:focus-visible {
+  outline: none;
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--color-accent);
+}
+
+.upload-block .foreground:has(.action-button:focus-visible),
+.upload-block .upload-grid:has(.action-button:focus-visible),
+.upload-block .drop-zone-container:has(.action-button:focus-visible),
+.upload-block .drop-zone:has(.action-button:focus-visible) {
+  overflow: visible;
+}
+
 .upload-block .action-button > picture {
   margin-inline-end: var(--icon-spacing);
 }

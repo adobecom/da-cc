@@ -151,16 +151,13 @@
   display: flex;
   gap: var(--logos-gap);
   animation: scroll-left 60s linear infinite;
+  animation-play-state: var(--marquee-state, running);
   width: max-content;
   opacity: .3;
 }
 
 [dir="rtl"] .showcase-marquee .logo-row .logo-container {
   animation-name: scroll-right;
-}
-
-.showcase-marquee .logo-row .logo-container.paused {
-  animation-play-state: paused;
 }
 
 .showcase-marquee.unity-enabled .interactive-area {
@@ -391,10 +388,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .showcase-marquee .logo-row .logo-container {
-    animation: none !important;
-  }
-
-  .showcase-marquee .animation-controls {
-    display: none;
+    --marquee-state: paused !important;
   }
 }

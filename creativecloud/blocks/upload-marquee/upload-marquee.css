@@ -129,8 +129,8 @@
 .upload-marquee-block .upload-marquee-content {
   display: flex;
   flex-direction: column;
-  text-align: left;
-  align-items: flex-start;
+  text-align: start;
+  align-items: start;
 }
 
 .upload-marquee-block .upload-marquee-content p,
@@ -138,7 +138,7 @@
 .upload-marquee-block .upload-marquee-content h2 {
   color: inherit;
   margin: 0;
-  text-align: left;
+  text-align: start;
 }
 
 .upload-marquee-block .upload-marquee-content p:first-child {
@@ -202,7 +202,7 @@
 }
 
 .upload-marquee-block .upload-marquee-content .upload-marquee-cta {
-  align-self: flex-start;
+  align-self: start;
   display: inline-flex;
   align-items: center;
   justify-content: center;
