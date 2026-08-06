@@ -28,12 +28,6 @@ function addProgressIMPL(el, NAV_HEIGHT, markers) {
   let anchorEl = null;
   const content = el.querySelector('.firefly-model-showcase-content');
   let initialContentHeight = content.clientHeight;
-  /* A Unity prompt bar may be injected asynchronously into the content, growing its
-     height after this baseline is taken. Unity authors the widget as the target block's
-     next sibling (a `.unity` block), so only then do we watch for the injected
-     `.ex-unity-wrap` and re-baseline once, keeping the height-change guard below from
-     permanently disabling the parallax. The CTA-only configuration has no `.unity`
-     sibling and keeps a stable height, so it needs no observer. */
   if (el.nextElementSibling?.classList.contains('unity')) {
     const injectionObserver = new MutationObserver(() => {
       if (!content.querySelector('.ex-unity-wrap')) return;
@@ -82,10 +76,6 @@ function addProgressIMPL(el, NAV_HEIGHT, markers) {
       /* if content height changed due to additional spacing (e.g. dylan text spacing),
       skip the parallax animation */
       if (initialContentHeight !== content.clientHeight) return;
-      /* Anchor the progress calc to the first CTA (CTA configuration) or, when a prompt
-         is injected instead, to the Unity widget. Both are stable once present, so cache
-         them. Before the widget lands, fall back to its placeholder container (not cached,
-         since it's transient) so parallax still runs during that brief window. */
       if (!anchorEl) {
         anchorEl = content.querySelector('.action-area a:first-of-type')
           || content.querySelector('.ex-unity-wrap');
