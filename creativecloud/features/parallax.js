@@ -43,10 +43,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
     }, 50),
   );
 
-  let ticking = false;
-
-  function updateProgress() {
-    ticking = false;
+  function render() {
     if (initialContentHeight !== content.clientHeight) return;
     const rect = el.getBoundingClientRect();
     const enterProgress = clamp((screenHeight - rect.top) / elHeight, 0, 1);
@@ -67,16 +64,28 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
     }
   }
 
-  window.addEventListener(
-    'scroll',
-    () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(updateProgress);
+  let rafId = null;
+  let lastScrollY = null;
+  function tick() {
+    const y = window.scrollY;
+    if (y !== lastScrollY) {
+      lastScrollY = y;
+      render();
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+
+  new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      if (rafId === null) {
+        lastScrollY = null;
+        rafId = requestAnimationFrame(tick);
       }
-    },
-    { passive: true },
-  );
+    } else if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }).observe(el);
 }
 
 // for max-2025-firefly
