@@ -48,7 +48,9 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   function updateProgress() {
     const rect = el.getBoundingClientRect();
+    // how much of the el already entered from bottom
     const enterProgress = clamp((screenHeight - rect.top) / elHeight, 0, 1);
+    // how much of the el already exited from top (gnav)
     const exitProgress = clamp((-rect.top + NAV_HEIGHT) / elHeight, 0, 1);
     el.style.setProperty('--enter-progress', enterProgress * 100);
     el.style.setProperty('--exit-progress', exitProgress * 100);
@@ -70,11 +72,14 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   window.addEventListener(
     'scroll',
     () => {
+      /* if content height changed due to additional spacing (e.g. dylan text spacing),
+      skip the parallax animation */
       if (initialContentHeight !== content.clientHeight) return;
       const anchor = el.querySelector('.firefly-model-showcase-content .action-area a:first-of-type')
         || el.querySelector('.firefly-model-showcase-prompt-container');
       if (!anchor) return;
       const currentButtonTop = anchor.getBoundingClientRect().top;
+      // if the button is below the fold, skip the parallax animation
       if (previousButtonTop - screenHeight > 0 && !(previousButtonTop < 0)) return;
       if (!ticking) {
         requestAnimationFrame(updateProgress);
@@ -86,6 +91,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   );
 }
 
+// for max-2025-firefly
 export default function addParallaxProgress(
   el,
   NAV_HEIGHT = 64,
