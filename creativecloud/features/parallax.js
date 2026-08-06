@@ -21,11 +21,9 @@ function throttle(cb, delay, { trailing = false } = {}) {
   };
 }
 
-function addProgressIMPL(el, NAV_HEIGHT, markers) {
+function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   let screenHeight = window.innerHeight;
   let elHeight = el.offsetHeight;
-  let previousButtonTop = 0;
-  let anchorEl = null;
   const content = el.querySelector('.firefly-model-showcase-content');
   let initialContentHeight = content.clientHeight;
   if (el.nextElementSibling?.classList.contains('unity')) {
@@ -48,10 +46,10 @@ function addProgressIMPL(el, NAV_HEIGHT, markers) {
   let ticking = false;
 
   function updateProgress() {
+    ticking = false;
+    if (initialContentHeight !== content.clientHeight) return;
     const rect = el.getBoundingClientRect();
-    // how much of the el already entered from bottom
     const enterProgress = clamp((screenHeight - rect.top) / elHeight, 0, 1);
-    // how much of the el already exited from top (gnav)
     const exitProgress = clamp((-rect.top + NAV_HEIGHT) / elHeight, 0, 1);
     el.style.setProperty('--enter-progress', enterProgress * 100);
     el.style.setProperty('--exit-progress', exitProgress * 100);
@@ -67,29 +65,15 @@ function addProgressIMPL(el, NAV_HEIGHT, markers) {
         }
       });
     }
-    ticking = false;
   }
 
   window.addEventListener(
     'scroll',
     () => {
-      /* if content height changed due to additional spacing (e.g. dylan text spacing),
-      skip the parallax animation */
-      if (initialContentHeight !== content.clientHeight) return;
-      if (!anchorEl) {
-        anchorEl = content.querySelector('.action-area a:first-of-type')
-          || content.querySelector('.ex-unity-wrap');
-      }
-      const rectSource = anchorEl || content.querySelector('.firefly-model-showcase-prompt-container');
-      if (!rectSource) return;
-      const currentButtonTop = rectSource.getBoundingClientRect().top;
-      // if the button is below the fold, skip the parallax animation
-      if (previousButtonTop - screenHeight > 0 && !(previousButtonTop < 0)) return;
       if (!ticking) {
-        requestAnimationFrame(updateProgress);
         ticking = true;
+        requestAnimationFrame(updateProgress);
       }
-      previousButtonTop = currentButtonTop;
     },
     { passive: true },
   );
