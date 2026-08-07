@@ -1123,7 +1123,7 @@ async function initRenewalValidation() {
   try {
     const { baseUrl, headers } = await getEduValidationRequest();
     const urlParams = new URLSearchParams(window.location.search);
-    const renewalDate = (urlParams.get('renewalDate') || urlParams.get('renewal-date') || '').match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    const renewalDate = (urlParams.get('renewalDate') || urlParams.get('renewal-date') || urlParams.get('effectiveDate') || urlParams.get('effective-date') || '').match(/\d{4}-\d{2}-\d{2}/)?.[0];
     const query = {
       'person-id': personId,
       'verification-segment': 'NONPROFIT',
