@@ -407,7 +407,11 @@ function preloadMasFragment(a) {
   let endpoint = `${MAS_FRAGMENT_API}?id=${fragment}&api_key=${apiKey}&locale=${locale}`;
   if (country && !locale.endsWith(`_${country}`)) endpoint += `&country=${country}`;
 
-  loadLink(endpoint, { rel: 'preload', as: 'fetch', crossorigin: 'anonymous', type: 'application/json' });
+  // Explicitly low priority: default fetch-preload priority is High, same tier as the LCP
+  // image's fetchpriority="high" below, and would compete with it for bandwidth. We still
+  // fire synchronously (same tick, still ahead of the block's own much-later fetch) - this
+  // only tells the browser to let the image win if the connection is contended.
+  loadLink(endpoint, { rel: 'preload', as: 'fetch', crossorigin: 'anonymous', type: 'application/json', fetchpriority: 'low' });
 }
 
 function getDecorateAreaFn() {
@@ -507,8 +511,8 @@ function getDecorateAreaFn() {
 
   return (area, options) => {
     if (isRootPage()) replaceDotMedia();
-    scanForMasLinks(area, options);
     if (!lcpImgSet || window.document.querySelector('body > main > div > div > a.fragment')) loadLCPImage(area, options);
+    scanForMasLinks(area, options);
   };
 }
 
