@@ -48,7 +48,13 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   let focusLock = false;
   let focusLockTimer = null;
+  let pointerFocus = false;
+  el.addEventListener('pointerdown', () => {
+    pointerFocus = true;
+    requestAnimationFrame(() => { pointerFocus = false; });
+  }, true);
   el.addEventListener('focusin', () => {
+    if (pointerFocus) return;
     el.style.setProperty('--exit-progress', 0);
     el.style.setProperty('--enter-progress', 100);
     markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
