@@ -98,7 +98,7 @@
   letter-spacing: var(--cta-letter-spacing);
   border-radius: 100px;
   padding: 12px 32px;
-  scroll-margin-top: 400vh
+  scroll-margin-top: 64px
 }
 
 .firefly-model-showcase.unity-enabled .interactive-area {
