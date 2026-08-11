@@ -46,30 +46,17 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   let ticking = false;
 
-  let focusLock = false;
-  let focusLockTimer = null;
   let pointerFocus = false;
-  let tabScrollY = null;
   const focusScope = el.parentElement || el;
   focusScope.addEventListener('pointerdown', () => {
     pointerFocus = true;
     requestAnimationFrame(() => { pointerFocus = false; });
   }, true);
-  focusScope.addEventListener('keydown', (e) => {
-    if (e.key !== 'Tab') return;
-    tabScrollY = window.scrollY;
-    focusLock = true;
-    clearTimeout(focusLockTimer);
-    focusLockTimer = setTimeout(() => { focusLock = false; tabScrollY = null; }, 150);
-  });
   focusScope.addEventListener('focusin', () => {
     if (pointerFocus) return;
     el.style.setProperty('--exit-progress', 0);
     el.style.setProperty('--enter-progress', 100);
     markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
-    focusLock = true;
-    clearTimeout(focusLockTimer);
-    focusLockTimer = setTimeout(() => { focusLock = false; tabScrollY = null; }, 150);
   });
 
   function updateProgress() {
@@ -98,13 +85,6 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   window.addEventListener(
     'scroll',
     () => {
-      if (tabScrollY !== null) {
-        const target = tabScrollY;
-        tabScrollY = null;
-        window.scrollTo(0, target);
-        return;
-      }
-      if (focusLock) return;
       /* if content height changed due to additional spacing (e.g. dylan text spacing),
       skip the parallax animation */
       if (initialContentHeight !== content.clientHeight) return;
