@@ -46,7 +46,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   let ticking = false;
   let frozenForKeyboard = false;
-  const focusScope = el.parentElement || el;
+  const focusScope = el.closest('.section') || el.parentElement || el;
 
   const freezeParallax = () => {
     frozenForKeyboard = true;
