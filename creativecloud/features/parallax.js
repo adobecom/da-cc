@@ -45,8 +45,29 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   );
 
   let ticking = false;
+  let frozenForKeyboard = false;
+  const focusScope = el.closest('.section') || el.parentElement || el;
+
+  focusScope.addEventListener('focusin', () => {
+    if (document.activeElement?.matches(':focus-visible')) {
+      frozenForKeyboard = true;
+      el.style.setProperty('--exit-progress', 0);
+      el.style.setProperty('--enter-progress', 100);
+      markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
+    }
+  });
+
+  focusScope.addEventListener('focusout', () => {
+    requestAnimationFrame(() => {
+      if (!focusScope.contains(document.activeElement)) frozenForKeyboard = false;
+    });
+  });
+
+  window.addEventListener('wheel', () => { frozenForKeyboard = false; }, { passive: true });
+  window.addEventListener('touchmove', () => { frozenForKeyboard = false; }, { passive: true });
 
   function updateProgress() {
+    if (frozenForKeyboard) { ticking = false; return; }
     const rect = el.getBoundingClientRect();
     // how much of the el already entered from bottom
     const enterProgress = clamp((screenHeight - rect.top) / elHeight, 0, 1);
