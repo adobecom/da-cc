@@ -49,6 +49,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   let focusLock = false;
   let focusLockTimer = null;
   let pointerFocus = false;
+  let tabScrollY = null;
   const focusScope = el.parentElement || el;
   focusScope.addEventListener('pointerdown', () => {
     pointerFocus = true;
@@ -56,13 +57,10 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   }, true);
   focusScope.addEventListener('keydown', (e) => {
     if (e.key !== 'Tab') return;
-    const { scrollY } = window;
+    tabScrollY = window.scrollY;
     focusLock = true;
     clearTimeout(focusLockTimer);
-    focusLockTimer = setTimeout(() => { focusLock = false; }, 100);
-    requestAnimationFrame(() => {
-      if (window.scrollY !== scrollY) window.scrollTo(0, scrollY);
-    });
+    focusLockTimer = setTimeout(() => { focusLock = false; tabScrollY = null; }, 150);
   });
   focusScope.addEventListener('focusin', () => {
     if (pointerFocus) return;
@@ -71,7 +69,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
     markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
     focusLock = true;
     clearTimeout(focusLockTimer);
-    focusLockTimer = setTimeout(() => { focusLock = false; }, 100);
+    focusLockTimer = setTimeout(() => { focusLock = false; tabScrollY = null; }, 150);
   });
 
   function updateProgress() {
@@ -100,6 +98,12 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   window.addEventListener(
     'scroll',
     () => {
+      if (tabScrollY !== null) {
+        const target = tabScrollY;
+        tabScrollY = null;
+        window.scrollTo(0, target);
+        return;
+      }
       if (focusLock) return;
       /* if content height changed due to additional spacing (e.g. dylan text spacing),
       skip the parallax animation */
