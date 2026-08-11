@@ -46,19 +46,6 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   let ticking = false;
 
-  let pointerFocus = false;
-  const focusScope = el.parentElement || el;
-  focusScope.addEventListener('pointerdown', () => {
-    pointerFocus = true;
-    requestAnimationFrame(() => { pointerFocus = false; });
-  }, true);
-  focusScope.addEventListener('focusin', () => {
-    if (pointerFocus) return;
-    el.style.setProperty('--exit-progress', 0);
-    el.style.setProperty('--enter-progress', 100);
-    markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
-  });
-
   function updateProgress() {
     const rect = el.getBoundingClientRect();
     // how much of the el already entered from bottom

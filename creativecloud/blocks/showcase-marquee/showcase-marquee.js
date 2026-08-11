@@ -308,43 +308,46 @@ export default async function init(el) {
   if (isLogoGallery) {
     const tabletMq = window.matchMedia('(min-width: 900px)');
     let galleryGap = tabletMq.matches ? 130 : 50;
-    let elDocTop = null;
+
+    const getDocTop = (element) => {
+      let top = 0;
+      let node = element;
+      while (node) {
+        top += node.offsetTop;
+        node = node.offsetParent;
+      }
+      return top;
+    };
 
     const adjustGalleryHeight = () => {
       const galleryCells = document.querySelectorAll('.firefly-model-showcase-gallery .gallery-cell');
-      if (!galleryCells.length) return;
+      if (!galleryCells.length) return false;
 
-      if (elDocTop === null) {
-        elDocTop = el.getBoundingClientRect().top + window.scrollY;
-      }
-
+      const elDocTop = getDocTop(el);
       let maxBottom = -Infinity;
       galleryCells.forEach((cell) => {
-        const bottom = cell.getBoundingClientRect().bottom + window.scrollY;
+        const bottom = getDocTop(cell) + cell.offsetHeight;
         if (bottom > maxBottom) maxBottom = bottom;
       });
 
       const logoRowHeight = logoRowContent.offsetHeight;
-      const neededHeight = (maxBottom + galleryGap + logoRowHeight) - elDocTop;
+      let neededHeight = (maxBottom + galleryGap + logoRowHeight) - elDocTop;
+      if (window.matchMedia('(min-width: 1200px)').matches) neededHeight -= 200;
       el.style.minHeight = `${Math.max(0, neededHeight)}px`;
+      return true;
     };
 
-    let ticking = false;
-    const onScroll = () => {
-      if (!ticking) {
-        requestAnimationFrame(() => {
-          adjustGalleryHeight();
-          ticking = false;
-        });
-        ticking = true;
-      }
-    };
+    const showcaseBlock = document.querySelector('.firefly-model-showcase');
+    if (showcaseBlock) {
+      const observer = new MutationObserver(() => {
+        if (adjustGalleryHeight()) observer.disconnect();
+      });
+      observer.observe(showcaseBlock, { childList: true, subtree: true });
+    }
 
-    window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', () => {
       galleryGap = tabletMq.matches ? 130 : 50;
-      elDocTop = null;
-      onScroll();
+      adjustGalleryHeight();
     });
     requestAnimationFrame(() => requestAnimationFrame(adjustGalleryHeight));
   }
