@@ -57,7 +57,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   focusScope.addEventListener('keydown', (e) => {
     if (e.key === 'Tab') freezeParallax();
-  });
+  }, true);
 
   focusScope.addEventListener('focusin', () => {
     if (document.activeElement?.matches(':focus-visible')) freezeParallax();
@@ -73,6 +73,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   window.addEventListener('touchmove', () => { frozenForKeyboard = false; }, { passive: true });
 
   function updateProgress() {
+    if (frozenForKeyboard) { ticking = false; return; }
     const rect = el.getBoundingClientRect();
     // how much of the el already entered from bottom
     const enterProgress = clamp((screenHeight - rect.top) / elHeight, 0, 1);
