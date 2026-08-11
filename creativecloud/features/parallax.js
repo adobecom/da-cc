@@ -65,12 +65,6 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
     }
   });
 
-  focusScope.addEventListener('focusout', () => {
-    requestAnimationFrame(() => {
-      if (!focusScope.contains(document.activeElement)) frozenForKeyboard = false;
-    });
-  });
-
   window.addEventListener('wheel', () => { frozenForKeyboard = false; }, { passive: true });
   window.addEventListener('touchmove', () => { frozenForKeyboard = false; }, { passive: true });
 
