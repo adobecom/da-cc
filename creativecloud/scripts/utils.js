@@ -291,6 +291,129 @@ function heroForegroundImage(firstBlock) {
   return rows[mainRowIndex];
 }
 
+const MAS_FRAGMENT_API = 'https://www.adobe.com/mas/io/fragment';
+const DEFAULT_MAS_FRAGMENT_API_KEY = 'wcms-commerce-ims-ro-user-milo';
+
+const MAS_GEO_MAP = {
+  ar: 'AR_es',
+  be_en: 'BE_en',
+  be_fr: 'BE_fr',
+  be_nl: 'BE_nl',
+  br: 'BR_pt',
+  ca: 'CA_en',
+  ch_de: 'CH_de',
+  ch_fr: 'CH_fr',
+  ch_it: 'CH_it',
+  cl: 'CL_es',
+  co: 'CO_es',
+  la: 'DO_es',
+  mx: 'MX_es',
+  pe: 'PE_es',
+  africa: 'MU_en',
+  dk: 'DK_da',
+  de: 'DE_de',
+  ee: 'EE_et',
+  eg_ar: 'EG_ar',
+  eg_en: 'EG_en',
+  es: 'ES_es',
+  fr: 'FR_fr',
+  gr_el: 'GR_el',
+  gr_en: 'GR_en',
+  ie: 'IE_en',
+  il_he: 'IL_he',
+  it: 'IT_it',
+  lv: 'LV_lv',
+  lt: 'LT_lt',
+  lu_de: 'LU_de',
+  lu_en: 'LU_en',
+  lu_fr: 'LU_fr',
+  my_en: 'MY_en',
+  my_ms: 'MY_ms',
+  hu: 'HU_hu',
+  mt: 'MT_en',
+  mena_en: 'DZ_en',
+  mena_ar: 'DZ_ar',
+  nl: 'NL_nl',
+  no: 'NO_nb',
+  pl: 'PL_pl',
+  pt: 'PT_pt',
+  ro: 'RO_ro',
+  si: 'SI_sl',
+  sk: 'SK_sk',
+  fi: 'FI_fi',
+  se: 'SE_sv',
+  tr: 'TR_tr',
+  uk: 'GB_en',
+  at: 'AT_de',
+  cz: 'CZ_cs',
+  bg: 'BG_bg',
+  ru: 'RU_ru',
+  ua: 'UA_uk',
+  au: 'AU_en',
+  in_en: 'IN_en',
+  in_hi: 'IN_hi',
+  id_en: 'ID_en',
+  id_id: 'ID_id',
+  nz: 'NZ_en',
+  sa_ar: 'SA_ar',
+  sa_en: 'SA_en',
+  sg: 'SG_en',
+  cn: 'CN_zh',
+  tw: 'TW_zh',
+  hk_zh: 'HK_zh',
+  jp: 'JP_ja',
+  kr: 'KR_ko',
+  za: 'ZA_en',
+  ng: 'NG_en',
+  cr: 'CR_es',
+  ec: 'EC_es',
+  pr: 'US_es', // not a typo, should be US
+  gt: 'GT_es',
+  cis_en: 'TM_en',
+  cis_ru: 'TM_ru',
+  sea: 'SG_en',
+  th_en: 'TH_en',
+  th_th: 'TH_th',
+};
+
+const MAS_EXTRA_LOCALES = { pr: 'es_PR' };
+
+const MAS_LINK_SELECTOR = 'a[href*="mas.adobe.com/studio.html"]';
+const preloadedMasFragments = new Set();
+
+function getMasLocale(miloLocale) {
+  const geo = (miloLocale?.prefix || 'US_en').replace('/', '');
+  let [country = 'US', language = 'en'] = (MAS_GEO_MAP[geo] ?? geo).split('_', 2);
+  country = country.toUpperCase();
+  language = language.toLowerCase();
+  return { locale: MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`, country };
+}
+
+function preloadMasFragment(a) {
+  let url;
+  try {
+    url = new URL(a.href);
+  } catch {
+    return;
+  }
+  if (url.hostname !== 'mas.adobe.com' || !url.pathname.endsWith('/studio.html')) return;
+  const params = new URLSearchParams(url.hash.replace(/^#/, ''));
+  const fragment = params.get('fragment') || params.get('query');
+  if (!fragment || preloadedMasFragments.has(fragment)) return;
+  preloadedMasFragments.add(fragment);
+
+  const { locale, country } = getMasLocale(getConfig().locale);
+  const apiKey = getConfig().commerce?.['wcs-api-key'] ?? DEFAULT_MAS_FRAGMENT_API_KEY;
+  let endpoint = `${MAS_FRAGMENT_API}?id=${fragment}&api_key=${apiKey}&locale=${locale}`;
+  if (country && !locale.endsWith(`_${country}`)) endpoint += `&country=${country}`;
+
+  // Explicitly low priority: default fetch-preload priority is High, same tier as the LCP
+  // image's fetchpriority="high" below, and would compete with it for bandwidth. We still
+  // fire synchronously (same tick, still ahead of the block's own much-later fetch) - this
+  // only tells the browser to let the image win if the connection is contended.
+  loadLink(endpoint, { rel: 'preload', as: 'fetch', crossorigin: 'anonymous', type: 'application/json', fetchpriority: 'low' });
+}
+
 function getDecorateAreaFn() {
   let lcpImgSet = false;
   // Load LCP image immediately
@@ -374,9 +497,22 @@ function getDecorateAreaFn() {
     }
   }
 
+  function scanForMasLinks(area, { fragmentLink } = {}) {
+    if (fragmentLink) {
+      if (fragmentLink.closest('.section')?.dataset.idx === '0') {
+        area?.querySelectorAll(MAS_LINK_SELECTOR).forEach(preloadMasFragment);
+      }
+      return;
+    }
+    (area ?? document).querySelector('body > main > div')
+      ?.querySelectorAll(MAS_LINK_SELECTOR)
+      .forEach(preloadMasFragment);
+  }
+
   return (area, options) => {
     if (isRootPage()) replaceDotMedia();
     if (!lcpImgSet || window.document.querySelector('body > main > div > div > a.fragment')) loadLCPImage(area, options);
+    scanForMasLinks(area, options);
   };
 }
 
