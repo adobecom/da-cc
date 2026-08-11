@@ -361,7 +361,7 @@
 }
 
 .firefly-model-showcase.marker-disable-pointer .firefly-model-showcase-content,
-.firefly-model-showcase.marker-disable-pointer + .unity-prompt-bar-style {
+.firefly-model-showcase.marker-disable-pointer .ex-unity-wrap {
   pointer-events: none;
 }
 
