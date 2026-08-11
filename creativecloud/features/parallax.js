@@ -56,7 +56,12 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   };
 
   focusScope.addEventListener('keydown', (e) => {
-    if (e.key === 'Tab') freezeParallax();
+    if (e.key !== 'Tab') return;
+    freezeParallax();
+    const scrollY = window.scrollY;
+    window.addEventListener('scroll', () => {
+      if (frozenForKeyboard) window.scrollTo(0, scrollY);
+    }, { once: true, passive: true });
   }, true);
 
   focusScope.addEventListener('focusin', () => {
