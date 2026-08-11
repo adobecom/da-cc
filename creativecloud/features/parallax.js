@@ -48,6 +48,14 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   let frozenForKeyboard = false;
   const focusScope = el.closest('.section') || el.parentElement || el;
 
+  focusScope.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab' || !frozenForKeyboard) return;
+    const scrollY = window.scrollY;
+    window.addEventListener('scroll', () => {
+      window.scrollTo(0, scrollY);
+    }, { once: true });
+  }, true);
+
   focusScope.addEventListener('focusin', () => {
     if (document.activeElement?.matches(':focus-visible')) {
       frozenForKeyboard = true;
