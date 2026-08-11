@@ -46,6 +46,17 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   let ticking = false;
 
+  let focusLock = false;
+  let focusLockTimer = null;
+  el.addEventListener('focusin', () => {
+    el.style.setProperty('--exit-progress', 0);
+    el.style.setProperty('--enter-progress', 100);
+    markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
+    focusLock = true;
+    clearTimeout(focusLockTimer);
+    focusLockTimer = setTimeout(() => { focusLock = false; }, 50);
+  });
+
   function updateProgress() {
     const rect = el.getBoundingClientRect();
     // how much of the el already entered from bottom
@@ -72,6 +83,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   window.addEventListener(
     'scroll',
     () => {
+      if (focusLock) return;
       /* if content height changed due to additional spacing (e.g. dylan text spacing),
       skip the parallax animation */
       if (initialContentHeight !== content.clientHeight) return;
