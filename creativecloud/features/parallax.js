@@ -54,6 +54,12 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
     pointerFocus = true;
     requestAnimationFrame(() => { pointerFocus = false; });
   }, true);
+  focusScope.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    focusLock = true;
+    clearTimeout(focusLockTimer);
+    focusLockTimer = setTimeout(() => { focusLock = false; }, 100);
+  });
   focusScope.addEventListener('focusin', () => {
     if (pointerFocus) return;
     el.style.setProperty('--exit-progress', 0);
@@ -61,7 +67,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
     markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
     focusLock = true;
     clearTimeout(focusLockTimer);
-    focusLockTimer = setTimeout(() => { focusLock = false; }, 50);
+    focusLockTimer = setTimeout(() => { focusLock = false; }, 100);
   });
 
   function updateProgress() {
