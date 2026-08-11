@@ -56,9 +56,13 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   }, true);
   focusScope.addEventListener('keydown', (e) => {
     if (e.key !== 'Tab') return;
+    const { scrollY } = window;
     focusLock = true;
     clearTimeout(focusLockTimer);
     focusLockTimer = setTimeout(() => { focusLock = false; }, 100);
+    requestAnimationFrame(() => {
+      if (window.scrollY !== scrollY) window.scrollTo(0, scrollY);
+    });
   });
   focusScope.addEventListener('focusin', () => {
     if (pointerFocus) return;
