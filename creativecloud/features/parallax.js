@@ -45,6 +45,24 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   );
 
   let ticking = false;
+  let frozenForKeyboard = false;
+  const focusScope = el.parentElement || el;
+
+  focusScope.addEventListener('focusin', () => {
+    if (document.activeElement?.matches(':focus-visible')) {
+      frozenForKeyboard = true;
+      el.style.setProperty('--exit-progress', 0);
+      el.style.setProperty('--enter-progress', 100);
+      markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
+    }
+  });
+
+  focusScope.addEventListener('focusout', (e) => {
+    if (!focusScope.contains(e.relatedTarget)) frozenForKeyboard = false;
+  });
+
+  window.addEventListener('wheel', () => { frozenForKeyboard = false; }, { passive: true });
+  window.addEventListener('touchmove', () => { frozenForKeyboard = false; }, { passive: true });
 
   function updateProgress() {
     const rect = el.getBoundingClientRect();
@@ -72,6 +90,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
   window.addEventListener(
     'scroll',
     () => {
+      if (frozenForKeyboard) return;
       /* if content height changed due to additional spacing (e.g. dylan text spacing),
       skip the parallax animation */
       if (initialContentHeight !== content.clientHeight) return;
