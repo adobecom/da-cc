@@ -46,25 +46,39 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   let ticking = false;
   let frozenForKeyboard = false;
-  const focusScope = el.parentElement || el;
+  const focusScope = el.closest('.section') || el.parentElement || el;
+
+  const freezeParallax = () => {
+    frozenForKeyboard = true;
+    el.style.setProperty('--exit-progress', 0);
+    el.style.setProperty('--enter-progress', 100);
+    markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
+  };
+
+  focusScope.addEventListener('keydown', (e) => {
+    if (e.key !== 'Tab') return;
+    freezeParallax();
+    const scrollY = window.scrollY;
+    window.addEventListener('scroll', () => {
+      if (frozenForKeyboard) window.scrollTo(0, scrollY);
+    }, { once: true, passive: true });
+  }, true);
 
   focusScope.addEventListener('focusin', () => {
-    if (document.activeElement?.matches(':focus-visible')) {
-      frozenForKeyboard = true;
-      el.style.setProperty('--exit-progress', 0);
-      el.style.setProperty('--enter-progress', 100);
-      markers.forEach((m) => el.classList.remove(`marker-${m.name}`));
-    }
+    if (document.activeElement?.matches(':focus-visible')) freezeParallax();
   });
 
-  focusScope.addEventListener('focusout', (e) => {
-    if (!focusScope.contains(e.relatedTarget)) frozenForKeyboard = false;
+  focusScope.addEventListener('focusout', () => {
+    requestAnimationFrame(() => {
+      if (!focusScope.contains(document.activeElement)) frozenForKeyboard = false;
+    });
   });
 
   window.addEventListener('wheel', () => { frozenForKeyboard = false; }, { passive: true });
   window.addEventListener('touchmove', () => { frozenForKeyboard = false; }, { passive: true });
 
   function updateProgress() {
+    if (frozenForKeyboard) { ticking = false; return; }
     const rect = el.getBoundingClientRect();
     // how much of the el already entered from bottom
     const enterProgress = clamp((screenHeight - rect.top) / elHeight, 0, 1);
