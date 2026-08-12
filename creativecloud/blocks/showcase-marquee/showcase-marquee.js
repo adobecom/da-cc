@@ -307,33 +307,22 @@ export default async function init(el) {
   }).observe(el);
 
   if (isLogoGallery) {
-    const tabletMq = window.matchMedia('(min-width: 900px)');
-    let galleryGap = tabletMq.matches ? 130 : 50;
-
-    const getDocTop = (element) => {
-      let top = 0;
-      let node = element;
-      while (node) {
-        top += node.offsetTop;
-        node = node.offsetParent;
-      }
-      return top;
-    };
+    const desktopMq = window.matchMedia('(min-width: 1200px)');
+    let galleryGap = desktopMq.matches ? 160 : 80;
 
     const adjustGalleryHeight = () => {
       const galleryCells = document.querySelectorAll('.firefly-model-showcase-gallery .gallery-cell');
       if (!galleryCells.length) return false;
 
-      const elDocTop = getDocTop(el);
-      let maxBottom = -Infinity;
+      const elTop = el.getBoundingClientRect().top;
+      let maxCellBottom = -Infinity;
       galleryCells.forEach((cell) => {
-        const bottom = getDocTop(cell) + cell.offsetHeight;
-        if (bottom > maxBottom) maxBottom = bottom;
+        const bottom = cell.getBoundingClientRect().bottom;
+        if (bottom > maxCellBottom) maxCellBottom = bottom;
       });
 
       const logoRowHeight = logoRowContent.offsetHeight;
-      let neededHeight = (maxBottom + galleryGap + logoRowHeight) - elDocTop;
-      if (window.matchMedia('(min-width: 1200px)').matches) neededHeight -= 200;
+      const neededHeight = (maxCellBottom - elTop) + galleryGap + logoRowHeight;
       el.style.minHeight = `${Math.max(0, neededHeight)}px`;
       return true;
     };
@@ -347,7 +336,7 @@ export default async function init(el) {
     }
 
     window.addEventListener('resize', () => {
-      galleryGap = tabletMq.matches ? 130 : 50;
+      galleryGap = desktopMq.matches ? 160 : 80;
       adjustGalleryHeight();
     });
     requestAnimationFrame(() => requestAnimationFrame(adjustGalleryHeight));

@@ -20,6 +20,22 @@
   min-height: 300px;
 }
 
+.showcase-marquee.logo-gallery .logo-row {
+  padding: 20px 0;
+}
+
+@media screen and (min-width: 600px) {
+  .showcase-marquee.logo-gallery .logo-row {
+    padding: calc(var(--spacing-xl)) 0;
+  }
+}
+
+@media screen and (min-width: 1200px) {
+  .showcase-marquee.logo-gallery .logo-row {
+    padding: calc(var(--spacing-l)) 0;
+  }
+}
+
 .showcase-marquee .background {
   position: absolute;
   inset: 0;
