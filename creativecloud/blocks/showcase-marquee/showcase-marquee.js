@@ -166,6 +166,7 @@ function initAnimationControls({ button, iconWrapper, logoContainer }) {
   });
 
   button.addEventListener('keydown', handleKeydown);
+  button.addEventListener('focus', () => button.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
 
   reducedMotionMQ.addEventListener('change', ({ matches }) => (matches ? pauseAnimation() : playAnimation()));
 

@@ -52,7 +52,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
     if (e.key !== 'Tab' || !frozenForKeyboard) return;
     const scrollY = window.scrollY;
     window.addEventListener('scroll', () => {
-      window.scrollTo(0, scrollY);
+      if (frozenForKeyboard) window.scrollTo(0, scrollY);
     }, { once: true });
   }, true);
 
@@ -65,6 +65,7 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
     }
   });
 
+  focusScope.addEventListener('focusout', () => { frozenForKeyboard = false; });
   window.addEventListener('wheel', () => { frozenForKeyboard = false; }, { passive: true });
   window.addEventListener('touchmove', () => { frozenForKeyboard = false; }, { passive: true });
 
