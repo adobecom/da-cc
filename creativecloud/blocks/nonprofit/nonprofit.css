@@ -412,7 +412,7 @@
   position: absolute;
   display: flex;
   top: 15px;
-  right: 15px;
+  inset-inline-end: 15px;
   cursor: pointer;
 }
 
