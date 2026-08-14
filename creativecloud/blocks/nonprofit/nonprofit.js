@@ -9,6 +9,7 @@ import {
   countries,
   PRODUCT_VALIDATION_CONFIG,
   EDU_VALIDATION_CONFIG,
+  SUBSCRIPTIONS_CONFIG,
 } from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
@@ -1095,6 +1096,8 @@ async function getEduValidationRequest() {
       'Content-Type': 'application/json',
       'x-api-key': apiKey,
     },
+    environment: env?.name,
+    token: token?.token || token,
   };
 }
 
@@ -1116,18 +1119,63 @@ function renderRenewalErrorScreen(element) {
   element.append(containerTag);
 }
 
+async function getAnniversaryDate(personId, environment, token) {
+  try {
+    const { baseUrl } = SUBSCRIPTIONS_CONFIG[environment];
+
+    const apiKey = window.adobeid?.client_id;
+
+    const response = await fetch(
+      `${baseUrl}/users/${personId}/subscriptions`,
+      {
+        headers: {
+          'Accept-Language': 'en-US',
+          'X-API-Key': apiKey,
+          Authorization: `Bearer ${token?.token || token}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Subscriptions GET failed with status ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+
+    const nonprofitSubscription = data?.find(
+      (subscription) => subscription?.offer?.price_point === 'NON_PROFIT',
+    );
+
+    return nonprofitSubscription?.contract?.anniversary_date?.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+  } catch (error) {
+    window.lana?.log(
+      `Subscriptions GET failed: ${error}`,
+      LANA_OPTIONS,
+    );
+
+    return undefined;
+  }
+}
+
 async function initRenewalValidation() {
   const personId = formatPersonId(renewalProfile);
   if (!personId) return { type: 'error' };
 
   try {
-    const { baseUrl, headers } = await getEduValidationRequest();
+    const { baseUrl, headers, environment, token } = await getEduValidationRequest();
     const urlParams = new URLSearchParams(window.location.search);
-    const renewalDate = (urlParams.get('renewalDate') || urlParams.get('renewal-date') || '').match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    const renewalDate = (urlParams.get('renewalDate') || urlParams.get('renewal-date') || urlParams.get('effectiveDate') || urlParams.get('effective-date') || '').match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    let effectiveDate = renewalDate;
+    if (!effectiveDate) {
+      effectiveDate = await getAnniversaryDate((renewalProfile?.userId || renewalProfile?.authId), environment, token);
+    }
+
     const query = {
       'person-id': personId,
       'verification-segment': 'NONPROFIT',
-      ...(renewalDate && { 'effective-date': renewalDate }),
+      ...(effectiveDate && { 'effective-date': effectiveDate }),
       ...(renewalProfile?.countryCode && { country: renewalProfile.countryCode }),
     };
 

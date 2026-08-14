@@ -607,3 +607,8 @@ export const EDU_VALIDATION_CONFIG = {
     apiKey: window.adobeid?.client_id,
   },
 };
+
+export const SUBSCRIPTIONS_CONFIG = {
+  stage: { baseUrl: 'https://bps-il-stage.adobe.io' },
+  prod: { baseUrl: 'https://bps-il.adobe.io' },
+};
