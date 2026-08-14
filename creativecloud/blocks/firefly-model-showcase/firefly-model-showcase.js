@@ -154,32 +154,11 @@ function createResponsiveVideo(videoUrl, imageUrl) {
     }
   });
 
-  const controls = createTag('div', { class: 'animation-controls' });
-
-  const button = createTag('button', {
-    type: 'button',
-    class: 'pause-play-wrapper',
-    title: animationLabels.pauseMotion,
-    'aria-label': animationLabels.pauseMotion,
-    'aria-pressed': true,
-  });
-
-  const offsetFiller = createTag('span', {
-    class: 'offset-filler',
-    'aria-hidden': 'true',
-  });
-
-  button.append(offsetFiller);
-  controls.append(button);
-
   let manuallyPaused = false;
   let isVisible = false;
 
-  updateMotionButtonState(button, false);
-
   const pauseVideo = () => {
     if (!video.paused) video.pause();
-    updateMotionButtonState(button, false);
   };
 
   const playVideo = async (manual = false) => {
@@ -191,30 +170,22 @@ function createResponsiveVideo(videoUrl, imageUrl) {
     try {
       video.muted = true;
       await video.play();
-      updateMotionButtonState(button, true);
     } catch (err) {
       window.lana?.log(`Error playing video: ${err}`, LANA_OPTIONS);
-      updateMotionButtonState(button, false);
     }
   };
 
-  button.addEventListener('click', () => {
-    if (video.paused) {
-      manuallyPaused = false;
-      playVideo(true);
-    } else {
-      manuallyPaused = true;
+  // Expose control methods so a single global controller can manage all videos
+  video.playControlled = playVideo;
+  video.pauseControlled = pauseVideo;
+  video.setManualPaused = (val) => {
+    manuallyPaused = !!val;
+    if (manuallyPaused) {
       pauseVideo();
+    } else if (isVisible && !reducedMotionQuery.matches) {
+      playVideo(false);
     }
-  });
-
-  video.addEventListener('play', () => {
-    updateMotionButtonState(button, true);
-  });
-
-  video.addEventListener('pause', () => {
-    updateMotionButtonState(button, false);
-  });
+  };
 
   const observer = new IntersectionObserver(
     (entries) => {
@@ -247,7 +218,7 @@ function createResponsiveVideo(videoUrl, imageUrl) {
     reducedMotionQuery.addListener(onReducedMotionChange);
   }
 
-  wrapper.append(video, controls);
+  wrapper.append(video);
 
   return wrapper;
 }
@@ -335,6 +306,81 @@ export default async function init(el) {
 
   buildGalleryOutline(el);
   await populateGalleryCells(el, galleryJsonUrl);
+
+  // Create a single global play/pause button for the entire section
+  // Ensure block root is positioned so absolute placement works (button sits outside cards)
+  if (el && getComputedStyle(el).position === 'static') {
+    el.style.position = 'relative';
+  }
+
+  const allVideos = [...el.querySelectorAll('video')];
+
+  const globalControls = createTag('div', { class: 'firefly-global-controls animation-controls' });
+  const globalButton = createTag('button', {
+    type: 'button',
+    class: 'pause-play-wrapper',
+    title: animationLabels.playMotion,
+    'aria-label': animationLabels.playMotion,
+    'aria-pressed': false,
+  });
+  const globalOffset = createTag('span', { class: 'offset-filler', 'aria-hidden': 'true' });
+  globalButton.append(globalOffset);
+
+  updateMotionButtonState(globalButton, false);
+
+  let globalManuallyPaused = false;
+
+  const applyManualPausedToAll = (val) => {
+    allVideos.forEach((v) => {
+      if (typeof v.setManualPaused === 'function') {
+        v.setManualPaused(val);
+      } else if (val) {
+        v.pause();
+      } else if (!window.matchMedia(REDUCED_MOTION_QUERY).matches) {
+        v.play().catch(() => {});
+      }
+    });
+  };
+
+  globalButton.addEventListener('click', () => {
+    globalManuallyPaused = !globalManuallyPaused;
+    applyManualPausedToAll(globalManuallyPaused);
+    updateMotionButtonState(globalButton, !globalManuallyPaused);
+  });
+
+  globalButton.addEventListener('keydown', (event) => {
+    if (event.code === 'Enter' || event.code === 'Space') {
+      event.preventDefault();
+      globalButton.click();
+    }
+  });
+
+  const reducedMotionMQGlobal = window.matchMedia(REDUCED_MOTION_QUERY);
+  if (reducedMotionMQGlobal.matches) {
+    globalManuallyPaused = true;
+    applyManualPausedToAll(true);
+    updateMotionButtonState(globalButton, false);
+  }
+
+  const onReducedChange = (e) => {
+    if (e.matches) {
+      globalManuallyPaused = true;
+      applyManualPausedToAll(true);
+      updateMotionButtonState(globalButton, false);
+    } else if (!globalManuallyPaused) {
+      applyManualPausedToAll(false);
+      updateMotionButtonState(globalButton, true);
+    }
+  };
+  if (reducedMotionMQGlobal.addEventListener) {
+    reducedMotionMQGlobal.addEventListener('change', onReducedChange);
+  } else if (reducedMotionMQGlobal.addListener) {
+    reducedMotionMQGlobal.addListener(onReducedChange);
+  }
+
+  globalControls.append(globalButton);
+  // Append to block root so the button sits outside individual cards
+  el.appendChild(globalControls);
 
   new IntersectionObserver(async (entries, ob) => {
     if (entries[0].isIntersecting) {
