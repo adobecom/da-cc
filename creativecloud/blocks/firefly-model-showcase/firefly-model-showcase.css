@@ -409,8 +409,6 @@
 
 .firefly-model-showcase .animation-controls .pause-play-wrapper {
   position: absolute;
-  /* top: 169px;
-  left: 167px; */
   display: flex;
   justify-content: center;
   align-items: center;
@@ -422,6 +420,8 @@
   background-color: var(--color-white);
   margin: 0;
   border: 0;
+  bottom: 0;
+  right: 28px;
 }
 
 .firefly-model-showcase .animation-controls .pause-play-wrapper .offset-filler {
