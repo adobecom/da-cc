@@ -1097,6 +1097,7 @@ async function getEduValidationRequest() {
       'x-api-key': apiKey,
     },
     environment: env?.name,
+    token: token?.token || token,
   };
 }
 
@@ -1118,13 +1119,11 @@ function renderRenewalErrorScreen(element) {
   element.append(containerTag);
 }
 
-async function getAnniversaryDate(personId, environment) {
+async function getAnniversaryDate(personId, environment, token) {
   try {
     const { baseUrl } = SUBSCRIPTIONS_CONFIG[environment];
 
     const apiKey = window.adobeid?.client_id;
-
-    const token = await window.adobeIMS.getAccessToken();
 
     const response = await fetch(
       `${baseUrl}/users/${personId}/subscriptions`,
@@ -1165,12 +1164,12 @@ async function initRenewalValidation() {
   if (!personId) return { type: 'error' };
 
   try {
-    const { baseUrl, headers, environment } = await getEduValidationRequest();
+    const { baseUrl, headers, environment, token } = await getEduValidationRequest();
     const urlParams = new URLSearchParams(window.location.search);
     const renewalDate = (urlParams.get('renewalDate') || urlParams.get('renewal-date') || urlParams.get('effectiveDate') || urlParams.get('effective-date') || '').match(/\d{4}-\d{2}-\d{2}/)?.[0];
     let effectiveDate = renewalDate;
     if (!effectiveDate) {
-      effectiveDate = await getAnniversaryDate((renewalProfile?.userId || renewalProfile?.authId), environment);
+      effectiveDate = await getAnniversaryDate((renewalProfile?.userId || renewalProfile?.authId), environment, token);
     }
 
     const query = {
