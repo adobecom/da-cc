@@ -326,7 +326,7 @@ export default async function init(el) {
   const globalOffset = createTag('span', { class: 'offset-filler', 'aria-hidden': 'true' });
   globalButton.append(globalOffset);
 
-  updateMotionButtonState(globalButton, false);
+  updateMotionButtonState(globalButton, true);
 
   let globalManuallyPaused = false;
 
@@ -360,6 +360,9 @@ export default async function init(el) {
     globalManuallyPaused = true;
     applyManualPausedToAll(true);
     updateMotionButtonState(globalButton, false);
+  } else {
+    // attempt to start playback for all videos by default
+    applyManualPausedToAll(false);
   }
 
   const onReducedChange = (e) => {
