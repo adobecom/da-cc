@@ -488,10 +488,9 @@
 
   .np-step-name {
     font-size: 12px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    flex: 1;
+    white-space: normal;
+    overflow-wrap: break-word;
+    word-break: break-word;
     text-align: center;
   }
 
