@@ -492,7 +492,22 @@ describe('nonprofit - Personal details', () => {
   };
 
   before(() => {
-    setConfig({ locale: { prefix: 'mx', ietf: 'es-MX' } });
+    setConfig({
+      locale: { prefix: 'mx', ietf: 'es-MX' },
+      stage: {
+        nonprofit: {
+          apiUrl: 'test',
+          publishableKey: 'test',
+        },
+      },
+      prod: {
+        nonprofit: {
+          apiUrl: 'test',
+          publishableKey: 'test',
+        },
+      },
+    });
+
     window.mph = {};
     window.lana = { log: () => {} };
   });
