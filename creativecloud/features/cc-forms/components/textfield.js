@@ -96,9 +96,12 @@ class Textfield {
       case 'contributor':
         i.setAttribute('pattern', '^[^\\^,\\.\\?\\{\\}\\(\\)\\[\\]]+$');
         break;
-      case 'email':
-        i.setAttribute('pattern', '^[a-zA-Z0-9_.\\-]+@[a-z0-9_.\\-]{3,}\\.[a-z]{2,6}$');
+      case 'email': {
+        const isConnectTrial = this.form.getAttribute('data-clientname') === 'connecttrial';
+        const blockedDomains = isConnectTrial ? '(?!.*@(gmail|yahoo|aol)\\.)' : '';
+        i.setAttribute('pattern', `^${blockedDomains}[a-zA-Z0-9_.\\-]+@[a-z0-9_.\\-]{3,}\\.[a-z]{2,6}$`);
         break;
+      }
       case 'phonenumber':
         i.setAttribute('pattern', '^[0-9a-zA-Z\\-]*$');
         break;
