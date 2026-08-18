@@ -392,8 +392,8 @@
   align-items: center;
   justify-content: center;
   z-index: 4;
-  position: relative;
 }
+
 .gallery-cell-media-wrapper {
   height: 100%;
 }
@@ -420,8 +420,24 @@
   background-color: var(--color-white);
   margin: 0;
   border: 0;
-  bottom: 0;
-  right: 28px;
+  right: 16px;
+  top: 210px;
+}
+
+/* Tablet */
+@media screen and (min-width: 600px) and (max-width: 899px) {
+  .firefly-model-showcase .animation-controls .pause-play-wrapper {
+    right: 13px;
+    top: 262px;
+  }
+}
+
+/* Mobile */
+@media screen and (max-width: 599px) {
+  .firefly-model-showcase .animation-controls .pause-play-wrapper {
+    right: 7px;
+    top: 285px;
+  }
 }
 
 .firefly-model-showcase .animation-controls .pause-play-wrapper .offset-filler {
