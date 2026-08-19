@@ -97,7 +97,7 @@ class Textfield {
         i.setAttribute('pattern', '^[^\\^,\\.\\?\\{\\}\\(\\)\\[\\]]+$');
         break;
       case 'email': {
-        const isConnectTrial = this.form.getAttribute('data-clientname') === 'connecttrial';
+        const isConnectTrial = this.form.closest('.cc-forms')?.classList.contains('connect');
         const blockedDomains = isConnectTrial ? '(?!.*@(gmail|yahoo|aol)\\.com)' : '';
         i.setAttribute('pattern', `^${blockedDomains}[a-zA-Z0-9_.\\-]+@[a-z0-9_.\\-]{3,}\\.[a-z]{2,6}$`);
         break;
