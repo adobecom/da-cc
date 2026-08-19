@@ -421,14 +421,14 @@
   margin: 0;
   border: 0;
   right: 16px;
-  top: 210px;
+  top: 130px;
 }
 
 /* Tablet */
 @media screen and (min-width: 600px) and (max-width: 899px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
     right: 13px;
-    top: 262px;
+    top: 40px;
   }
 }
 
@@ -436,7 +436,7 @@
 @media screen and (max-width: 599px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
     right: 7px;
-    top: 285px;
+    top: 40px;
   }
 }
 
