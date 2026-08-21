@@ -1071,7 +1071,7 @@ let renewalProfile = null;
 
 let renewalValidation = null;
 
-const TERMINAL_STATUSES = new Set(['APPROVED', 'DECLINED', 'PENDING']);
+const TERMINAL_STATUSES = new Set(['APPROVED', 'PENDING']);
 
 function hasRenewalUrlParam() {
   const params = new URLSearchParams(window.location.search);
