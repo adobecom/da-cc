@@ -6,7 +6,7 @@ export default class accordion {
     this.accordionName = this.accordionSection.locator('#accordion-1');
     this.accordionQuestion1 = this.accordionName.locator('//div[@role="heading"]').nth(0);
     this.accordionDefinition1 = this.accordionName.locator('#accordion-1-trigger-1');
-    this.accordionQuestion2 = this.accordionName.locator('//dt[@role="heading"]').nth(1);
+    this.accordionQuestion2 = this.accordionName.locator('//div[@role="heading"]').nth(1);
     this.accordionDefinition2 = this.accordionName.locator('#accordion-1-trigger-2');
     this.DefaultState = this.accordionName.locator('//button[@id="accordion-1-trigger-1" and @aria-expanded="false"]');
     this.accordexpanded = this.accordionName.locator('//button[@id="accordion-1-trigger-1" and @aria-expanded="true"]');
