@@ -65,7 +65,8 @@ class TrustCenterLibraryGate {
     const { env } = getConfig();
     this.prodEndpoint = 'https://www.adobe.com/trustcenter/api/';
     this.stageEndpoint = 'https://www.stage.adobe.com/trustcenter/api/';
-    if (!this.apiUrl) this.apiUrl = env.name === 'prod' ? this.prodEndpoint : this.stageEndpoint;
+    const testApiUrl = env.name !== 'prod' ? new URLSearchParams(window.location.search).get('trustcenterApiUrl') : null;
+    if (!this.apiUrl) this.apiUrl = testApiUrl || (env.name === 'prod' ? this.prodEndpoint : this.stageEndpoint);
     this.processMetaSettings();
     this.decorateContainers();
     this.initializeGate();
@@ -185,6 +186,14 @@ class TrustCenterLibraryGate {
         this.hideNDAiFrameListener = this.hideNDAiFrameListener.bind(this);
 
         if (!window.adobeIMS.isSignedInUser()) {
+          // Set by showPublicDomainContainer()'s sign-in CTA on the redirect_uri for direct signin later
+          const url = new URL(window.location.href);
+          if (url.searchParams.get('forceSignIn') === 'true') {
+            url.searchParams.delete('forceSignIn');
+            window.history.replaceState({}, '', url);
+            window.adobeIMS.signIn();
+            return;
+          }
           this.showSignedOutContainer();
           return;
         }
@@ -290,7 +299,12 @@ class TrustCenterLibraryGate {
   showPublicDomainContainer() {
     if (!this.publicDomainBtnHasEventListener) {
       this.publicDomainBtnHasEventListener = true;
-      this.domElements.publicDomainContainer.querySelector(`#${Config.ids.signInCta}`)?.addEventListener('click', () => window.adobeIMS.signIn());
+      this.domElements.publicDomainContainer.querySelector(`#${Config.ids.signInCta}`)?.addEventListener('click', () => {
+        this.removeHasSignedNdaCookie();
+        const url = new URL(window.location.href);
+        url.searchParams.set('forceSignIn', 'true');
+        window.adobeIMS.signOut({ redirect_uri: url.toString() });
+      });
     }
     this.showContainer(this.domElements.publicDomainContainer);
   }
