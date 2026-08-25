@@ -39,7 +39,7 @@ const config = {
     trace: 'on-first-retry',
     baseURL: process.env.PR_BRANCH_LIVE_URL
       || process.env.LOCAL_TEST_LIVE_URL
-      || 'https://stage--cc--adobecom.aem.live',
+      || 'https://stage--da-cc--adobecom.aem.live',
   },
   projects: [
     {
