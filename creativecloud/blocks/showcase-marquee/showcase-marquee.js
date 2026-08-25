@@ -40,10 +40,12 @@ export function createRollingLogos(logos) {
     logoContainer.style.setProperty('--logos-gap', `${gap}px`);
   }
 
-  function addScrolling() {
+  function setupLayout() {
     handleResize(tabletMQ.matches);
     tabletMQ.addEventListener('change', ({ matches }) => handleResize(matches));
+  }
 
+  function addScrolling() {
     let lastScrollY = window.scrollY;
     let targetScrollOffset = 0;
     let currentScrollOffset = 0;
@@ -65,6 +67,10 @@ export function createRollingLogos(logos) {
     };
 
     const animate = () => {
+      if (logoContainer.classList.contains('paused')) {
+        rafId = null;
+        return;
+      }
       updateScrollEffect();
       const difference = Math.abs(targetScrollOffset - currentScrollOffset);
       if (difference > 0.1) {
@@ -75,6 +81,10 @@ export function createRollingLogos(logos) {
     };
 
     const onScroll = () => {
+      if (logoContainer.classList.contains('paused')) {
+        lastScrollY = window.scrollY;
+        return;
+      }
       if (!rafId) {
         rafId = requestAnimationFrame(animate);
       }
@@ -83,7 +93,7 @@ export function createRollingLogos(logos) {
     window.addEventListener('scroll', onScroll, { passive: true });
   }
 
-  return { addScrolling, logoContainer };
+  return { addScrolling, setupLayout, logoContainer };
 }
 
 async function fetchAnimationLabels(getFedsPlaceholderConfig, replaceKeyArray) {
@@ -100,8 +110,9 @@ async function fetchAnimationLabels(getFedsPlaceholderConfig, replaceKeyArray) {
 }
 
 function initAnimationControls({ button, iconWrapper, logoContainer }) {
-  let isPlaying = true;
   if (!button || !iconWrapper || !logoContainer) return;
+  let isPlaying = true;
+  const reducedMotionMQ = window.matchMedia('(prefers-reduced-motion: reduce)');
 
   const updateControlState = (playing) => {
     isPlaying = playing;
@@ -113,16 +124,30 @@ function initAnimationControls({ button, iconWrapper, logoContainer }) {
 
   const pauseAnimation = () => {
     updateControlState(false);
-    const { transform } = getComputedStyle(logoContainer);
-    logoContainer.style.animation = 'none';
-    logoContainer.style.transform = transform;
+    if (reducedMotionMQ.matches) {
+      logoContainer.style.animation = '';
+      logoContainer.style.transform = '';
+      logoContainer.style.setProperty('--marquee-state', 'paused', 'important');
+    } else {
+      logoContainer.style.removeProperty('--marquee-state');
+      const { transform } = getComputedStyle(logoContainer);
+      logoContainer.style.animation = 'none';
+      logoContainer.style.transform = transform;
+    }
     logoContainer.classList.add('paused');
   };
 
   const playAnimation = () => {
     updateControlState(true);
-    logoContainer.style.animation = '';
-    logoContainer.style.transform = '';
+    if (reducedMotionMQ.matches) {
+      logoContainer.style.animation = '';
+      logoContainer.style.transform = '';
+      logoContainer.style.setProperty('--marquee-state', 'running', 'important');
+    } else {
+      logoContainer.style.removeProperty('--marquee-state');
+      logoContainer.style.animation = '';
+      logoContainer.style.transform = '';
+    }
     logoContainer.classList.remove('paused');
   };
 
@@ -141,6 +166,11 @@ function initAnimationControls({ button, iconWrapper, logoContainer }) {
   });
 
   button.addEventListener('keydown', handleKeydown);
+  button.addEventListener('focus', () => button.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+
+  reducedMotionMQ.addEventListener('change', ({ matches }) => (matches ? pauseAnimation() : playAnimation()));
+
+  if (reducedMotionMQ.matches) pauseAnimation();
 }
 
 function createAnimationControls({ container, getFederatedContentRoot, logoContainer }) {
@@ -203,31 +233,55 @@ export default async function init(el) {
     replaceKeyArray,
   );
   const children = el.querySelectorAll(':scope > div');
-  const foreground = children[children.length - 2];
+  const isLogoGallery = el.classList.contains('logo-gallery');
 
-  // Setup background if exists
-  if (children.length > 1) {
-    children[0].classList.add('background');
-    decorateBlockBg(el, children[0], { useHandleFocalpoint: true });
+  if (!isLogoGallery) {
+    const foreground = children[children.length - 2];
+    // Setup background if exists
+    if (children.length > 1) {
+      children[0].classList.add('background');
+      decorateBlockBg(el, children[0], { useHandleFocalpoint: true });
+    }
+    foreground.classList.add('foreground', 'container');
+    const headline = foreground.querySelector('h1, h2, h3, h4, h5, h6');
+    const text = headline.closest('div');
+    headline.classList.add('heading');
+    headline.nextElementSibling?.classList.add('body');
+    text.classList.add('text');
+    text.classList.add('copy');
   }
-  foreground.classList.add('foreground', 'container');
-  const headline = foreground.querySelector('h1, h2, h3, h4, h5, h6');
-  const text = headline.closest('div');
-  headline.classList.add('heading');
-  headline.nextElementSibling?.classList.add('body');
-  text.classList.add('text');
-  text.classList.add('copy');
 
-  const logoRowContent = children[children.length - 1];
+  let logoRowContent;
+  let logos;
+  let logoLabels;
 
-  if (!logoRowContent) return;
+  if (isLogoGallery) {
+    logos = [];
+    logoLabels = [];
+    el.querySelectorAll('span.icon').forEach((icon) => {
+      logos.push(icon);
+      const nextText = icon.nextSibling;
+      if (nextText?.nodeType === Node.TEXT_NODE) {
+        const match = nextText.textContent.match(/\|\s*(.+)/);
+        logoLabels.push(match ? match[1].trim() : '');
+      } else {
+        logoLabels.push('');
+      }
+    });
+    [...children].forEach((child) => child.remove());
+    logoRowContent = createTag('div', {});
+    el.appendChild(logoRowContent);
+  } else {
+    logoRowContent = children[children.length - 1];
+    if (!logoRowContent) return;
+    logos = [...logoRowContent.querySelectorAll('span.icon')];
+    logoLabels = logos.map((logo) => getAuthorLogoLabel(logo));
+    logoRowContent.innerHTML = '';
+  }
 
   logoRowContent.classList.add('logo-row');
-  const logos = logoRowContent.querySelectorAll('span.icon');
-  const logoLabels = [...logos].map((logo) => getAuthorLogoLabel(logo));
-  logoRowContent.innerHTML = '';
   // TODO: cut down 1 level of DOM nesting
-  const { logoContainer, addScrolling } = createRollingLogos(logos);
+  const { logoContainer, addScrolling, setupLayout } = createRollingLogos(logos);
 
   const authoredLabels = logoLabels.filter(Boolean);
   if (authoredLabels.length > 0) {
@@ -248,8 +302,43 @@ export default async function init(el) {
   new IntersectionObserver(([{ isIntersecting }], ob) => {
     if (!isIntersecting) return;
     ob.disconnect();
-    if (!logoContainer.classList.contains('paused')) {
-      addScrolling();
-    }
+    setupLayout();
+    addScrolling();
   }).observe(el);
+
+  if (isLogoGallery) {
+    const desktopMq = window.matchMedia('(min-width: 1200px)');
+    let galleryGap = desktopMq.matches ? 160 : 80;
+
+    const adjustGalleryHeight = () => {
+      const galleryCells = document.querySelectorAll('.firefly-model-showcase-gallery .gallery-cell');
+      if (!galleryCells.length) return false;
+
+      const elTop = el.getBoundingClientRect().top;
+      let maxCellBottom = -Infinity;
+      galleryCells.forEach((cell) => {
+        const bottom = cell.getBoundingClientRect().bottom;
+        if (bottom > maxCellBottom) maxCellBottom = bottom;
+      });
+
+      const logoRowHeight = logoRowContent.offsetHeight;
+      const neededHeight = (maxCellBottom - elTop) + galleryGap + logoRowHeight;
+      el.style.minHeight = `${Math.max(0, neededHeight)}px`;
+      return true;
+    };
+
+    const showcaseBlock = document.querySelector('.firefly-model-showcase');
+    if (showcaseBlock) {
+      const observer = new MutationObserver(() => {
+        if (adjustGalleryHeight()) observer.disconnect();
+      });
+      observer.observe(showcaseBlock, { childList: true, subtree: true });
+    }
+
+    window.addEventListener('resize', () => {
+      galleryGap = desktopMq.matches ? 160 : 80;
+      adjustGalleryHeight();
+    });
+    requestAnimationFrame(() => requestAnimationFrame(adjustGalleryHeight));
+  }
 }

@@ -445,7 +445,8 @@ export default async function init(el) {
     if (!container.classList.contains(`${BLOCK}-expanded`)) return;
     if (Math.abs(deltaX) < 50 || Math.abs(deltaY) >= Math.abs(deltaX)) return;
     stopAutoplay();
-    if (deltaX < 0) {
+    const forward = isRTL ? deltaX > 0 : deltaX < 0;
+    if (forward) {
       moveNext();
     } else {
       movePrev();
@@ -496,10 +497,12 @@ export default async function init(el) {
   });
 
   el.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') {
+    const prevKey = isRTL ? 'ArrowRight' : 'ArrowLeft';
+    const nextKey = isRTL ? 'ArrowLeft' : 'ArrowRight';
+    if (e.key === prevKey) {
       e.preventDefault();
       movePrev();
-    } else if (e.key === 'ArrowRight') {
+    } else if (e.key === nextKey) {
       e.preventDefault();
       moveNext();
     }
@@ -560,7 +563,10 @@ export default async function init(el) {
       const stackCenter = containerWidth / 2;
       cards.forEach((card, i) => {
         const carouselCenter = marginStart + i * (cardWidth + gap) + cardWidth / 2;
-        card.style.setProperty('--expand-offset', `${carouselCenter - stackCenter}px`);
+        const offset = isRTL
+          ? stackCenter - carouselCenter
+          : carouselCenter - stackCenter;
+        card.style.setProperty('--expand-offset', `${offset}px`);
       });
     };
 

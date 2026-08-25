@@ -9,7 +9,7 @@
         --xl-rounded-corners: 32px;
     }
 
-    :where(.section:not(.dark) p) {
+    :where(.section:not(.dark) p:not(merch-card [slot="promo-text"]):not(merch-card [slot="promo-text"] *)) {
       color: #5D5D5D;
     }
 
