@@ -99,7 +99,7 @@ describe('trustcenter library gate - cookie reasonHint', () => {
       // documenthandler's independent re-check also succeeds, so decryptDocument doesn't
       // remove the cookie it just set.
       return {
-        json: async () => ({ fileUrl: `${window.location.origin}/test/blocks/trustcenter-library-gate/mocks/sample.pdf`, isPdf: 'false', fileName: 'sample.txt', fileType: 'txt' }),
+        json: async () => ({ fileUrl: `${window.location.origin}/test/blocks/trustcenter-library-gate/mocks/sample.pdf`, isPdf: false, fileName: 'sample.txt', fileType: 'txt' }),
         status: 200,
         ok: true,
       };

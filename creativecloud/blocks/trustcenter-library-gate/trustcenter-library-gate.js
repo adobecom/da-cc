@@ -375,8 +375,8 @@ class TrustCenterLibraryGate {
       const reasonHint = this.getReasonHintFromCookie();
       const queryParams = reasonHint ? { reasonHint } : {};
       const { status, reason } = await this.ioServiceRequest({ method: 'libraryaccess', queryParams });
-      this.hideLoader();
       if (status === 'PUBLIC_DOMAIN_EMAIL') {
+        this.hideLoader();
         this.showPublicDomainContainer();
         return;
       }
@@ -385,6 +385,7 @@ class TrustCenterLibraryGate {
         await this.onGranted(reason);
         return;
       }
+      this.hideLoader();
       this.removeHasSignedNdaCookie();
       this.showNdaContainer();
     } catch (err) {
@@ -397,12 +398,22 @@ class TrustCenterLibraryGate {
     if (this.isLibraryPage) {
       this.revealGrantedContent();
       await this.initCaasBlock();
+      this.hideLoader();
       return;
     }
     await this.decryptDocument(reasonHint);
   }
 
   revealGrantedContent() {
+    const hiddenClass = Config.selectors.hiddenItem;
+    [
+      this.domElements.signedOutContainer,
+      this.domElements.publicDomainContainer,
+      this.domElements.ndaContainer,
+      this.domElements.errorContainer,
+      this.domElements.documentContainer,
+      this.domElements.ndaiFrameContainer,
+    ].forEach((el) => el?.classList.add(hiddenClass));
     document.querySelectorAll('.trustcenter-granted')
       .forEach((el) => el.classList.remove('trustcenter-granted'));
   }
