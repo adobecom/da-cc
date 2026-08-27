@@ -1216,9 +1216,6 @@ async function submitRenewalValidation(product) {
 
     const foundInSearch = stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH;
 
-    // Upload the evidence document to Goodstack when the organization was not found in search.
-    // This runs in parallel with the edu validation submission and must not block or fail the
-    // renewal flow, so its errors are swallowed and only logged.
     let evidenceUploadPromise = Promise.resolve();
     if (!foundInSearch) {
       evidenceUploadPromise = createValidationInvite(product, ietf)
@@ -1255,7 +1252,6 @@ async function submitRenewalValidation(product) {
 
     renewalValidation = await response.json();
 
-    // Ensure the parallel document upload settles (it is already error-guarded, so it never rejects).
     await evidenceUploadPromise;
 
     return true;
