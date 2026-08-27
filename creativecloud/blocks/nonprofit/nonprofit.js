@@ -41,9 +41,7 @@ function getPercentConfig() {
   return { url: apiUrl, key: publishableKey };
 }
 
-// The Goodstack validation endpoints (invite creation and document upload) are tied to the
-// hardcoded production VALIDATION_URL/CONFIGURATION_ID, so they must always use the production
-// Goodstack API and key regardless of environment (the sandbox key is rejected with a 403).
+// Goodstack validation invites require the production API/key regardless of environment. (the sandbox key is rejected with a 403).
 function getProdNonprofitConfig() {
   const { prod } = getConfig();
   return { url: prod.nonprofit.apiUrl, key: prod.nonprofit.publishableKey };
@@ -1199,8 +1197,7 @@ async function initRenewalValidation() {
     if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
 
     renewalValidation = await response.json();
-    // const status = renewalValidation.status?.toUpperCase?.();
-    const status = 'UNKNOWN';
+    const status = renewalValidation.status?.toUpperCase?.();
     return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
   } catch (error) {
     window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
