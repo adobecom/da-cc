@@ -31,7 +31,7 @@ toRepoOrg=${repoParts[0]}
 toRepoName=${repoParts[1]}
 
 prRepo=${prRepo:-$toRepoName}
-prOrg=${prOrg:-$toRepoOrg}
+prOrg="adobecom"
 
 # Handle PR Branch Live URL
 PR_BRANCH_LIVE_URL_GH="https://${FEATURE_BRANCH}--${prRepo}--${prOrg}.aem.live"
