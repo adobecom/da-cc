@@ -291,7 +291,10 @@ class TrustCenterLibraryGate {
   showSignedOutContainer() {
     if (!this.signInBtnHasEventListener) {
       this.signInBtnHasEventListener = true;
-      this.domElements.signInButton?.addEventListener('click', () => window.adobeIMS.signIn());
+      this.domElements.signInButton?.addEventListener('click', () => {
+        this.track({ data: 'sign in', cta: true });
+        window.adobeIMS.signIn();
+      });
     }
     this.showContainer(this.domElements.signedOutContainer);
   }
@@ -300,6 +303,7 @@ class TrustCenterLibraryGate {
     if (!this.publicDomainBtnHasEventListener) {
       this.publicDomainBtnHasEventListener = true;
       this.domElements.publicDomainContainer.querySelector(`#${Config.ids.signInCta}`)?.addEventListener('click', () => {
+        this.track({ data: 'sign in:public domain', cta: true });
         this.removeHasSignedNdaCookie();
         const url = new URL(window.location.href);
         url.searchParams.set('forceSignIn', 'true');
@@ -396,6 +400,7 @@ class TrustCenterLibraryGate {
 
   async onGranted(reasonHint) {
     if (this.isLibraryPage) {
+      this.track({ data: `library granted:${reasonHint}` });
       this.revealGrantedContent();
       await this.initCaasBlock();
       this.hideLoader();
