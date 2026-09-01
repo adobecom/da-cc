@@ -307,8 +307,7 @@ export default async function init(el) {
   }).observe(el);
 
   if (isLogoGallery) {
-    const desktopMq = window.matchMedia('(min-width: 1200px)');
-    let galleryGap = desktopMq.matches ? 160 : 80;
+    let galleryGap = 80;
 
     const adjustGalleryHeight = () => {
       const galleryCells = document.querySelectorAll('.firefly-model-showcase-gallery .gallery-cell');
@@ -317,7 +316,7 @@ export default async function init(el) {
       const elTop = el.getBoundingClientRect().top;
       let maxCellBottom = -Infinity;
       galleryCells.forEach((cell) => {
-        const bottom = cell.getBoundingClientRect().bottom;
+        const { bottom } = cell.getBoundingClientRect();
         if (bottom > maxCellBottom) maxCellBottom = bottom;
       });
 
@@ -336,7 +335,7 @@ export default async function init(el) {
     }
 
     window.addEventListener('resize', () => {
-      galleryGap = desktopMq.matches ? 160 : 80;
+      galleryGap = 80;
       adjustGalleryHeight();
     });
     requestAnimationFrame(() => requestAnimationFrame(adjustGalleryHeight));
