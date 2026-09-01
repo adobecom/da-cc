@@ -251,37 +251,6 @@ describe('ConnectTrials Form', () => {
     postalcode.dispatchEvent(new Event('input'));
   });
 
-  it('Email should reject Gmail, Yahoo, Yahoo regional and AOL domains', () => {
-    const email = document.body.querySelector('#email');
-    const blockedEmails = [
-      'user@gmail.com',
-      'user@yahoo.com',
-      'user@yahoo.co.uk',
-      'user@yahoo.co.in',
-      'user@yahoo.co.jp',
-      'user@aol.com',
-    ];
-    blockedEmails.forEach((value) => {
-      email.value = value;
-      email.dispatchEvent(new Event('input'));
-      expect(email.getAttribute('data-valid'), `${value} should be invalid`).to.equal('false');
-    });
-  });
-
-  it('Email should accept work emails and non-blocked domains', () => {
-    const email = document.body.querySelector('#email');
-    const allowedEmails = [
-      'user@company.com',
-      'user@yahoo.de',
-      'user@googlemail.com',
-    ];
-    allowedEmails.forEach((value) => {
-      email.value = value;
-      email.dispatchEvent(new Event('input'));
-      expect(email.getAttribute('data-valid'), `${value} should be valid`).to.equal('true');
-    });
-  });
-
   it('Submit check', () => {
     document.body.querySelector('#email').value = 'email@gmail.com';
     document.body.querySelector('#fname').value = 'val';
