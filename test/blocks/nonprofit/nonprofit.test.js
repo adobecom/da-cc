@@ -142,22 +142,6 @@ describe('nonprofit - Organization search', () => {
   };
 
   before(() => {
-    setConfig({
-      locale: { prefix: 'mx', ietf: 'es-MX' },
-      stage: {
-        nonprofit: {
-          apiUrl: 'test',
-          publishableKey: '',
-        },
-      },
-      prod: {
-        nonprofit: {
-          apiUrl: 'test',
-          publishableKey: 'test',
-        },
-      },
-    });
-
     window.mph = {};
     window.lana = { log: () => {} };
   });
@@ -165,6 +149,7 @@ describe('nonprofit - Organization search', () => {
   beforeEach(async function () {
     document.body.innerHTML = body;
     const np = document.querySelector('.nonprofit');
+    init(np);
 
     const data = mockedFetchReturnData[this.currentTest.title] || mockedFetchReturnData.default;
 
@@ -175,8 +160,6 @@ describe('nonprofit - Organization search', () => {
         ok: !data.error,
       }),
     );
-
-    init(np);
 
     const countrySearch = document.querySelector('input[data-for="country"]');
     const organizationSearch = document.querySelector('input[data-for="organizationId"]');
@@ -509,22 +492,7 @@ describe('nonprofit - Personal details', () => {
   };
 
   before(() => {
-    setConfig({
-      locale: { prefix: 'mx', ietf: 'es-MX' },
-      stage: {
-        nonprofit: {
-          apiUrl: 'test',
-          publishableKey: 'test',
-        },
-      },
-      prod: {
-        nonprofit: {
-          apiUrl: 'test',
-          publishableKey: 'test',
-        },
-      },
-    });
-
+    setConfig({ locale: { prefix: 'mx', ietf: 'es-MX' } });
     window.mph = {};
     window.lana = { log: () => {} };
   });
@@ -653,18 +621,6 @@ describe('nonprofit - Lingo fallback for base and sub-regions', () => {
       locales: {
         fr: { ietf: 'fr-FR', tk: 'vrk5vyv.css' },
         ch_fr: { ietf: 'fr-CH', tk: 'vrk5vyv.css', base: 'fr' },
-      },
-      stage: {
-        nonprofit: {
-          apiUrl: 'test',
-          publishableKey: 'test',
-        },
-      },
-      prod: {
-        nonprofit: {
-          apiUrl: 'test',
-          publishableKey: 'test',
-        },
       },
     });
     window.mph = {};
