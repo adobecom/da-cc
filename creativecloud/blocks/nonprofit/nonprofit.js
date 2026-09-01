@@ -40,12 +40,6 @@ function getPercentConfig() {
     : prod.nonprofit;
   return { url: apiUrl, key: publishableKey };
 }
-
-// Goodstack validation invites require the production API/key regardless of environment. (the sandbox key is rejected with a 403).
-function getProdNonprofitConfig() {
-  const { prod } = getConfig();
-  return { url: prod.nonprofit.apiUrl, key: prod.nonprofit.publishableKey };
-}
 export const SCENARIOS = Object.freeze({
   FOUND_IN_SEARCH: 'FOUND_IN_SEARCH',
   NOT_FOUND_IN_SEARCH: 'NOT_FOUND_IN_SEARCH',
@@ -158,43 +152,35 @@ async function fetchRegistries(countryCode, abortController) {
   }
 }
 
-async function createValidationInvite(product, ietf) {
-  const { url: apiUrl, key: publishableKey } = getProdNonprofitConfig();
-  const { VALIDATION_URL, CONFIGURATION_ID } = PRODUCT_VALIDATION_CONFIG[product];
-  const inviteResponse = await fetch(`${VALIDATION_URL}?lng=${ietf}`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${publishableKey}` },
-    body: JSON.stringify({ configurationId: CONFIGURATION_ID }),
-  });
-
-  const inviteResult = await validatePercentResponse(inviteResponse);
-
-  return { apiUrl, publishableKey, validationInviteId: inviteResult.data.validationInviteId };
-}
-
-async function uploadEvidenceDocument(apiUrl, publishableKey, validationInviteId) {
-  const evidenceUploadData = new FormData();
-  evidenceUploadData.append('file', nonprofitFormData.evidenceNonProfitStatus);
-  evidenceUploadData.append('validationInviteId', validationInviteId);
-
-  const uploadResponse = await fetch(`${apiUrl}/validation-submission-documents`, {
-    method: 'POST',
-    headers: { Authorization: publishableKey },
-    body: evidenceUploadData,
-  });
-
-  await validatePercentResponse(uploadResponse);
-}
-
 async function sendOrganizationData(product) {
   try {
+    const { url: apiUrl, key: publishableKey } = getPercentConfig();
     const { ietf } = await getGeoLocaleInfo();
-    const { apiUrl, publishableKey, validationInviteId } = await createValidationInvite(product, ietf);
+    const { VALIDATION_URL, CONFIGURATION_ID } = PRODUCT_VALIDATION_CONFIG[product];
+    const inviteResponse = await fetch(`${VALIDATION_URL}?lng=${ietf}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${publishableKey}` },
+      body: JSON.stringify({ configurationId: CONFIGURATION_ID }),
+    });
+
+    const inviteResult = await validatePercentResponse(inviteResponse);
+
+    const { validationInviteId } = inviteResult.data;
 
     const foundInSearch = stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH;
 
     if (!foundInSearch) {
-      await uploadEvidenceDocument(apiUrl, publishableKey, validationInviteId);
+      const evidenceUploadData = new FormData();
+      evidenceUploadData.append('file', nonprofitFormData.evidenceNonProfitStatus);
+      evidenceUploadData.append('validationInviteId', validationInviteId);
+
+      const uploadResponse = await fetch(`${apiUrl}/validation-submission-documents`, {
+        method: 'POST',
+        headers: { Authorization: publishableKey },
+        body: evidenceUploadData,
+      });
+
+      await validatePercentResponse(uploadResponse);
     }
 
     let body;
@@ -979,7 +965,7 @@ function renderPersonalData(containerTag, product) {
     stepperStore.update((prev) => ({ ...prev, pending: true }));
 
     const ok = hasRenewalUrlParam()
-      ? await submitRenewalValidation(product)
+      ? await submitRenewalValidation()
       : await sendOrganizationData(product);
 
     if (!ok) {
@@ -1085,7 +1071,7 @@ let renewalProfile = null;
 
 let renewalValidation = null;
 
-const TERMINAL_STATUSES = new Set(['APPROVED', 'PENDING']);
+const TERMINAL_STATUSES = new Set(['APPROVED', 'DECLINED', 'PENDING']);
 
 function hasRenewalUrlParam() {
   const params = new URLSearchParams(window.location.search);
@@ -1205,7 +1191,7 @@ async function initRenewalValidation() {
   }
 }
 
-async function submitRenewalValidation(product) {
+async function submitRenewalValidation() {
   const personId = formatPersonId(renewalProfile);
   if (!personId) return false;
 
@@ -1213,17 +1199,6 @@ async function submitRenewalValidation(product) {
     const { ietf } = await getGeoLocaleInfo();
     const { baseUrl, headers } = await getEduValidationRequest();
     const language = String(ietf).split('-')[0] || 'en';
-
-    const foundInSearch = stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH;
-
-    let evidenceUploadPromise = Promise.resolve();
-    if (!foundInSearch) {
-      evidenceUploadPromise = createValidationInvite(product, ietf)
-        .then(({ apiUrl, publishableKey, validationInviteId }) => uploadEvidenceDocument(apiUrl, publishableKey, validationInviteId))
-        .catch((error) => {
-          window.lana?.log(`Renewal evidence document upload failed: ${error}`, LANA_OPTIONS);
-        });
-    }
 
     const payload = {
       'verification-segment': 'NONPROFIT',
@@ -1235,7 +1210,7 @@ async function submitRenewalValidation(product) {
       'nonprofit-details': { language },
     };
 
-    if (foundInSearch) {
+    if (stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH) {
       payload['organization-id'] = nonprofitFormData.organizationId;
     } else {
       payload['organization-name'] = nonprofitFormData.organizationName;
@@ -1251,9 +1226,6 @@ async function submitRenewalValidation(product) {
     if (!response.ok) throw new Error(`Edu validation POST failed with status ${response.status}`);
 
     renewalValidation = await response.json();
-
-    await evidenceUploadPromise;
-
     return true;
   } catch (error) {
     window.lana?.log(`Renewal validation POST failed: ${error}`, LANA_OPTIONS);
