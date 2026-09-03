@@ -18,7 +18,8 @@ window.adobePrivacy = { activeCookieGroups: () => ['C0003'] };
 
 const { setConfig } = await import(import.meta.resolve('libs/utils/utils.js'));
 const { setLibs } = await import('../../../creativecloud/scripts/utils.js');
-const { default: init } = await import('../../../creativecloud/blocks/trustcenter-library-gate/trustcenter-library-gate.js');
+const { default: init, TrustCenterLibraryGate } = await import('../../../creativecloud/blocks/trustcenter-library-gate/trustcenter-library-gate.js');
+sinon.stub(TrustCenterLibraryGate.prototype, 'waitForIms').resolves();
 const { getCookieValue } = await import('../../../creativecloud/features/trustcenter/cookie-wrapper.js');
 
 const siblingHtml = await readFile({ path: './mocks/trustcenter-library-gate-sibling.html' });

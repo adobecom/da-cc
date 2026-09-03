@@ -2,7 +2,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-len */
 
-import { createTag, getLibs, getConfig, isSignedInInitialized } from '../../scripts/utils.js';
+import { createTag, getLibs, getConfig } from '../../scripts/utils.js';
 import { isEmptyObject, getCookieValue, setCookieValue } from '../../features/trustcenter/cookie-wrapper.js';
 import analyticsWrapper from '../../features/trustcenter/analytics-wrapper.js';
 
@@ -59,7 +59,7 @@ const unhandledError = (e) => lanaLog({
 window.addEventListener('error', unhandledError);
 window.addEventListener('unhandledrejection', unhandledError);
 
-class TrustCenterLibraryGate {
+export class TrustCenterLibraryGate {
   constructor(el) {
     this.el = el;
     const { env } = getConfig();
@@ -174,8 +174,14 @@ class TrustCenterLibraryGate {
     this.createTcProgressCircle(contentWrapper);
   }
 
+  async waitForIms() {
+    const miloLibs = getLibs();
+    const { loadIms } = await import(`${miloLibs}/utils/utils.js`);
+    await loadIms();
+  }
+
   initializeGate() {
-    isSignedInInitialized()
+    this.waitForIms()
       .then(() => {
         this.mapDomElements();
         if (!this.areDomElementsValid()) return;
