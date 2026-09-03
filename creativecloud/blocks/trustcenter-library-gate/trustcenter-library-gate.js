@@ -181,10 +181,11 @@ export class TrustCenterLibraryGate {
   }
 
   initializeGate() {
+    this.mapDomElements();
+    if (!this.areDomElementsValid()) return;
+
     this.waitForIms()
       .then(() => {
-        this.mapDomElements();
-        if (!this.areDomElementsValid()) return;
         if (!this.isLibraryPage) {
           const metaEl = createTag('meta', { name: 'pdf-embed-mode', content: 'full-window' });
           document.head.append(metaEl);
@@ -206,12 +207,10 @@ export class TrustCenterLibraryGate {
         this.checkAccess();
       })
       .catch((err = {}) => {
-        if (this.domElements && this.domElements.errorContainer) {
-          this.showErrorContainer({
-            message: 'Trust Center Library Gate - IMS onReady issues',
-            errorMessage: err.message,
-          });
-        }
+        this.showErrorContainer({
+          message: 'Trust Center Library Gate - IMS onReady issues',
+          errorMessage: err.message,
+        });
       });
   }
 
