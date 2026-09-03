@@ -184,6 +184,7 @@ export class TrustCenterLibraryGate {
     this.mapDomElements();
     if (!this.areDomElementsValid()) return;
 
+    this.showLoader();
     this.waitForIms()
       .then(() => {
         if (!this.isLibraryPage) {
@@ -283,6 +284,7 @@ export class TrustCenterLibraryGate {
       this.domElements.errorContainer,
       this.domElements.documentContainer,
       this.domElements.ndaiFrameContainer,
+      this.domElements.loader,
     ].forEach((el) => el?.classList.add(hiddenClass));
     containerEl.classList.remove(hiddenClass);
   }
