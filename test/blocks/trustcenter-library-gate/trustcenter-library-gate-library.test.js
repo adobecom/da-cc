@@ -29,7 +29,8 @@ const Config = {
 };
 
 const { setLibs } = await import('../../../creativecloud/scripts/utils.js');
-const { default: init } = await import('../../../creativecloud/blocks/trustcenter-library-gate/trustcenter-library-gate.js');
+const { default: init, TrustCenterLibraryGate } = await import('../../../creativecloud/blocks/trustcenter-library-gate/trustcenter-library-gate.js');
+sinon.stub(TrustCenterLibraryGate.prototype, 'waitForIms').resolves();
 
 document.body.innerHTML = await readFile({ path: './mocks/trustcenter-library-gate-library.html' });
 describe('trustcenter library gate (library page shape)', () => {

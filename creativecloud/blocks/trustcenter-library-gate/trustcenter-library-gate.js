@@ -2,7 +2,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable max-len */
 
-import { createTag, getLibs, getConfig, isSignedInInitialized } from '../../scripts/utils.js';
+import { createTag, getLibs, getConfig } from '../../scripts/utils.js';
 import { isEmptyObject, getCookieValue, setCookieValue } from '../../features/trustcenter/cookie-wrapper.js';
 import analyticsWrapper from '../../features/trustcenter/analytics-wrapper.js';
 
@@ -59,7 +59,7 @@ const unhandledError = (e) => lanaLog({
 window.addEventListener('error', unhandledError);
 window.addEventListener('unhandledrejection', unhandledError);
 
-class TrustCenterLibraryGate {
+export class TrustCenterLibraryGate {
   constructor(el) {
     this.el = el;
     const { env } = getConfig();
@@ -174,11 +174,19 @@ class TrustCenterLibraryGate {
     this.createTcProgressCircle(contentWrapper);
   }
 
+  async waitForIms() {
+    const miloLibs = getLibs();
+    const { loadIms } = await import(`${miloLibs}/utils/utils.js`);
+    await loadIms();
+  }
+
   initializeGate() {
-    isSignedInInitialized()
+    this.mapDomElements();
+    if (!this.areDomElementsValid()) return;
+
+    this.showLoader();
+    this.waitForIms()
       .then(() => {
-        this.mapDomElements();
-        if (!this.areDomElementsValid()) return;
         if (!this.isLibraryPage) {
           const metaEl = createTag('meta', { name: 'pdf-embed-mode', content: 'full-window' });
           document.head.append(metaEl);
@@ -200,12 +208,10 @@ class TrustCenterLibraryGate {
         this.checkAccess();
       })
       .catch((err = {}) => {
-        if (this.domElements && this.domElements.errorContainer) {
-          this.showErrorContainer({
-            message: 'Trust Center Library Gate - IMS onReady issues',
-            errorMessage: err.message,
-          });
-        }
+        this.showErrorContainer({
+          message: 'Trust Center Library Gate - IMS onReady issues',
+          errorMessage: err.message,
+        });
       });
   }
 
@@ -278,6 +284,7 @@ class TrustCenterLibraryGate {
       this.domElements.errorContainer,
       this.domElements.documentContainer,
       this.domElements.ndaiFrameContainer,
+      this.domElements.loader,
     ].forEach((el) => el?.classList.add(hiddenClass));
     containerEl.classList.remove(hiddenClass);
   }
