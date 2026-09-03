@@ -381,15 +381,15 @@ const MAS_EXTRA_LOCALES = { pr: 'es_PR' };
 const MAS_LINK_SELECTOR = 'a[href*="mas.adobe.com/studio.html"]';
 const preloadedMasFragments = new Set();
 
-function getMasLocale(miloLocale) {
+function getMasLocale(miloLocale, geoCountry) {
   const geo = (miloLocale?.prefix || 'US_en').replace('/', '');
   let [country = 'US', language = 'en'] = (MAS_GEO_MAP[geo] ?? geo).split('_', 2);
   country = country.toUpperCase();
   language = language.toLowerCase();
-  return { locale: MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`, country };
+  return { locale: MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`, country: geoCountry ?? country };
 }
 
-function preloadMasFragment(a) {
+async function preloadMasFragment(a) {
   let url;
   try {
     url = new URL(a.href);
@@ -402,7 +402,7 @@ function preloadMasFragment(a) {
   if (!fragment || preloadedMasFragments.has(fragment)) return;
   preloadedMasFragments.add(fragment);
 
-  const { locale, country } = getMasLocale(getConfig().locale);
+  const { locale, country } = getMasLocale(getConfig().locale, (await getCountry())?.toUpperCase());
   const apiKey = getConfig().commerce?.['wcs-api-key'] ?? DEFAULT_MAS_FRAGMENT_API_KEY;
   let endpoint = `${MAS_FRAGMENT_API}?id=${fragment}&api_key=${apiKey}&locale=${locale}`;
   if (country && !locale.endsWith(`_${country}`)) endpoint += `&country=${country}`;
