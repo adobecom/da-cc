@@ -32,7 +32,8 @@ const Config = {
 };
 
 const { setLibs } = await import('../../../creativecloud/scripts/utils.js');
-const { default: init } = await import('../../../creativecloud/blocks/trustcenter-library-gate/trustcenter-library-gate.js');
+const { default: init, TrustCenterLibraryGate } = await import('../../../creativecloud/blocks/trustcenter-library-gate/trustcenter-library-gate.js');
+sinon.stub(TrustCenterLibraryGate.prototype, 'waitForIms').resolves();
 
 document.body.innerHTML = await readFile({ path: './mocks/trustcenter-library-gate-sibling.html' });
 describe('trustcenter library gate (sibling/document page shape)', () => {
@@ -129,7 +130,7 @@ describe('trustcenter library gate (sibling/document page shape)', () => {
     expect(lastDocumenthandlerUrl.searchParams.get('reasonHint')).to.equal('signed');
   });
 
-  it('Download click should download pdf', () => {
-    document.querySelector(`#${Config.ids.nonPdfLink}`)?.click();
+  it('Download click should set the correct file href', () => {
+    expect(document.querySelector(`#${Config.ids.nonPdfLink}`).href).to.include('sample.pdf');
   });
 });

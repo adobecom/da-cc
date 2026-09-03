@@ -19,13 +19,27 @@
 }
 
 .trustcenter-container .loader {
-  padding: 0;
+  padding: var(--spacing-xxl) 0;
   display: flex;
   justify-content: center;
+  align-items: center;
+  min-height: 283px;
 }
 
 .trustcenter-container .loader.hidden {
   display: none;
+}
+
+@media (min-width: 600px) {
+  .trustcenter-container .loader {
+    min-height: 194px;
+  }
+}
+
+@media (min-width: 1200px) {
+  .trustcenter-container .loader {
+    min-height: 214px;
+  }
 }
 
 .trustcenter-container .view-sdk-container {
