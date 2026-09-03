@@ -22,7 +22,7 @@
   padding: var(--spacing-xxl) 0;
   display: flex;
   justify-content: center;
-  min-height: 395px;
+  min-height: 283px;
 }
 
 .trustcenter-container .loader.hidden {
@@ -31,13 +31,13 @@
 
 @media (min-width: 600px) {
   .trustcenter-container .loader {
-    min-height: 306px;
+    min-height: 194px;
   }
 }
 
 @media (min-width: 1200px) {
   .trustcenter-container .loader {
-    min-height: 374px;
+    min-height: 214px;
   }
 }
 
