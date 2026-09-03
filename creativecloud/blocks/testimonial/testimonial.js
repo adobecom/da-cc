@@ -3,7 +3,6 @@ import { createTag, prefersReducedMotion } from '../../scripts/utils.js';
 const BLOCK = 'testimonial';
 const AUTOPLAY_INTERVAL_MS = 8000;
 const TRANSITION_FALLBACK_MS = 600;
-const DUMMY_STACK_COUNT = 3;
 const TABLET_MQ = '(min-width: 600px)';
 const DESKTOP_MQ = '(min-width: 1201px)';
 
@@ -92,18 +91,6 @@ function getBeforeActive(currentIndex, hasScrolled) {
   return (currentIndex === 0 && !hasScrolled) ? 0 : 1;
 }
 
-function setStackPositions(cards) {
-  cards.forEach((card, i) => {
-    if (i === 0) {
-      card.classList.add(`${BLOCK}-card-front`);
-      card.style.zIndex = '100';
-    } else {
-      card.classList.add(`${BLOCK}-card-back`);
-      card.style.zIndex = '50';
-    }
-  });
-}
-
 function getTrackStep(cards, track) {
   const cardWidth = cards[0]?.getBoundingClientRect().width;
   if (!cardWidth) return 0;
@@ -180,12 +167,12 @@ export default async function init(el) {
   const state = { currentIndex: 0, isAnimating: false, hasScrolled: false };
   let animationGen = 0;
   let autoplayTimer = null;
-  let isPlaying = true;
+  let isPlaying = !prefersReducedMotion();
   let tickStart = 0;
   let tickRemaining = AUTOPLAY_INTERVAL_MS;
 
   const container = createTag('div', {
-    class: `${BLOCK}-container`,
+    class: `${BLOCK}-container ${BLOCK}-expanded`,
     role: 'region',
     'aria-roledescription': 'carousel',
     'aria-label': headingSource?.textContent?.trim() || 'Testimonials',
@@ -200,15 +187,6 @@ export default async function init(el) {
   const track = createTag('div', { class: `${BLOCK}-track` });
   const cards = cardData.map((data, i) => createCard(data, i));
   track.append(...cards);
-
-  const dummyCards = [];
-  for (let i = 0; i < DUMMY_STACK_COUNT; i += 1) {
-    const dummy = createTag('div', { class: `${BLOCK}-card-dummy` });
-    dummy.style.setProperty('--stack-depth', String(i + 1));
-    dummy.style.zIndex = String(10 - i);
-    dummyCards.push(dummy);
-  }
-  track.append(...dummyCards);
 
   function applyBasePosition(animate, beforeActive) {
     const step = getTrackStep(cards, track);
@@ -381,32 +359,14 @@ export default async function init(el) {
   const progressDots = [...progressBar.querySelectorAll(`.${BLOCK}-progress-dot`)];
 
   if (prefersReducedMotion()) {
-    container.classList.add(`${BLOCK}-expanded`, `${BLOCK}-paused`);
-    controls.classList.add(`${BLOCK}-controls-visible`);
-    isPlaying = false;
+    container.classList.add(`${BLOCK}-paused`);
     playPauseBtn.classList.add(`${BLOCK}-show-play`);
     playPauseBtn.setAttribute('aria-label', 'Play');
-    dummyCards.forEach((d) => { d.style.display = 'none'; });
-    requestAnimationFrame(() => {
-      settle();
-      updateProgress(progressDots, state.currentIndex);
-    });
   }
 
-  function equalizeStackHeights() {
-    cards.forEach((card) => {
-      card.style.minHeight = '';
-      card.style.zIndex = '';
-      card.classList.remove(`${BLOCK}-card-front`, `${BLOCK}-card-back`);
-    });
-    track.getBoundingClientRect();
-    const heights = cards.map((card) => card.offsetHeight);
-    const maxHeight = Math.max(...heights);
-    cards[0].style.minHeight = `${maxHeight}px`;
-    setStackPositions(cards);
-  }
-
-  if (!prefersReducedMotion()) equalizeStackHeights();
+  settle();
+  controls.classList.add(`${BLOCK}-controls-visible`);
+  updateProgress(progressDots, state.currentIndex);
 
   playPauseBtn.addEventListener('click', () => {
     isPlaying = !isPlaying;
@@ -442,7 +402,6 @@ export default async function init(el) {
   let startY = 0;
 
   function handleSwipe(deltaX, deltaY) {
-    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
     if (Math.abs(deltaX) < 50 || Math.abs(deltaY) >= Math.abs(deltaX)) return;
     stopAutoplay();
     const forward = isRTL ? deltaX > 0 : deltaX < 0;
@@ -461,7 +420,6 @@ export default async function init(el) {
   }, { passive: true });
 
   container.addEventListener('touchmove', (e) => {
-    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
     if (e.touches.length !== 1) return;
     const dx = Math.abs(e.touches[0].clientX - startX);
     const dy = Math.abs(e.touches[0].clientY - startY);
@@ -475,7 +433,6 @@ export default async function init(el) {
 
   let isDragging = false;
   container.addEventListener('mousedown', (e) => {
-    if (!container.classList.contains(`${BLOCK}-expanded`)) return;
     isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
@@ -508,175 +465,6 @@ export default async function init(el) {
     }
   });
 
-  function updateBlockHeight() {
-    const vh150 = window.innerHeight * 1.5;
-    const minNeeded = container.offsetHeight + window.innerHeight * 0.5;
-    el.style.height = `${Math.max(vh150, minNeeded)}px`;
-  }
-
-  if (!prefersReducedMotion()) {
-    const getNavHeight = () => {
-      const nav = document.querySelector('.global-navigation') || document.querySelector('header');
-      return nav?.offsetHeight || 0;
-    };
-
-    let navHeight = getNavHeight();
-
-    el.style.overflow = 'clip';
-    container.style.position = 'sticky';
-    container.style.top = `${navHeight}px`;
-    container.style.zIndex = '1';
-    updateBlockHeight();
-
-    const blockObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const h = getNavHeight();
-          if (h && h !== navHeight) {
-            navHeight = h;
-            container.style.top = `${h}px`;
-          }
-        }
-      });
-    }, { threshold: 0 });
-    blockObserver.observe(el);
-
-    let expandReady = false;
-
-    const computeExpandOffsets = () => {
-      const containerWidth = container.getBoundingClientRect().width;
-      const gap = parseFloat(getComputedStyle(el).getPropertyValue('--testimonial-card-gap')) || 24;
-      const widthPct = parseFloat(getComputedStyle(container).getPropertyValue('--testimonial-card-width')) / 100;
-      const cardWidth = window.matchMedia(TABLET_MQ).matches
-        ? containerWidth * (widthPct || 5 / 6)
-        : containerWidth;
-
-      let marginStart;
-      if (isDesktop()) {
-        marginStart = (containerWidth - 2 * cardWidth - gap) / 2;
-      } else if (window.matchMedia(TABLET_MQ).matches) {
-        marginStart = (containerWidth - cardWidth) / 2;
-      } else {
-        marginStart = 0;
-      }
-
-      const stackCenter = containerWidth / 2;
-      cards.forEach((card, i) => {
-        const carouselCenter = marginStart + i * (cardWidth + gap) + cardWidth / 2;
-        const offset = isRTL
-          ? stackCenter - carouselCenter
-          : carouselCenter - stackCenter;
-        card.style.setProperty('--expand-offset', `${offset}px`);
-      });
-    };
-
-    const enterExpanded = () => {
-      container.classList.add(`${BLOCK}-expanded`);
-      container.classList.remove(`${BLOCK}-stack-collapsed`);
-      container.style.removeProperty('--stack-progress');
-      container.style.removeProperty('--expand-progress');
-      cards.forEach((card) => {
-        card.style.transform = '';
-        card.style.zIndex = '';
-        card.style.minHeight = '';
-        card.style.removeProperty('--stack-depth');
-        card.style.removeProperty('--expand-offset');
-        card.classList.remove(
-          `${BLOCK}-card-front`,
-          `${BLOCK}-card-back`,
-          `${BLOCK}-card-hidden`,
-        );
-      });
-      dummyCards.forEach((d) => { d.style.display = 'none'; });
-      state.currentIndex = 0;
-      state.hasScrolled = false;
-      settle();
-      requestAnimationFrame(() => {
-        controls.classList.add(`${BLOCK}-controls-visible`);
-        let started = false;
-        const beginAutoplay = () => {
-          if (started) return;
-          started = true;
-          updateProgress(progressDots, state.currentIndex);
-          startAutoplay();
-        };
-        controls.addEventListener('transitionend', beginAutoplay, { once: true });
-        setTimeout(beginAutoplay, 400);
-      });
-    };
-
-    const exitExpanded = () => {
-      pauseAutoplay();
-      animationGen += 1;
-      state.isAnimating = false;
-      controls.classList.remove(`${BLOCK}-controls-visible`);
-      cards.forEach((card) => {
-        card.classList.remove(`${BLOCK}-card-peek`);
-        card.style.order = '';
-        card.style.transform = '';
-      });
-      track.style.transform = '';
-      track.style.transition = 'none';
-      container.classList.remove(`${BLOCK}-expanded`);
-      container.classList.add(`${BLOCK}-stack-collapsed`);
-      container.style.setProperty('--stack-progress', '1');
-      container.style.setProperty('--expand-progress', '1');
-      setStackPositions(cards);
-      equalizeStackHeights();
-      computeExpandOffsets();
-      dummyCards.forEach((d) => { d.style.display = ''; });
-    };
-
-    const handleScroll = () => {
-      const rect = el.getBoundingClientRect();
-      const scrolled = Math.max(0, navHeight - rect.top);
-      const totalPinDistance = el.offsetHeight - container.offsetHeight;
-      if (totalPinDistance <= 0) return;
-
-      if (scrolled <= 0) {
-        expandReady = false;
-        container.style.setProperty('--stack-progress', '0');
-        container.style.setProperty('--expand-progress', '0');
-        container.classList.remove(`${BLOCK}-expanded`, `${BLOCK}-stack-collapsed`);
-        setStackPositions(cards);
-        dummyCards.forEach((d) => { d.style.display = ''; });
-        return;
-      }
-
-      const animationDistance = totalPinDistance * 0.5;
-      const collapseDistance = animationDistance * 0.5;
-
-      const collapseProgress = Math.min(1, scrolled / collapseDistance);
-      let expandProgress = 0;
-
-      if (collapseProgress >= 1) {
-        if (!expandReady) {
-          computeExpandOffsets();
-          expandReady = true;
-        }
-        const expandScrolled = scrolled - collapseDistance;
-        expandProgress = Math.min(1, expandScrolled / (animationDistance - collapseDistance));
-      }
-
-      const isExpanded = container.classList.contains(`${BLOCK}-expanded`);
-
-      if (expandProgress >= 1 && !isExpanded) {
-        enterExpanded();
-      } else if (expandProgress < 0.98 && isExpanded) {
-        exitExpanded();
-      }
-
-      if (!container.classList.contains(`${BLOCK}-expanded`)) {
-        container.style.setProperty('--stack-progress', String(collapseProgress));
-        container.classList.toggle(`${BLOCK}-stack-collapsed`, collapseProgress >= 1);
-        container.style.setProperty('--expand-progress', String(expandProgress));
-        dummyCards.forEach((d) => { d.style.display = expandProgress > 0 ? 'none' : ''; });
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-  }
-
   const visibilityObserver = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (!entry.isIntersecting) {
@@ -696,22 +484,14 @@ export default async function init(el) {
         }
       } else {
         container.classList.remove(`${BLOCK}-out-of-view`);
-        if (isPlaying && !prefersReducedMotion()
-          && container.classList.contains(`${BLOCK}-expanded`)) {
-          startAutoplay();
-        }
+        if (isPlaying) startAutoplay();
       }
     });
   }, { threshold: 0 });
   visibilityObserver.observe(el);
 
   const resizeObserver = new ResizeObserver(() => {
-    if (container.classList.contains(`${BLOCK}-expanded`)) {
-      settle();
-    } else if (!prefersReducedMotion()) {
-      equalizeStackHeights();
-      updateBlockHeight();
-    }
+    settle();
   });
   resizeObserver.observe(el);
 }
