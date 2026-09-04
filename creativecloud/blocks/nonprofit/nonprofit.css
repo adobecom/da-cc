@@ -448,6 +448,16 @@
 }
 
 @media screen and (max-width: 767px) {
+  .np-container {
+    height: auto;
+  }
+
+ .np-content-container {
+    width: 100%;
+    max-height: none;
+    box-sizing: border-box;
+  }
+
   .np-stepper-back {
     left: -5%;
     top: 145px;
