@@ -450,8 +450,15 @@
 @media screen and (max-width: 767px) {
   .np-stepper-back {
     left: -5%;
-    top: 140px;
+    top: 145px;
+    width: 40px;
+    height: 40px;
   }
+
+  .np-stepper-back svg {
+    width: 14px;
+    height: 14px;
+   }
 
   .np-container {
     margin: 0 20px;
