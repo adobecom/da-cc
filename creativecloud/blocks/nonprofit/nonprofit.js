@@ -1300,7 +1300,7 @@ export default function init(element) {
       } else if (result.type === 'form') {
         prefillRenewalForm(result.validation);
       } else if (result.type === 'error') {
-        renderRenewalErrorScreen(element);
+        return renderRenewalErrorScreen(element);
       }
       return initNonprofit(element);
     });
