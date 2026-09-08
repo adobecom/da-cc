@@ -1,10 +1,16 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-alert */
 /* eslint-disable no-plusplus */
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable max-len */
 import ReactiveStore from './reactiveStore.js';
-import { setLibs, getGeoLocaleInfo } from '../../scripts/utils.js';
-import { countries, PRODUCT_VALIDATION_CONFIG } from './constants.js';
+import { setLibs, getGeoLocaleInfo, isSignedInInitialized } from '../../scripts/utils.js';
+import {
+  countries,
+  PRODUCT_VALIDATION_CONFIG,
+  EDU_VALIDATION_CONFIG,
+  SUBSCRIPTIONS_CONFIG,
+} from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
 
@@ -15,7 +21,7 @@ const LANA_OPTIONS = {
 };
 
 const miloLibs = setLibs('/libs');
-const { createTag, getConfig } = await import(`${miloLibs}/utils/utils.js`);
+const { createTag, getConfig, getMetadata } = await import(`${miloLibs}/utils/utils.js`);
 
 const removeOptionElements = (element) => {
   const children = element.querySelectorAll(':scope > div');
@@ -26,8 +32,20 @@ const removeOptionElements = (element) => {
 
 // #region Constants
 
-const PERCENT_API_URL = 'https://api.goodstack.io/v1';
-const PERCENT_PUBLISHABLE_KEY = 'pk_ea675372-2eb2-4cf1-8b6a-358087bf8df5';
+function getPercentConfig() {
+  const { env, stage, prod } = getConfig();
+  const isStage = env?.name !== 'prod';
+  const { apiUrl, publishableKey } = isStage && hasRenewalUrlParam()
+    ? stage.nonprofit
+    : prod.nonprofit;
+  return { url: apiUrl, key: publishableKey };
+}
+
+// Goodstack validation invites require the production API/key regardless of environment. (the sandbox key is rejected with a 403).
+function getProdNonprofitConfig() {
+  const { prod } = getConfig();
+  return { url: prod.nonprofit.apiUrl, key: prod.nonprofit.publishableKey };
+}
 export const SCENARIOS = Object.freeze({
   FOUND_IN_SEARCH: 'FOUND_IN_SEARCH',
   NOT_FOUND_IN_SEARCH: 'NOT_FOUND_IN_SEARCH',
@@ -77,12 +95,13 @@ let nextOrganizationsPageUrl;
 async function fetchOrganizations(search, countryCode, abortController) {
   try {
     organizationsStore.startLoading(true);
+    const { url, key } = getPercentConfig();
     const response = await fetch(
-      `${PERCENT_API_URL}/organisations?countryCode=${countryCode}&query=${search}`,
+      `${url}/organisations?countryCode=${countryCode}&query=${search}`,
       {
         cache: 'force-cache',
         signal: abortController.signal,
-        headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+        headers: { Authorization: key },
       },
     );
 
@@ -103,10 +122,11 @@ async function fetchNextOrganizations(abortController) {
   if (!nextOrganizationsPageUrl) return;
   try {
     organizationsStore.startLoading();
+    const { key } = getPercentConfig();
     const response = await fetch(nextOrganizationsPageUrl, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+      headers: { Authorization: key },
     });
 
     const result = await validatePercentResponse(response);
@@ -122,10 +142,11 @@ async function fetchNextOrganizations(abortController) {
 async function fetchRegistries(countryCode, abortController) {
   try {
     registriesStore.startLoading(true);
-    const response = await fetch(`${PERCENT_API_URL}/registries?countryCode=${countryCode}`, {
+    const { url, key } = getPercentConfig();
+    const response = await fetch(`${url}/registries?countryCode=${countryCode}`, {
       cache: 'force-cache',
       signal: abortController.signal,
-      headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
+      headers: { Authorization: key },
     });
 
     const result = await validatePercentResponse(response);
@@ -137,34 +158,43 @@ async function fetchRegistries(countryCode, abortController) {
   }
 }
 
+async function createValidationInvite(product, ietf) {
+  const { url: apiUrl, key: publishableKey } = getProdNonprofitConfig();
+  const { VALIDATION_URL, CONFIGURATION_ID } = PRODUCT_VALIDATION_CONFIG[product];
+  const inviteResponse = await fetch(`${VALIDATION_URL}?lng=${ietf}`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${publishableKey}` },
+    body: JSON.stringify({ configurationId: CONFIGURATION_ID }),
+  });
+
+  const inviteResult = await validatePercentResponse(inviteResponse);
+
+  return { apiUrl, publishableKey, validationInviteId: inviteResult.data.validationInviteId };
+}
+
+async function uploadEvidenceDocument(apiUrl, publishableKey, validationInviteId) {
+  const evidenceUploadData = new FormData();
+  evidenceUploadData.append('file', nonprofitFormData.evidenceNonProfitStatus);
+  evidenceUploadData.append('validationInviteId', validationInviteId);
+
+  const uploadResponse = await fetch(`${apiUrl}/validation-submission-documents`, {
+    method: 'POST',
+    headers: { Authorization: publishableKey },
+    body: evidenceUploadData,
+  });
+
+  await validatePercentResponse(uploadResponse);
+}
+
 async function sendOrganizationData(product) {
   try {
     const { ietf } = await getGeoLocaleInfo();
-    const { VALIDATION_URL, CONFIGURATION_ID } = PRODUCT_VALIDATION_CONFIG[product];
-    const inviteResponse = await fetch(`${VALIDATION_URL}?lng=${ietf}`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${PERCENT_PUBLISHABLE_KEY}` },
-      body: JSON.stringify({ configurationId: CONFIGURATION_ID }),
-    });
-
-    const inviteResult = await validatePercentResponse(inviteResponse);
-
-    const { validationInviteId } = inviteResult.data;
+    const { apiUrl, publishableKey, validationInviteId } = await createValidationInvite(product, ietf);
 
     const foundInSearch = stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH;
 
     if (!foundInSearch) {
-      const evidenceUploadData = new FormData();
-      evidenceUploadData.append('file', nonprofitFormData.evidenceNonProfitStatus);
-      evidenceUploadData.append('validationInviteId', validationInviteId);
-
-      const uploadResponse = await fetch(`${PERCENT_API_URL}/validation-submission-documents`, {
-        method: 'POST',
-        headers: { Authorization: PERCENT_PUBLISHABLE_KEY },
-        body: evidenceUploadData,
-      });
-
-      await validatePercentResponse(uploadResponse);
+      await uploadEvidenceDocument(apiUrl, publishableKey, validationInviteId);
     }
 
     let body;
@@ -197,11 +227,11 @@ async function sendOrganizationData(product) {
       });
     }
 
-    const submissionResponse = await fetch(`${PERCENT_API_URL}/validation-submissions`, {
+    const submissionResponse = await fetch(`${apiUrl}/validation-submissions`, {
       method: 'POST',
       body,
       headers: {
-        Authorization: PERCENT_PUBLISHABLE_KEY,
+        Authorization: publishableKey,
         'Content-Type': 'application/json; charset=utf-8',
       },
     });
@@ -360,9 +390,12 @@ function getSubmitTag() {
 }
 
 function getNonprofitInput(params) {
-  const { type, name, label, placeholder, required } = params;
+  const {
+    type, name, label, placeholder, required, value,
+  } = params;
   const baseParams = { name, placeholder };
   if (required) baseParams.required = 'required';
+  if (value) baseParams.value = value;
   const controlTag = createTag('div', { class: 'np-control' });
   const labelTag = createTag('label', { class: 'np-label', for: name }, label);
   const inputTag = createTag('input', {
@@ -635,7 +668,8 @@ function renderSelectNonprofit(containerTag) {
     }
   });
 
-  countryTag.onSelect(() => {
+  countryTag.onSelect((option) => {
+    if (hasRenewalUrlParam()) nonprofitFormData.countryAlpha2 = option.alpha2;
     organizationTag.enable();
     organizationTag.clear();
     if (selectedOrganizationStore.data) {
@@ -694,6 +728,7 @@ function renderOrganizationDetails(containerTag) {
   });
 
   countryTag.onSelect((option) => {
+    if (hasRenewalUrlParam()) nonprofitFormData.countryAlpha2 = option.alpha2;
     abortController?.abort();
     abortController = new AbortController();
     fetchRegistries(option.code, abortController);
@@ -859,7 +894,7 @@ function renderPersonalData(containerTag, product) {
   // Description
   const descriptionTag = getDescriptionTag(
     window.mph['nonprofit-title-personal-details'],
-    window.mph['nonprofit-subtitle-personal-details'],
+    hasRenewalUrlParam() ? null : window.mph['nonprofit-subtitle-personal-details'],
   );
 
   // Form
@@ -871,6 +906,7 @@ function renderPersonalData(containerTag, product) {
     label: window.mph['nonprofit-first-name'],
     placeholder: window.mph['nonprofit-first-name-placeholder'],
     required: true,
+    value: nonprofitFormData.firstName,
   });
 
   const lastNameTag = getNonprofitInput({
@@ -879,6 +915,7 @@ function renderPersonalData(containerTag, product) {
     label: window.mph['nonprofit-last-name'],
     placeholder: window.mph['nonprofit-last-name-placeholder'],
     required: true,
+    value: nonprofitFormData.lastName,
   });
 
   const emailTag = getNonprofitInput({
@@ -887,6 +924,7 @@ function renderPersonalData(containerTag, product) {
     label: window.mph['nonprofit-email'],
     placeholder: window.mph['nonprofit-email-placeholder'],
     required: true,
+    value: nonprofitFormData.email,
   });
 
   const disclaimerTag = createTag(
@@ -895,6 +933,10 @@ function renderPersonalData(containerTag, product) {
     window.mph['nonprofit-personal-data-disclaimer'],
   );
   const emailInput = emailTag.querySelector('input');
+  if (hasRenewalUrlParam() && nonprofitFormData.email) {
+    emailInput.setAttribute('readonly', 'readonly');
+    emailInput.classList.add('np-input-readonly');
+  }
   const emailPattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
 
   const validateEmail = () => {
@@ -909,15 +951,17 @@ function renderPersonalData(containerTag, product) {
   replaceURL(disclaimerTag);
   const submitTag = getSubmitTag();
 
-  formTag.addEventListener('input', () => {
+  const updateSubmitState = () => {
     const isFormValid = formTag.checkValidity() && validateEmail();
     submitTag.toggleAttribute('disabled', !isFormValid);
-  });
+  };
+  formTag.addEventListener('input', updateSubmitState);
 
   formTag.append(firstNameTag, lastNameTag, emailTag, disclaimerTag, submitTag);
 
   formTag.append(firstNameTag, lastNameTag, emailTag, submitTag);
   trackSubmitCondition(formTag);
+  if (nonprofitFormData.email) updateSubmitState();
 
   formTag.addEventListener('submit', async (ev) => {
     ev.preventDefault();
@@ -934,7 +978,9 @@ function renderPersonalData(containerTag, product) {
 
     stepperStore.update((prev) => ({ ...prev, pending: true }));
 
-    const ok = await sendOrganizationData(product);
+    const ok = hasRenewalUrlParam()
+      ? await submitRenewalValidation(product)
+      : await sendOrganizationData(product);
 
     if (!ok) {
       inputs.forEach((input) => {
@@ -950,54 +996,66 @@ function renderPersonalData(containerTag, product) {
   containerTag.replaceChildren(descriptionTag, formTag);
 }
 
-function renderApplicationReview(containerTag) {
+function renderApplicationReview(containerTag, copy) {
   containerTag.setAttribute('daa-lh', 'verification');
 
   const applicationReviewTag = createTag('div', { class: 'np-application-review-container' });
 
-  const titleTag = createTag(
-    'h1',
-    { class: 'np-title' },
-    window.mph['nonprofit-title-application-review'],
-  );
-  const detail1Tag = createTag(
-    'span',
-    { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-1-application-review'],
-  );
-  const detail2Tag = createTag(
-    'span',
-    { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-2-application-review']?.replace(
-      '__EMAIL__',
-      nonprofitFormData.email,
-    ),
-  );
-  const detail3Tag = createTag(
-    'span',
-    { class: 'np-application-review-detail' },
-    window.mph['nonprofit-detail-3-application-review']?.replace(
-      '__EMAIL__',
-      nonprofitFormData.email,
-    ),
-  );
-  replaceURL(detail1Tag);
-  replaceURL(detail2Tag);
-  replaceURL(detail3Tag);
-  applicationReviewTag.append(titleTag, detail1Tag, detail2Tag, detail3Tag);
+  const { title, details } = copy || {
+    title: window.mph['nonprofit-title-application-review'],
+    details: [
+      window.mph['nonprofit-detail-1-application-review'],
+      window.mph['nonprofit-detail-2-application-review'],
+      window.mph['nonprofit-detail-3-application-review'],
+    ],
+  };
 
-  const returnToAcrobatForNonprofitsTag = createTag(
+  const titleTag = createTag('h1', { class: 'np-title' }, title);
+  const detailTags = details.filter(Boolean).map((text) => {
+    const detailTag = createTag(
+      'span',
+      { class: 'np-application-review-detail' },
+      text.replace('__EMAIL__', nonprofitFormData.email),
+    );
+    replaceURL(detailTag);
+    return detailTag;
+  });
+  applicationReviewTag.append(titleTag, ...detailTags);
+
+  containerTag.replaceChildren(applicationReviewTag, getReturnToNonprofitsButton());
+}
+
+function getRenewalStatusCopy(status) {
+  const statusKey = status?.toLowerCase();
+  return {
+    title: window.mph?.[`nonprofit-renewal-status-${statusKey}-title`],
+    details: [
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-1`],
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-2`],
+      window.mph?.[`nonprofit-renewal-status-${statusKey}-detail-3`],
+    ],
+  };
+}
+
+function getReturnToNonprofitsButton() {
+  return createTag(
     'a',
     {
       class: 'np-button',
       href: 'https://www.adobe.com/nonprofits.html',
       'daa-ll': 'return to acrobat for nonprofits',
     },
-
-    window.mph['nonprofit-return-to-acrobat-for-nonprofits'],
+    window.mph?.['nonprofit-return-to-acrobat-for-nonprofits'],
   );
+}
 
-  containerTag.replaceChildren(applicationReviewTag, returnToAcrobatForNonprofitsTag);
+function renderVerification(containerTag) {
+  const status = renewalValidation?.status?.toUpperCase?.();
+  if (hasRenewalUrlParam() && TERMINAL_STATUSES.has(status)) {
+    renderApplicationReview(containerTag, getRenewalStatusCopy(status));
+  } else {
+    renderApplicationReview(containerTag);
+  }
 }
 
 function renderStepContent(containerTag, product) {
@@ -1013,15 +1071,201 @@ function renderStepContent(containerTag, product) {
     if (step === 1) renderSelectNonprofit(contentContainerTag);
     if (step === 2 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderPersonalData(contentContainerTag, product);
     if (step === 2 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderOrganizationDetails(contentContainerTag);
-    if (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderApplicationReview(contentContainerTag);
+    if (step === 3 && scenario === SCENARIOS.FOUND_IN_SEARCH) renderVerification(contentContainerTag);
     if (step === 3 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderOrganizationAddress(contentContainerTag);
     if (step === 4 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderPersonalData(contentContainerTag, product);
-    if (step === 5 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderApplicationReview(contentContainerTag);
+    if (step === 5 && scenario === SCENARIOS.NOT_FOUND_IN_SEARCH) renderVerification(contentContainerTag);
   });
 
   containerTag.append(contentContainerTag);
 }
 // #endregion
+
+let renewalProfile = null;
+
+let renewalValidation = null;
+
+const TERMINAL_STATUSES = new Set(['APPROVED', 'PENDING']);
+
+function hasRenewalUrlParam() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('workflow') === 'renewal';
+}
+
+function formatPersonId(profile) {
+  const userId = profile?.userId || profile?.sub;
+  return userId ? `${String(userId).split('@')[0]}@AdobeID` : null;
+}
+
+async function getEduValidationRequest() {
+  const { env } = getConfig();
+  const config = env?.name === 'prod' ? EDU_VALIDATION_CONFIG.prod : EDU_VALIDATION_CONFIG.stage;
+  const apiKey = getMetadata('edu-validation-api-key') || window.adobeid?.client_id;
+  const token = await window.adobeIMS.getAccessToken();
+  return {
+    baseUrl: config.baseUrl,
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token?.token || token}`,
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+    },
+    environment: env?.name,
+    token: token?.token || token,
+  };
+}
+
+function renderRenewalErrorScreen(element) {
+  const containerTag = createTag('div', { class: 'np-container np-renewal-error' });
+  const errorTag = createTag('div', { class: 'np-application-review-container' });
+  const titleTag = createTag(
+    'h1',
+    { class: 'np-title' },
+    window.mph?.['nonprofit-renewal-error-title'] || 'Unable to load your renewal status',
+  );
+  const detailTag = createTag(
+    'span',
+    { class: 'np-application-review-detail' },
+    window.mph?.['nonprofit-renewal-error-detail'] || 'Please refresh the page and try again.',
+  );
+  errorTag.append(titleTag, detailTag);
+  containerTag.append(errorTag);
+  element.append(containerTag);
+}
+
+async function getAnniversaryDate(personId, environment, token) {
+  try {
+    const { baseUrl } = SUBSCRIPTIONS_CONFIG[environment];
+
+    const apiKey = window.adobeid?.client_id;
+
+    const response = await fetch(
+      `${baseUrl}/users/${personId}/subscriptions`,
+      {
+        headers: {
+          'Accept-Language': 'en-US',
+          'X-API-Key': apiKey,
+          Authorization: `Bearer ${token?.token || token}`,
+        },
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Subscriptions GET failed with status ${response.status}`,
+      );
+    }
+
+    const data = await response.json();
+
+    const nonprofitSubscription = data?.find(
+      (subscription) => subscription?.offer?.price_point === 'NON_PROFIT',
+    );
+
+    return nonprofitSubscription?.contract?.anniversary_date?.match(/\d{4}-\d{2}-\d{2}/)?.[0];
+  } catch (error) {
+    window.lana?.log(
+      `Subscriptions GET failed: ${error}`,
+      LANA_OPTIONS,
+    );
+
+    return undefined;
+  }
+}
+
+async function initRenewalValidation() {
+  const personId = formatPersonId(renewalProfile);
+  if (!personId) return { type: 'error' };
+
+  try {
+    const { baseUrl, headers, environment, token } = await getEduValidationRequest();
+    const urlParams = new URLSearchParams(window.location.search);
+    const renewalDate = (urlParams.get('renewalDate') || urlParams.get('renewal-date') || urlParams.get('effectiveDate') || urlParams.get('effective-date') || '').match(/\d{4}-\d{2}-\d{2}/)?.[0];
+    let effectiveDate = renewalDate;
+    if (!effectiveDate) {
+      effectiveDate = await getAnniversaryDate((renewalProfile?.userId || renewalProfile?.authId), environment, token);
+    }
+
+    const query = {
+      'person-id': personId,
+      'verification-segment': 'NONPROFIT',
+      ...(effectiveDate && { 'effective-date': effectiveDate }),
+      ...(renewalProfile?.countryCode && { country: renewalProfile.countryCode }),
+    };
+
+    const response = await fetch(`${baseUrl}?${new URLSearchParams(query)}`, { headers });
+    if (!response.ok) throw new Error(`Edu validation GET failed with status ${response.status}`);
+
+    renewalValidation = await response.json();
+    const status = renewalValidation.status?.toUpperCase?.();
+    return { type: TERMINAL_STATUSES.has(status) ? 'status' : 'form', status, validation: renewalValidation };
+  } catch (error) {
+    window.lana?.log(`Renewal validation GET failed: ${error}`, LANA_OPTIONS);
+    return { type: 'error', error };
+  }
+}
+
+async function submitRenewalValidation(product) {
+  const personId = formatPersonId(renewalProfile);
+  if (!personId) return false;
+
+  try {
+    const { ietf } = await getGeoLocaleInfo();
+    const { baseUrl, headers } = await getEduValidationRequest();
+    const language = String(ietf).split('-')[0] || 'en';
+
+    const foundInSearch = stepperStore.data.scenario === SCENARIOS.FOUND_IN_SEARCH;
+
+    let evidenceUploadPromise = Promise.resolve();
+    if (!foundInSearch) {
+      evidenceUploadPromise = createValidationInvite(product, ietf)
+        .then(({ apiUrl, publishableKey, validationInviteId }) => uploadEvidenceDocument(apiUrl, publishableKey, validationInviteId))
+        .catch((error) => {
+          window.lana?.log(`Renewal evidence document upload failed: ${error}`, LANA_OPTIONS);
+        });
+    }
+
+    const payload = {
+      'verification-segment': 'NONPROFIT',
+      'person-id': personId,
+      'email-id': nonprofitFormData.email,
+      'first-name': nonprofitFormData.firstName,
+      'last-name': nonprofitFormData.lastName,
+      country: nonprofitFormData.countryAlpha2,
+      'nonprofit-details': { language },
+    };
+
+    if (foundInSearch) {
+      payload['organization-id'] = nonprofitFormData.organizationId;
+    } else {
+      payload['organization-name'] = nonprofitFormData.organizationName;
+      payload['nonprofit-details'] = {
+        language,
+        'registry-id': nonprofitFormData.organizationRegistrationId,
+        'registry-name': nonprofitFormData.registryName,
+        website: nonprofitFormData.website,
+      };
+    }
+
+    const response = await fetch(baseUrl, { method: 'POST', headers, body: JSON.stringify(payload) });
+    if (!response.ok) throw new Error(`Edu validation POST failed with status ${response.status}`);
+
+    renewalValidation = await response.json();
+
+    await evidenceUploadPromise;
+
+    return true;
+  } catch (error) {
+    window.lana?.log(`Renewal validation POST failed: ${error}`, LANA_OPTIONS);
+    return false;
+  }
+}
+
+function prefillRenewalForm(validation) {
+  nonprofitFormData.firstName = renewalProfile?.first_name || '';
+  nonprofitFormData.lastName = renewalProfile?.last_name || '';
+  nonprofitFormData.email = validation?.['email-id'] || renewalProfile?.email || '';
+}
 
 function getProductFromClassList(element) {
   const classes = [...element.classList];
@@ -1041,7 +1285,27 @@ function initNonprofit(element) {
 }
 
 export default function init(element) {
-  // Get metadata
   removeOptionElements(element);
+
+  if (hasRenewalUrlParam()) {
+    isSignedInInitialized().then(async () => {
+      if (!window.adobeIMS.isSignedInUser()) {
+        return window.adobeIMS.signIn({ redirect_uri: window.location.href });
+      }
+      renewalProfile = await window.adobeIMS.getProfile();
+      const result = await initRenewalValidation();
+      if (result.type === 'status') {
+        prefillRenewalForm(result.validation);
+        stepperStore.update((prev) => ({ ...prev, step: 3, scenario: SCENARIOS.FOUND_IN_SEARCH }));
+      } else if (result.type === 'form') {
+        prefillRenewalForm(result.validation);
+      } else if (result.type === 'error') {
+        renderRenewalErrorScreen(element);
+      }
+      return initNonprofit(element);
+    });
+    return;
+  }
+
   initNonprofit(element);
 }
