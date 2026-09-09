@@ -129,7 +129,7 @@ class Unsubscribe extends Trials {
         elem.innerHTML = newHtml;
       }
       const sNameFallback = sname || form.getAttribute(DATA_SNAME_FALLBACK);
-      const sNameLabel = this.getParam('slabel') || sNameFallback;
+      const sNameLabel = this.sanitizeHTML(this.getParam('slabel') || sNameFallback || '');
       elem.innerHTML = elem.innerHTML.replace(/{sname}/g, sNameLabel);
     });
   }
