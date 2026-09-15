@@ -364,7 +364,7 @@
 }
 
 .np-selected-organization-header .np-selected-organization-detail {
-  padding-right: 15px;
+  padding-inline-end: 15px;
 }
 
 .np-selected-organization-avatar {
