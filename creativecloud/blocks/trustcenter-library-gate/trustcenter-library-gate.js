@@ -177,7 +177,15 @@ export class TrustCenterLibraryGate {
   async waitForIms() {
     const miloLibs = getLibs();
     const { loadIms } = await import(`${miloLibs}/utils/utils.js`);
-    await loadIms();
+    try {
+      await loadIms();
+    } catch (err) {
+      if (err?.message !== 'IMS timeout') throw err;
+      // wait for this listener in case of IMS timeout
+      await new Promise((resolve) => {
+        window.addEventListener('onImsLibInstance', () => resolve(), { once: true });
+      });
+    }
   }
 
   initializeGate() {
