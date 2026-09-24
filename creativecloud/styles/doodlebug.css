@@ -85,6 +85,10 @@
         margin-inline: 180px 0;
     }
 
+    .aside:not(.promobar) .foreground.container .text li {
+        color: #5D5D5D;
+    }
+
     .aside:not(.promobar) .foreground.container:has(> .image:first-child) .text {
         margin-inline: 0 180px;
     }
