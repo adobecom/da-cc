@@ -12,6 +12,8 @@ test.describe('product pages have inline videos', () => {
     await test.step('Jarvis logo shows in page', async () => {
       await page.goto(`${baseURL}${features[0].path}`);
       await page.waitForLoadState('domcontentloaded');
+      // extra buffer for webkit flakiness before assertions start
+      await page.waitForTimeout(2000);
       await expect(page).toHaveURL(`${baseURL}${features[0].path}`);
     });
     await test.step('inline video present in product page and playing by default page loads', async () => {
@@ -25,6 +27,8 @@ test.describe('product pages have inline videos', () => {
     await test.step('check video pause feature working', async () => {
       await page.goto(`${baseURL}${features[1].path}`);
       await page.waitForLoadState('domcontentloaded');
+      // extra buffer for webkit flakiness before assertions start
+      await page.waitForTimeout(2000);
       await expect(page).toHaveURL(`${baseURL}${features[1].path}`);
     });
     await test.step('Jarvis logo shows in page', async () => {
