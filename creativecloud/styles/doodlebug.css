@@ -112,6 +112,47 @@
         }
     }
 
+    /* ---- Aside Carousel ---- */
+    .aside-carousel .slide .image :is(img, video) {
+        border: var(--glass-border);
+    }
+
+    .aside-carousel .slide .text [class*="heading-"] {
+        font-weight: 800;
+        letter-spacing: -3%;
+    }
+
+    @media (min-width: 1200px) {
+        .aside-carousel .slide {
+            display: grid;
+            align-items: center;
+            gap: 165px;
+            width: 85%;
+            grid-template-columns: minmax(45%, 1fr) minmax(55%, 1fr);
+        }
+
+        .aside-carousel .slide:has(> .image:first-child) {
+            grid-template-columns: minmax(55%, 1fr) minmax(45%, 1fr);
+        }
+
+        .aside-carousel .slide .text {
+            margin-inline: 180px 0;
+        }
+
+        .aside-carousel .slide:has(> .image:first-child) .text {
+            margin-inline: 0 180px;
+        }
+
+        .aside-carousel .slide .image :is(img, video) {
+            border-radius: 20px;
+        }
+
+        .aside-carousel .slide .text [class*="heading-"] {
+            font-size: 2.25rem;
+            line-height: 98%;
+        }
+    }
+
     /* ---- Carousel (Tablet Hinting) ---- */
     .carousel.hinting-tablet {
         --tablet-card-width: calc(300 / 768 * 100vw);

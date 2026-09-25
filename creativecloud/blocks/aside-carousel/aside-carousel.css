@@ -263,7 +263,6 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
     order: 0;
     flex: 1 0 calc(var(--grid-column-width) * 5);
     min-width: 0;
-    position: relative;
   }
 
   .aside-carousel .slide .text {
@@ -273,21 +272,17 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
     min-width: 0;
   }
 
-  .aside-carousel .slide .text h3 {
-    font-size: var(--type-heading-xl-size);
-    font-weight: 800;
-    line-height: var(--type-heading-xl-lh);
-  }
-
   .aside-carousel .slide .image img,
-  .aside-carousel .slide .image video,
-  .aside-carousel .slide .image picture,
-  .aside-carousel .slide .image picture img {
+  .aside-carousel .slide .image video {
     max-height: none;
     height: auto;
     object-fit: unset;
     width: 100%;
+  }
+
+  .aside-carousel .slide .image picture {
     display: flex;
+    width: 100%;
   }
 
   .aside-carousel .carousel-controls {
