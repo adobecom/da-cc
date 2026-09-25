@@ -3,7 +3,6 @@
   --card-height-default: 213px;
   --track-gap: var(--spacing-xs);
   --peek-size: 20%;
-  --desktop-grid-gap: 165px;
   --carousel-btn-bg: #242424;
   --carousel-btn-bg-hover: #2f2f2f;
   --carousel-btn-bg-active: #373737;
@@ -235,8 +234,6 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
 
 @media screen and (min-width: 1200px) {
   .aside-carousel {
-    --text-inline-margin: 180px;
-
     padding-left: 0;
     clip-path: none;
   }
@@ -252,43 +249,45 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
 
   .aside-carousel .slide {
     padding: var(--spacing-xl) 0;
-    display: grid;
-    justify-content: center;
+    display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: var(--desktop-grid-gap);
-    width: 85%;
-    grid-template-columns: minmax(45%, 1fr) minmax(55%, 1fr);
+    gap: var(--grid-column-width);
+    width: var(--grid-container-width);
+    margin: 0 auto;
   }
 
-  /* Reset mobile order — let DOM order (text left, image right) take over */
   .aside-carousel .slide .image {
     display: flex;
     align-items: center;
     order: 0;
-    flex: 1;
+    flex: 1 0 calc(var(--grid-column-width) * 5);
+    min-width: 0;
+    position: relative;
   }
 
   .aside-carousel .slide .text {
-    flex: 1;
-    margin-inline: var(--text-inline-margin) 0;
+    flex: 1 0 calc(var(--grid-column-width) * 6);
     padding: var(--spacing-xl) 0;
     box-sizing: border-box;
-  }
-
-  .aside-carousel .slide:has(> .image:first-child) .text {
-    margin-inline: 0 var(--text-inline-margin);
+    min-width: 0;
   }
 
   .aside-carousel .slide .text h3 {
-    font-size: var(--type-heading-xxl-size);
-    line-height: 98%;
+    font-size: var(--type-heading-xl-size);
+    font-weight: 800;
+    line-height: var(--type-heading-xl-lh);
   }
 
   .aside-carousel .slide .image img,
-  .aside-carousel .slide .image video {
+  .aside-carousel .slide .image video,
+  .aside-carousel .slide .image picture,
+  .aside-carousel .slide .image picture img {
     max-height: none;
     height: auto;
     object-fit: unset;
+    width: 100%;
+    display: flex;
   }
 
   .aside-carousel .carousel-controls {
