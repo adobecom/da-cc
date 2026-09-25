@@ -9,7 +9,9 @@
         --xl-rounded-corners: 32px;
     }
 
-    :where(.section:not(.dark) p:not(merch-card [slot="promo-text"]):not(merch-card [slot="promo-text"] *)) {
+    :where(.section:not(.dark) p:not(merch-card [slot="promo-text"]):not(merch-card [slot="promo-text"] *)),
+    .aside:not(.promobar) .foreground.container .text li,
+    .carousel .editorial-card .foreground li {
       color: #5D5D5D;
     }
 
@@ -83,10 +85,6 @@
 
     .aside:not(.promobar) .foreground.container .text {
         margin-inline: 180px 0;
-    }
-
-    .aside:not(.promobar) .foreground.container .text li {
-        color: #5D5D5D;
     }
 
     .aside:not(.promobar) .foreground.container:has(> .image:first-child) .text {
