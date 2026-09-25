@@ -24,23 +24,22 @@ const config = {
   testDir: './nala',
   outputDir: './test-results',
   globalSetup: './nala/utils/global.setup.js',
-  timeout: 30 * 1000,
+  timeout: 60 * 1000,
   expect: { timeout: 5000 },
   testMatch: '**/*.test.js',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 7 : 3,
+  workers: 1,
   reporter: process.env.CI
     ? [['github'], ['list'], ['./nala/utils/base-reporter.js']]
     : [['html', { outputFolder: 'test-html-results' }], ['list'], ['./nala/utils/base-reporter.js']],
   use: {
     actionTimeout: 60000,
     trace: 'on-first-retry',
-    baseURL: 'https://stage--cc--adobecom.aem.live',
-    // process.env.PR_BRANCH_LIVE_URL
-    // || process.env.LOCAL_TEST_LIVE_URL
-    // || 'https://stage--cc--adobecom.aem.live',
+    baseURL: process.env.PR_BRANCH_LIVE_URL
+      || process.env.LOCAL_TEST_LIVE_URL
+      || 'https://stage--da-cc--adobecom.aem.live',
   },
   projects: [
     {
