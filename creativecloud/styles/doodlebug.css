@@ -587,6 +587,10 @@
         background-size: contain;
     }
 
+    .text-block.grid-cta .foreground .cta-container a.no-openin-icon::after {
+        content: none;
+    }
+
     @media (min-width: 600px) {
         .text-block.grid-cta .foreground .cta-container .action-area {
           grid-template-columns: repeat(2,1fr);
