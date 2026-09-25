@@ -125,6 +125,7 @@
     @media (min-width: 1200px) {
         .aside-carousel .slide {
             display: grid;
+            justify-content: center;
             align-items: center;
             gap: 165px;
             width: 85%;
