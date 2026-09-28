@@ -207,6 +207,17 @@
 /* ===== RTL ===== */
 
 @media screen and (max-width: 1199px) {
+  .aside-carousel .slide .text {
+    padding: 24px;
+    gap: 24px;
+    flex-direction: column;
+  }
+
+  .aside-carousel .slide .text h3,
+  .aside-carousel [class^="body-"] {
+    margin: 0;
+  }
+
   html[dir="rtl"] .aside-carousel .slides-track {
     flex-direction: row-reverse;
   }
