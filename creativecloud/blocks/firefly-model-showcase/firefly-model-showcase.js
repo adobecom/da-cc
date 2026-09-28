@@ -332,6 +332,14 @@ export default async function init(el) {
     updateMotionButtonState(globalButton, !globalManuallyPaused);
   });
 
+
+  globalButton.addEventListener('keydown', (event) => {
+    if (event.code === 'Enter' || event.code === 'Space') {
+      event.preventDefault();
+      globalButton.click();
+    }
+  });
+
   const reducedMotionMQGlobal = window.matchMedia(REDUCED_MOTION_QUERY);
   if (reducedMotionMQGlobal.matches) {
     globalManuallyPaused = true;

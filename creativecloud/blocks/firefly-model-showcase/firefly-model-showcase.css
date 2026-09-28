@@ -448,6 +448,36 @@
   }
 }
 
+/* RTL adjustment - mirror pause/play button positioning */
+[dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
+  right: auto;
+  left: 16px;
+}
+
+/* Tablet */
+@media screen and (min-width: 600px) and (max-width: 899px) {
+  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
+    right: auto;
+    left: 13px;
+  }
+}
+
+/* Small desktop */
+@media screen and (min-width: 900px) and (max-width: 1199px) {
+  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
+    right: auto;
+    left: 16px;
+  }
+}
+
+/* Mobile */
+@media screen and (max-width: 599px) {
+  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
+    right: auto;
+    left: 7px;
+  }
+}
+
 .firefly-model-showcase .animation-controls .pause-play-wrapper .offset-filler {
   display: flex;
   justify-content: center;
@@ -460,7 +490,8 @@
 }
 
 .firefly-model-showcase .animation-controls .pause-play-wrapper:focus-visible {
-  outline: var(--color-accent-focus-ring) solid 2px;
+  outline: 2px solid var(--color-accent-focus-ring, #1473e6);
+  outline-offset: 2px;
 }
 
 /* Pause icon */
