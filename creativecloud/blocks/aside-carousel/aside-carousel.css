@@ -14,17 +14,11 @@
 
   position: relative;
   overflow: hidden;
-  padding-left: var(--grid-margins-width, 1.5rem);
-  clip-path: inset(0 0 0 var(--grid-margins-width, 1.5rem));
 }
 
 .dark .aside-carousel,
 .aside-carousel.dark {
   color: var(--color-white);
-}
-
-.aside-carousel.no-clip-left {
-  clip-path: none;
 }
 
 /* ===== Slides track ===== */
@@ -33,7 +27,7 @@
   display: flex;
   align-items: start;
   gap: var(--track-gap);
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
   will-change: transform;
 }
 
@@ -208,7 +202,7 @@
 
 @media screen and (max-width: 1199px) {
   .aside-carousel .slide .text {
-    padding: 24px;
+    padding: 24px 0;
     gap: 24px;
     flex-direction: column;
   }
@@ -233,22 +227,17 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
 
 @media screen and (min-width: 600px) and (max-width: 1199px) {
   .aside-carousel {
-    --peek-size: 10%;
+    --peek-size: 0%;
     --tablet-card-width: calc(300 / 768 * 100vw);
     --card-height-default: calc(var(--tablet-card-width) * 225 / 300);
   }
 
   .aside-carousel .slide {
-    flex: 0 0 calc((100% - var(--peek-size)) / 2 - var(--track-gap) / 2);
+    flex: 0 0 100%;
   }
 }
 
 @media screen and (min-width: 1200px) {
-  .aside-carousel {
-    padding-left: 0;
-    clip-path: none;
-  }
-
   .aside-carousel .text .body-m {
     font-size: var(--type-body-l-size);
     line-height: var(--type-body-l-lh);

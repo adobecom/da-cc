@@ -156,6 +156,8 @@ function initControls(el, slides) {
 export default async function init(el) {
   ({ decorateBlockText, applyHoverPlay, decorateTextOverrides } = await import(`${miloLibs}/utils/decorate.js`));
 
+  el.classList.add('container');
+
   const slides = [...el.querySelectorAll(':scope > div')];
   slides.forEach((slide) => decorateSlide(slide));
   decorateTextOverrides(el);
