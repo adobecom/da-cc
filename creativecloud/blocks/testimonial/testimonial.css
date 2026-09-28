@@ -262,7 +262,8 @@
   display: inline-flex;
 }
 
-@media screen and (max-width: 599px) {
+@media screen and (max-width: 599px),
+       screen and (max-width: 899px) and (orientation: landscape) {
   .testimonial-play-pause:focus,
   .testimonial-play-pause:focus-visible,
   .testimonial-progress-dot:focus,
