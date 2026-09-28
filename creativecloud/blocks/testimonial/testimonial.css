@@ -262,6 +262,17 @@
   display: inline-flex;
 }
 
+@media screen and (max-width: 599px) {
+  .testimonial-play-pause:focus,
+  .testimonial-play-pause:focus-visible,
+  .testimonial-progress-dot:focus,
+  .testimonial-progress-dot:focus-visible {
+    outline: none;
+    border: none;
+    box-shadow: none;
+  }
+}
+
 /* Tablet */
 @media screen and (min-width: 600px) {
   .testimonial {
