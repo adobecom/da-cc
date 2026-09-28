@@ -1,7 +1,7 @@
 .aside-carousel {
   --min-height: 160px;
   --card-height-default: 213px;
-  --track-gap: var(--spacing-xs);
+  --track-gap: 24px;
   --peek-size: 20%;
   --carousel-btn-bg: #242424;
   --carousel-btn-bg-hover: #2f2f2f;
