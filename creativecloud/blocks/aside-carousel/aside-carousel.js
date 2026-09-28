@@ -159,10 +159,6 @@ export default async function init(el) {
   const slides = [...el.querySelectorAll(':scope > div')];
   slides.forEach((slide) => decorateSlide(slide));
   decorateTextOverrides(el);
-  initControls(el, slides);
 
-  DESKTOP_MQ.addEventListener('change', (e) => {
-    const [from, to] = e.matches ? ['body-m', 'body-l'] : ['body-l', 'body-m'];
-    el.querySelectorAll(`.${from}`).forEach((p) => p.classList.replace(from, to));
-  });
+  initControls(el, slides);
 }

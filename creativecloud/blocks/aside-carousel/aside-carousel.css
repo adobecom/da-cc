@@ -238,6 +238,11 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
     clip-path: none;
   }
 
+  .aside-carousel .text .body-m {
+    font-size: var(--type-body-l-size);
+    line-height: var(--type-body-l-lh);
+  }
+
   .aside-carousel .slides-track {
     flex-direction: column;
     align-items: center;
