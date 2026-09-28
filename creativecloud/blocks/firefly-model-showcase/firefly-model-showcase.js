@@ -145,15 +145,6 @@ function createResponsiveVideo(videoUrl, imageUrl) {
     window.lana?.log(`Video failed to load: ${videoUrl}`, LANA_OPTIONS);
   });
 
-  video.addEventListener('loadeddata', () => {
-    // eslint-disable-next-line no-use-before-define
-    if (!reducedMotionQuery.matches && isVisible && !manuallyPaused) {
-      video.play().catch((err) => {
-        window.lana?.log(`Error playing video: ${err}`, LANA_OPTIONS);
-      });
-    }
-  });
-
   let manuallyPaused = false;
   let isVisible = false;
 
@@ -175,9 +166,7 @@ function createResponsiveVideo(videoUrl, imageUrl) {
     }
   };
 
-  // Expose control methods so a single global controller can manage all videos
-  video.playControlled = playVideo;
-  video.pauseControlled = pauseVideo;
+  // Expose manual pause control so the global play/pause button can manage this video
   video.setManualPaused = (val) => {
     manuallyPaused = !!val;
     if (manuallyPaused) {
@@ -308,11 +297,6 @@ export default async function init(el) {
   await populateGalleryCells(el, galleryJsonUrl);
 
   // Create a single global play/pause button for the entire section
-  // Ensure block root is positioned so absolute placement works (button sits outside cards)
-  if (el && getComputedStyle(el).position === 'static') {
-    el.style.position = 'relative';
-  }
-
   const allVideos = [...el.querySelectorAll('video')];
 
   const globalControls = createTag('div', { class: 'firefly-global-controls animation-controls' });
@@ -346,13 +330,6 @@ export default async function init(el) {
     globalManuallyPaused = !globalManuallyPaused;
     applyManualPausedToAll(globalManuallyPaused);
     updateMotionButtonState(globalButton, !globalManuallyPaused);
-  });
-
-  globalButton.addEventListener('keydown', (event) => {
-    if (event.code === 'Enter' || event.code === 'Space') {
-      event.preventDefault();
-      globalButton.click();
-    }
   });
 
   const reducedMotionMQGlobal = window.matchMedia(REDUCED_MOTION_QUERY);
