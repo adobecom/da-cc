@@ -1,7 +1,7 @@
 .aside-carousel {
   --min-height: 160px;
   --card-height-default: 213px;
-  --track-gap: var(--spacing-xs);
+  --track-gap: 24px;
   --peek-size: 20%;
   --desktop-grid-gap: 165px;
   --carousel-btn-bg: #242424;
@@ -208,6 +208,19 @@
 /* ===== RTL ===== */
 
 @media screen and (max-width: 1199px) {
+  .aside-carousel .slide {
+    padding: 24px 0;
+  }
+
+  .aside-carousel .slide .text {
+    gap: 16px;
+  }
+
+  .aside-carousel .slide .text [class^="heading-"],
+  .aside-carousel .slide .text [class^="body-"] {
+    margin: 0;
+  }
+
   html[dir="rtl"] .aside-carousel .slides-track {
     flex-direction: row-reverse;
   }
@@ -220,6 +233,12 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
 }
 
 /* ===== Responsive ===== */
+
+@media screen and (max-width: 599px) {
+  .aside-carousel {
+    --track-gap: 16px;
+  }
+}
 
 @media screen and (min-width: 600px) and (max-width: 1199px) {
   .aside-carousel {
@@ -241,6 +260,11 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
     clip-path: none;
   }
 
+  .aside-carousel .text .body-m {
+    font-size: var(--type-body-l-size);
+    line-height: var(--type-body-l-lh);
+  }
+
   .aside-carousel .slides-track {
     flex-direction: column;
     align-items: center;
@@ -256,7 +280,7 @@ html[dir="rtl"] .aside-carousel .carousel-controls {
     justify-content: center;
     align-items: center;
     gap: var(--desktop-grid-gap);
-    width: 85%;
+    width: 100%;
     grid-template-columns: minmax(45%, 1fr) minmax(55%, 1fr);
   }
 
