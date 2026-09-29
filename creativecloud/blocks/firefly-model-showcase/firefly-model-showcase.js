@@ -332,7 +332,6 @@ export default async function init(el) {
     updateMotionButtonState(globalButton, !globalManuallyPaused);
   });
 
-
   globalButton.addEventListener('keydown', (event) => {
     if (event.code === 'Enter' || event.code === 'Space') {
       event.preventDefault();
