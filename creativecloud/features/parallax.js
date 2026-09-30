@@ -50,13 +50,16 @@ function addProgressIMPL(el, NAV_HEIGHT, markers = []) {
 
   focusScope.addEventListener('keydown', (e) => {
     if (e.key !== 'Tab' || !frozenForKeyboard) return;
-    const scrollY = window.scrollY;
+    const { scrollY } = window;
     window.addEventListener('scroll', () => {
-      if (frozenForKeyboard) window.scrollTo(0, scrollY);
+      if (frozenForKeyboard && !document.activeElement?.matches('.firefly-global-controls .pause-play-wrapper')) {
+        window.scrollTo(0, scrollY);
+      }
     }, { once: true });
   }, true);
 
   focusScope.addEventListener('focusin', () => {
+    if (document.activeElement?.matches('.firefly-global-controls .pause-play-wrapper')) return;
     if (document.activeElement?.matches(':focus-visible')) {
       frozenForKeyboard = true;
       el.style.setProperty('--exit-progress', 0);
