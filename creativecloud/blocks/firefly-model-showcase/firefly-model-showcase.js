@@ -339,6 +339,13 @@ export default async function init(el) {
     }
   });
 
+  // Ensure the button is visible in the viewport when it receives keyboard focus
+  globalButton.addEventListener('focus', () => {
+    if (globalButton.matches(':focus-visible')) {
+      globalButton.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+  });
+
   const reducedMotionMQGlobal = window.matchMedia(REDUCED_MOTION_QUERY);
   if (reducedMotionMQGlobal.matches) {
     globalManuallyPaused = true;
