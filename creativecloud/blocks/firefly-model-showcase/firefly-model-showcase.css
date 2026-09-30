@@ -421,14 +421,14 @@
   margin: 0;
   border: 0;
   right: 16px;
-  top: 270px;
+  top: 193px;
 }
 
 /* Tablet */
 @media screen and (min-width: 600px) and (max-width: 899px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
     right: 13px;
-    top: 449px;
+    top: 260px;
   }
 }
 
@@ -436,7 +436,7 @@
 @media screen and (min-width: 900px) and (max-width: 1199px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
     right: 16px;
-    top: 857px;
+    top: 192px;
   }
 }
 
@@ -444,42 +444,42 @@
 @media screen and (max-width: 599px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
     right: 7px;
-    top: 501px;
+    top: 279px;
   }
 }
 
 /* Large desktop */
 @media screen and (min-width: 1436px) and (max-width: 1480px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 243px;
+    top: 134px;
   }
 }
 
 /* Desktop */
 @media screen and (min-width: 1200px) and (max-width: 1251px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 281px;
+    top: 173px;
   }
 }
 
 /* Large desktop */
 @media screen and (min-width: 1382px) and (max-width: 1435px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 349px;
+    top: 242px;
   }
 }
 
 /* Desktop */
 @media screen and (min-width: 1300px) and (max-width: 1381px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 325px;
+    top: 199px;
   }
 }
 
 /* Small desktop */
 @media screen and (min-width: 900px) and (max-width: 969px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 969px;
+    top: 303px;
   }
 }
 
