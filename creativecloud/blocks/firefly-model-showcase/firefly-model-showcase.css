@@ -420,14 +420,14 @@
   background-color: var(--color-white);
   margin: 0;
   border: 0;
-  right: 16px;
+  inset-inline-end: 16px;
   top: 193px;
 }
 
 /* Tablet */
 @media screen and (min-width: 600px) and (max-width: 899px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    right: 13px;
+    inset-inline-end: 13px;
     top: 260px;
   }
 }
@@ -435,7 +435,7 @@
 /* Small desktop */
 @media screen and (min-width: 900px) and (max-width: 1199px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    right: 16px;
+    inset-inline-end: 16px;
     top: 192px;
   }
 }
@@ -443,7 +443,7 @@
 /* Mobile */
 @media screen and (max-width: 599px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    right: 7px;
+    inset-inline-end: 7px;
     top: 279px;
   }
 }
@@ -483,33 +483,11 @@
   }
 }
 
-/* RTL adjustment - mirror pause/play button positioning */
-[dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-  right: auto;
-  left: 16px;
-}
-
-/* Tablet */
-@media screen and (min-width: 600px) and (max-width: 899px) {
-  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    right: auto;
-    left: 13px;
-  }
-}
-
-/* Small desktop */
-@media screen and (min-width: 900px) and (max-width: 1199px) {
-  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    right: auto;
-    left: 16px;
-  }
-}
+/* RTL top adjustments - horizontal position flips automatically via inset-inline-end */
 
 /* Mobile */
 @media screen and (max-width: 599px) {
   [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    right: auto;
-    left: 7px;
     top: 281px;
   }
 }
