@@ -150,6 +150,7 @@
   flex-direction: column;
   gap: var(--gallery-column-gap);
   width: 160px;
+  position: relative;
 }
 
 /* only 3 cols on mobile */
@@ -421,111 +422,27 @@
   margin: 0;
   border: 0;
   inset-inline-end: 16px;
-  top: 193px;
+  top: -24px;
+  right: calc((100vw - 330%) / 2);
 }
 
 /* Tablet */
 @media screen and (min-width: 600px) and (max-width: 899px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    inset-inline-end: 13px;
-    top: 260px;
-  }
-}
-
-/* Small desktop */
-@media screen and (min-width: 900px) and (max-width: 1199px) {
-  .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    inset-inline-end: 16px;
-    top: 192px;
+    top: -36px;
+    right: calc((100vw - 210%) / 2);
   }
 }
 
 /* Mobile */
 @media screen and (max-width: 599px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    inset-inline-end: 7px;
-    top: 279px;
+    top: -40px;
+    right: calc((100vw - 150%) / 2);
   }
 }
 
-/* Large desktop */
-@media screen and (min-width: 1436px) and (max-width: 1480px) {
-  .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 134px;
-  }
-}
-
-/* Desktop */
-@media screen and (min-width: 1200px) and (max-width: 1251px) {
-  .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 173px;
-  }
-}
-
-/* Large desktop */
-@media screen and (min-width: 1382px) and (max-width: 1435px) {
-  .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 242px;
-  }
-}
-
-/* Desktop */
-@media screen and (min-width: 1300px) and (max-width: 1381px) {
-  .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 199px;
-  }
-}
-
-/* Small desktop */
-@media screen and (min-width: 900px) and (max-width: 969px) {
-  .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 303px;
-  }
-}
-
-/* RTL top adjustments - horizontal position flips automatically via inset-inline-end */
-
-/* Mobile */
-@media screen and (max-width: 599px) {
-  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 281px;
-  }
-}
-
-/* Large desktop */
-@media screen and (min-width: 1436px) and (max-width: 1480px) {
-  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 129px;
-  }
-}
-
-/* Desktop */
-@media screen and (min-width: 1200px) and (max-width: 1251px) {
-  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 178px;
-  }
-}
-
-/* Large desktop */
-@media screen and (min-width: 1382px) and (max-width: 1435px) {
-  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 218px;
-  }
-}
-
-/* Desktop */
-@media screen and (min-width: 1312px) and (max-width: 1381px) {
-  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 196px;
-  }
-}
-
-/* Small desktop */
-@media screen and (min-width: 900px) and (max-width: 969px) {
-  [dir='rtl'] .firefly-model-showcase .animation-controls .pause-play-wrapper {
-    top: 315px;
-  }
-}
+/* RTL - horizontal position flips automatically via inset-inline-end */
 
 .firefly-model-showcase .animation-controls .pause-play-wrapper .offset-filler {
   display: flex;

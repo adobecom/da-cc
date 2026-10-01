@@ -373,8 +373,10 @@ export default async function init(el) {
   }
 
   globalControls.append(globalButton);
-  // Append to block root so the button sits outside individual cards
-  el.appendChild(globalControls);
+  // Anchor to the last gallery column so the button inherits its parallax transform
+  // and stays glued to the last card (also in unity/prompt-bar mode)
+  const lastGalleryColumn = el.querySelector('.firefly-model-showcase-gallery .gallery-column:last-child');
+  (lastGalleryColumn || el).prepend(globalControls);
 
   new IntersectionObserver(async (entries, ob) => {
     if (entries[0].isIntersecting) {
