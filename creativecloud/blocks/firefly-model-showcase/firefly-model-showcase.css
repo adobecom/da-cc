@@ -438,7 +438,7 @@
 @media screen and (max-width: 599px) {
   .firefly-model-showcase .animation-controls .pause-play-wrapper {
     top: -40px;
-    right: calc((100vw - 150%) / 2);
+    right: calc((100vw - 165%) / 2);
   }
 }
 
