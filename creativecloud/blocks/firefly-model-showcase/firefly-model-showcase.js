@@ -119,6 +119,8 @@ function updateMotionButtonState(button, isPlaying) {
   const label = isPlaying ? animationLabels.pauseMotion : animationLabels.playMotion;
   button.setAttribute('aria-label', label);
   button.setAttribute('title', label);
+  // Keep analytics label in sync with the action the click will perform
+  button.setAttribute('daa-ll', label);
   button.setAttribute('aria-pressed', isPlaying ? 'true' : 'false');
   button.dataset.state = isPlaying ? 'playing' : 'paused';
 }
@@ -171,8 +173,10 @@ function createResponsiveVideo(videoUrl, imageUrl) {
     manuallyPaused = !!val;
     if (manuallyPaused) {
       pauseVideo();
-    } else if (isVisible && !reducedMotionQuery.matches) {
-      playVideo(false);
+    } else if (!reducedMotionQuery.matches) {
+      // Manual play bypasses the visibility gate: the button must work even
+      // when videos are less than 50% in view (e.g. below 900px layouts).
+      playVideo(true);
     }
   };
 
