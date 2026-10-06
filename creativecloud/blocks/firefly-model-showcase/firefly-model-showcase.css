@@ -395,6 +395,16 @@
   z-index: 4;
 }
 
+@media screen and (max-width: 899px) {
+  .firefly-model-showcase:not(.marker-disable-pointer) .firefly-model-showcase-content {
+    pointer-events: none;
+  }
+
+  .firefly-model-showcase:not(.marker-disable-pointer) .firefly-model-showcase-content :is(a, button, input, textarea, select, .ex-unity-wrap) {
+    pointer-events: auto;
+  }
+}
+
 .gallery-cell-media-wrapper {
   height: 100%;
 }
@@ -424,6 +434,8 @@
   inset-inline-end: 16px;
   top: -24px;
   right: calc((100vw - 330%) / 2);
+  pointer-events: auto;
+  touch-action: manipulation;
 }
 
 /* Tablet */
