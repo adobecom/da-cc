@@ -119,6 +119,7 @@ function initAnimationControls({ button, iconWrapper, logoContainer }) {
     iconWrapper.classList.toggle('is-playing', playing);
     button.setAttribute('aria-label', playing ? animationLabels.pauseMotion : animationLabels.playMotion);
     button.setAttribute('title', playing ? animationLabels.pauseMotion : animationLabels.playMotion);
+    button.setAttribute('daa-ll', playing ? animationLabels.pauseMotion : animationLabels.playMotion);
     button.setAttribute('aria-pressed', String(playing));
   };
 
@@ -182,6 +183,7 @@ function createAnimationControls({ container, getFederatedContentRoot, logoConta
     class: 'pause-play-wrapper',
     title: animationLabels.pauseMotion,
     'aria-label': animationLabels.pauseMotion,
+    'daa-ll': animationLabels.pauseMotion,
     'aria-pressed': true,
   });
 
