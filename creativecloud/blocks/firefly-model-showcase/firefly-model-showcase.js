@@ -9,10 +9,29 @@ const LANA_OPTIONS = {
 };
 const GALLERY_FALLBACK_URL = '/cc-shared/ff-gallery-assets.json';
 const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)';
-const animationLabels = {
+const PLACEHOLDER_LABELS = ['pause-motion', 'play-motion'];
+
+let animationLabels = {
   playMotion: 'Play motion',
   pauseMotion: 'Pause motion',
 };
+
+function logError(message, error) {
+  window.lana?.log(`firefly-model-showcase ${message}: ${error}`, LANA_OPTIONS);
+}
+
+async function fetchAnimationLabels(getFedsPlaceholderConfig, replaceKeyArray) {
+  try {
+    const [pauseMotion, playMotion] = await replaceKeyArray(
+      PLACEHOLDER_LABELS,
+      getFedsPlaceholderConfig(),
+    );
+    return { playMotion, pauseMotion };
+  } catch (err) {
+    logError('Failed to fetch animation labels', err);
+    return animationLabels;
+  }
+}
 
 const CHICKET_ICONS = [
   {
@@ -270,6 +289,12 @@ function buildGalleryOutline(parentElem) {
 export default async function init(el) {
   const miloLibs = getLibs('/libs');
   const { decorateButtons } = await import(`${miloLibs}/utils/decorate.js`);
+  const { getFedsPlaceholderConfig } = await import(`${miloLibs}/utils/utils.js`);
+  const { replaceKeyArray } = await import(`${miloLibs}/features/placeholders.js`);
+  animationLabels = await fetchAnimationLabels(
+    getFedsPlaceholderConfig,
+    replaceKeyArray,
+  );
 
   const galleryConfigRow = el.querySelector(':scope > div:nth-child(2)');
   let galleryJsonUrl = GALLERY_FALLBACK_URL;
