@@ -1,5 +1,31 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="head-loaded" content="false" />
+<script>
+  // PERF TEST ONLY: mirror prod's Link-header preloads for ?milolibs= branches on aem.live.
+  (() => {
+    const { hostname, search } = window.location;
+    if (!hostname.endsWith('.aem.live') && !hostname.endsWith('.aem.page')) return;
+    const branch = new URLSearchParams(search).get('milolibs') || 'main';
+    if (!/^[a-zA-Z0-9_-]+$/.test(branch) || branch === 'local') return;
+    const libs = branch.includes('--')
+      ? `https://${branch}.aem.live/libs`
+      : `https://${branch}--milo--adobecom.aem.live/libs`;
+    const preload = (href, crossorigin = true) => {
+      const link = document.createElement('link');
+      link.rel = 'preload';
+      link.as = 'script';
+      link.href = href;
+      if (crossorigin) link.crossOrigin = 'anonymous';
+      document.head.append(link);
+    };
+    preload(`${libs}/utils/utils.js`);
+    preload(`${libs}/deps/imslib.min.js`, false);
+    preload(`${libs}/martech/helpers.js`);
+    preload(`${libs}/features/personalization/personalization.js`);
+    preload('https://main--mas--adobecom.aem.live/web-components/dist/commerce.js');
+    preload(`${libs}/martech/martech.js`);
+  })();
+</script>
 <style>
   body {
     display: none;
