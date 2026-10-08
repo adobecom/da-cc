@@ -138,6 +138,7 @@
   justify-content: center;
   cursor: pointer;
   flex-shrink: 0;
+  transition: background 0.3s ease;
 }
 
 .aside-carousel .carousel-prev svg,
