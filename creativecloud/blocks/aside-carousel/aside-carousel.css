@@ -10,6 +10,8 @@
   --carousel-btn-bg-dark: #e6e6e6;
   --carousel-btn-bg-dark-hover: #d5d5d5;
   --carousel-btn-bg-dark-active: #b1b1b1;
+  --carousel-btn-fill-dark: var(--carousel-btn-bg);
+  --carousel-btn-disabled-bg: rgba(177 177 177 / 20%);
   --carousel-btn-disabled-fill: #b1b1b1;
   --carousel-focus-ring: #147af3;
 
@@ -188,7 +190,7 @@
 .dark .aside-carousel .carousel-next svg,
 .aside-carousel.dark .carousel-prev svg,
 .aside-carousel.dark .carousel-next svg {
-  fill: var(--carousel-btn-bg);
+  fill: var(--carousel-btn-fill-dark);
 }
 
 .dark .aside-carousel .carousel-prev:hover,
@@ -201,8 +203,26 @@
 .dark .aside-carousel .carousel-prev:active,
 .dark .aside-carousel .carousel-next:active,
 .aside-carousel.dark .carousel-prev:active,
-.aside-carousel.dark .carousel-next:active {
+.aside-carousel.dark .carousel-next:active,
+.dark .aside-carousel .carousel-prev:focus-visible,
+.dark .aside-carousel .carousel-next:focus-visible,
+.aside-carousel.dark .carousel-prev:focus-visible,
+.aside-carousel.dark .carousel-next:focus-visible {
   background: var(--carousel-btn-bg-dark-active);
+}
+
+.dark .aside-carousel .carousel-prev.disabled,
+.dark .aside-carousel .carousel-next.disabled,
+.aside-carousel.dark .carousel-prev.disabled,
+.aside-carousel.dark .carousel-next.disabled {
+  background: var(--carousel-btn-disabled-bg);
+}
+
+.dark .aside-carousel .carousel-prev.disabled svg,
+.dark .aside-carousel .carousel-next.disabled svg,
+.aside-carousel.dark .carousel-prev.disabled svg,
+.aside-carousel.dark .carousel-next.disabled svg {
+  fill: var(--carousel-btn-disabled-fill);
 }
 
 /* ===== RTL ===== */
