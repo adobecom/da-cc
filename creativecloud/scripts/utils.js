@@ -378,6 +378,8 @@ const MAS_GEO_MAP = {
 
 const MAS_EXTRA_LOCALES = { pr: 'es_PR' };
 
+const MARKET_LOCALE_OVERRIDES = { en: { AU: 'en_GB', IN: 'en_GB', GB: 'en_GB' } };
+
 const MAS_LINK_SELECTOR = 'a[href*="mas.adobe.com/studio.html"]';
 const preloadedMasFragments = new Set();
 
@@ -386,7 +388,8 @@ function getMasLocale(miloLocale, geoCountry) {
   let [country = 'US', language = 'en'] = (MAS_GEO_MAP[geo] ?? geo).split('_', 2);
   country = country.toUpperCase();
   language = language.toLowerCase();
-  return { locale: MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`, country: geoCountry ?? country };
+  const marketOverride = MARKET_LOCALE_OVERRIDES[language]?.[geoCountry];
+  return { locale: marketOverride ?? MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`, country: geoCountry ?? country };
 }
 
 async function preloadMasFragment(a) {
