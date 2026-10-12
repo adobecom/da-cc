@@ -77,4 +77,14 @@ describe('TextField Component', async () => {
     const textarea = document.querySelector('textarea');
     expect(textarea).to.exist;
   });
+
+  it('Email field outside Connect trial should not block Gmail/Yahoo/AOL domains', () => {
+    const email = document.querySelector('#email');
+    const emails = ['user@gmail.com', 'user@yahoo.com', 'user@yahoo.co.uk', 'user@aol.com'];
+    emails.forEach((value) => {
+      email.value = value;
+      email.dispatchEvent(new Event('input'));
+      expect(email.getAttribute('data-valid'), `${value} should remain valid outside connect trial`).to.equal('true');
+    });
+  });
 });
