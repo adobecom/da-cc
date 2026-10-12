@@ -481,9 +481,6 @@ function getDecorateAreaFn() {
             if (img) eagerLoad(img);
           }
         } else if (firstBlock?.classList.contains('upload-marquee')) {
-          // upload-marquee's foreground is a 3-column carousel (mobile/tablet/desktop
-          // variants authored as sibling columns), not a single foreground block -
-          // pick the column matching the current breakpoint.
           const rows = [...firstBlock.querySelectorAll(':scope > div')];
           const contentRow = rows[2];
           const gridIndex = {
