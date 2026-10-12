@@ -453,7 +453,7 @@ function getDecorateAreaFn() {
         import(`${getConfig().codeRoot}/deps/interactive-marquee-changebg/changeBgMarquee.js`);
         break;
       }
-      case firstBlock?.classList.contains('marquee') || firstBlock?.classList.contains('hero-marquee'): {
+      case firstBlock?.classList.contains('marquee') || firstBlock?.classList.contains('hero-marquee') || firstBlock?.classList.contains('upload-marquee'): {
         // Load image eagerly for specific breakpoint
         const viewport = defineDeviceByScreenSize();
         const bgImages = firstBlock.querySelectorAll('div').length > 1 ? firstBlock.querySelector('div') : null;
@@ -480,6 +480,20 @@ function getDecorateAreaFn() {
             const img = grid?.querySelector('picture > img');
             if (img) eagerLoad(img);
           }
+        } else if (firstBlock?.classList.contains('upload-marquee')) {
+          // upload-marquee's foreground is a 3-column carousel (mobile/tablet/desktop
+          // variants authored as sibling columns), not a single foreground block -
+          // pick the column matching the current breakpoint.
+          const rows = [...firstBlock.querySelectorAll(':scope > div')];
+          const contentRow = rows[2];
+          const gridIndex = {
+            MOBILE: 0,
+            TABLET: 1,
+            DESKTOP: 2,
+          }[viewport];
+          const column = contentRow?.querySelectorAll(':scope > div')[gridIndex];
+          const img = column?.querySelector('picture > img');
+          if (img) eagerLoad(img);
         } else eagerLoad(firstBlock.querySelector(':scope div:last-child > div img'));
         break;
       }
