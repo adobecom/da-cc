@@ -115,9 +115,6 @@
     }
 
     /* ---- Aside Carousel ---- */
-    .aside-carousel .slide .image :is(img, video) {
-        border: var(--glass-border);
-    }
 
     .aside-carousel .slide .text [class*="heading-"] {
         font-weight: 800;
