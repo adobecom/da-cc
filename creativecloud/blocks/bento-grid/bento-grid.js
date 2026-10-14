@@ -10,7 +10,7 @@ const VIEW_TYPES = ['mobile', 'tablet', 'desktop'];
 const MIN_ITEMS_TARGET = 15;
 
 function logError(message, error) {
-  window.lana?.log(`Photo gallery ${message}: ${error}`, LANA_OPTIONS);
+  globalThis.lana?.log(`Photo gallery ${message}: ${error}`, LANA_OPTIONS);
 }
 
 function parseConfigBlock(configContainer) {
@@ -170,6 +170,6 @@ export default function init(el) {
     el.classList.add('con-block');
     decorateContent(el);
   } catch (err) {
-    window.lana?.log(`Photo banner Init Error: ${err}`, LANA_OPTIONS);
+    globalThis.lana?.log(`Photo banner Init Error: ${err}`, LANA_OPTIONS);
   }
 }
