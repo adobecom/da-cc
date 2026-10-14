@@ -14,17 +14,17 @@ export const EVT = {
 };
 
 function emit(name, detail) {
-  window.dispatchEvent(new CustomEvent(name, { detail }));
+  globalThis.dispatchEvent(new CustomEvent(name, { detail }));
 }
 
 function on(name, handler) {
   const wrapped = (e) => {
     try { handler(e.detail); } catch (err) {
-      window.lana?.log(`Audio handler failed for "${name}": ${err}`, LANA_OPTIONS);
+      globalThis.lana?.log(`Audio handler failed for "${name}": ${err}`, LANA_OPTIONS);
     }
   };
-  window.addEventListener(name, wrapped);
-  return () => window.removeEventListener(name, wrapped);
+  globalThis.addEventListener(name, wrapped);
+  return () => globalThis.removeEventListener(name, wrapped);
 }
 
 const SIZE = 40;
@@ -83,7 +83,7 @@ function attachAudioListeners(audio, btn, svg) {
 
   btn.addEventListener('click', () => {
     if (audio.paused) {
-      audio.play().catch((err) => window.lana?.log(`Audio play failed: ${err}`, LANA_OPTIONS));
+      audio.play().catch((err) => globalThis.lana?.log(`Audio play failed: ${err}`, LANA_OPTIONS));
     } else {
       audio.pause();
     }
@@ -123,7 +123,7 @@ function attachAudioListeners(audio, btn, svg) {
   });
 
   audio.addEventListener('error', () => {
-    window.lana?.log(`Audio failed to load: ${audio.currentSrc || audio.src}`, LANA_OPTIONS);
+    globalThis.lana?.log(`Audio failed to load: ${audio.currentSrc || audio.src}`, LANA_OPTIONS);
   });
 
   return ctrl;
@@ -165,6 +165,6 @@ export default function init(a) {
   try {
     a.replaceWith(buildAudioPlayer(a.href, a.getAttribute('daa-ll')));
   } catch (err) {
-    window.lana?.log(`Audio link failed to initialize: ${err}`, LANA_OPTIONS);
+    globalThis.lana?.log(`Audio link failed to initialize: ${err}`, LANA_OPTIONS);
   }
 }
