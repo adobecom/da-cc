@@ -54,7 +54,7 @@ export default function nonprofitSelect(props) {
   }
 
   const listContainerTag = createTag('div', { class: 'np-select-list-container' });
-  const listTag = createTag('ul', { class: 'np-select-list', 'data-for': name });
+  const listTag = createTag('ul', { class: 'np-select-list', 'data-for': name, tabindex: -1 });
   const liveRegionTag = createTag('div', { class: 'np-sr-only', 'aria-live': 'polite', role: 'status' });
 
   let searchTimeout;
@@ -77,7 +77,10 @@ export default function nonprofitSelect(props) {
       }
     } else {
       searchTag.value = localSelection[labelKey];
-      optionsStore.update([localSelection]);
+      const selectionToRestore = localSelection;
+      setTimeout(() => {
+        if (document.body.contains(searchTag)) optionsStore.update([selectionToRestore]);
+      }, 0);
     }
   };
 
@@ -102,7 +105,12 @@ export default function nonprofitSelect(props) {
   });
 
   let focusedFromList = false;
+  let suppressShowOnFocus = false;
   searchTag.addEventListener('focus', () => {
+    if (suppressShowOnFocus) {
+      suppressShowOnFocus = false;
+      return;
+    }
     if (debounce && !searchTag.value) return;
     if (!focusedFromList) searchTag.select();
     else focusedFromList = false;
@@ -164,8 +172,12 @@ export default function nonprofitSelect(props) {
         valueTag.dispatchEvent(new Event('input'));
         localSelection = option;
         hasNewInput = false;
+        const shouldRestoreFocus = document.activeElement === itemTag;
         hideList();
-        searchTag.focus();
+        if (shouldRestoreFocus) {
+          suppressShowOnFocus = true;
+          searchTag.focus();
+        }
       };
 
       itemTag.addEventListener('keydown', (ev) => {
