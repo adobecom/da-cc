@@ -228,6 +228,17 @@
   white-space: nowrap;
 }
 
+.np-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.np-input-helper-text {
+  font-size: 12px;
+  color: var(--color-gray-600);
+  line-height: 16px;
+}
+
 .np-control .np-icon {
   position: absolute;
   height: 12px;
@@ -236,6 +247,12 @@
   display: flex;
   cursor: pointer;
   pointer-events: none;
+}
+
+.np-input-wrapper .np-icon {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
 }
 
 .np-input:disabled ~ .np-icon path,
