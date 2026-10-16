@@ -239,6 +239,12 @@
   line-height: 16px;
 }
 
+.np-input-wrapper .np-icon {
+  top: 50%;
+  bottom: auto;
+  transform: translateY(-50%);
+}
+
 .np-control .np-icon {
   position: absolute;
   height: 12px;
@@ -247,12 +253,6 @@
   display: flex;
   cursor: pointer;
   pointer-events: none;
-}
-
-.np-input-wrapper .np-icon {
-  top: 50%;
-  bottom: auto;
-  transform: translateY(-50%);
 }
 
 .np-input:disabled ~ .np-icon path,
