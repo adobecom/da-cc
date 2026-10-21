@@ -62,6 +62,7 @@ export default function nonprofitSelect(props) {
     valueTag.dataset.fieldLabel = label;
     valueTag.showRequiredError = () => setFieldInvalid(searchTag, errorTag);
     valueTag.focusField = () => searchTag.focus();
+    valueTag.isInvalid = () => searchTag.getAttribute('aria-invalid') === 'true';
   }
   if (disabled) {
     searchTag.setAttribute('disabled', 'disabled');

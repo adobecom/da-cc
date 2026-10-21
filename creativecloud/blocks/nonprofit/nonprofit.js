@@ -394,6 +394,22 @@ function getFormTag() {
   return formTag;
 }
 
+function getIncompleteRequiredFields(formTag) {
+  return Array.from(formTag.querySelectorAll('.np-required-field'))
+    .filter((input) => !input.value || input.isInvalid?.());
+}
+
+function updateMissingFieldsSummary(formTag) {
+  const summaryTag = formTag.querySelector('.np-missing-fields-summary');
+  if (!summaryTag || !summaryTag.textContent) return;
+
+  const labels = getIncompleteRequiredFields(formTag)
+    .map((input) => input.dataset.fieldLabel)
+    .filter(Boolean);
+
+  summaryTag.textContent = labels.length ? missingFieldsMessage(labels) : '';
+}
+
 function getSubmitTag() {
   const wrapperTag = createTag('div', { class: 'np-submit-wrapper' });
   const submitTag = createTag('input', {
@@ -416,20 +432,23 @@ function getSubmitTag() {
     ev.stopImmediatePropagation();
 
     const formTag = submitTag.closest('form');
-    const missingInputs = Array.from(formTag.querySelectorAll('.np-required-field'))
-      .filter((input) => !input.value);
+    const incompleteInputs = getIncompleteRequiredFields(formTag);
 
-    const labels = missingInputs
+    const labels = incompleteInputs
       .map((input) => input.dataset.fieldLabel)
       .filter(Boolean);
 
     summaryTag.textContent = labels.length ? missingFieldsMessage(labels) : '';
 
-    missingInputs.forEach((input) => input.showRequiredError?.());
-    const [firstMissing] = missingInputs;
-    if (firstMissing) {
-      if (firstMissing.focusField) firstMissing.focusField();
-      else firstMissing.focus();
+    // Only force the generic "required" message on empty fields - fields that already have
+    // a value but are invalid (e.g. a malformed email) already show their own specific message.
+    incompleteInputs.forEach((input) => {
+      if (!input.value) input.showRequiredError?.();
+    });
+    const [firstIncomplete] = incompleteInputs;
+    if (firstIncomplete) {
+      if (firstIncomplete.focusField) firstIncomplete.focusField();
+      else firstIncomplete.focus();
     }
   });
 
@@ -525,6 +544,7 @@ function getNonprofitInput(params) {
   validatableTag.setAttribute('aria-describedby', errorTag.id);
   validatableTag.setInvalid = (message) => setFieldInvalid(validatableTag, errorTag, message);
   validatableTag.clearInvalid = () => clearFieldInvalid(validatableTag, errorTag);
+  validatableTag.isInvalid = () => validatableTag.getAttribute('aria-invalid') === 'true';
   if (required) {
     validatableTag.setAttribute('aria-required', 'true');
     validatableTag.dataset.fieldLabel = label;
@@ -645,6 +665,7 @@ function trackSubmitCondition(formTag) {
         });
         setSubmitEnabled(submitTag, !hasEmptyFields);
       }
+      updateMissingFieldsSummary(formTag);
     });
   }
 }
