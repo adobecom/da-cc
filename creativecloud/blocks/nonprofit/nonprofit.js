@@ -13,6 +13,15 @@ import {
 } from './constants.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
+import {
+  markRequiredLabel,
+  createFieldErrorTag,
+  setFieldInvalid,
+  clearFieldInvalid,
+  setSubmitEnabled,
+  getRequiredLegendTag,
+  missingFieldsMessage,
+} from './nonprofit-validation.js';
 
 const LANA_OPTIONS = {
   tags: 'nonprofit',
@@ -379,43 +388,89 @@ function getDescriptionTag(title, subtitle) {
   return descriptionTag;
 }
 
+function getFormTag() {
+  const formTag = createTag('form', { class: 'np-form' });
+  formTag.append(getRequiredLegendTag(createTag));
+  return formTag;
+}
+
 function getSubmitTag() {
-  return createTag('input', {
+  const wrapperTag = createTag('div', { class: 'np-submit-wrapper' });
+  const submitTag = createTag('input', {
     class: 'np-button',
     type: 'submit',
     value: window.mph['nonprofit-continue'],
-    disabled: 'disabled',
+    'aria-disabled': 'true',
     'daa-ll': 'continue',
   });
+
+  const summaryTag = createTag('p', {
+    class: 'np-missing-fields-summary',
+    role: 'status',
+    'aria-live': 'polite',
+  });
+
+  submitTag.addEventListener('click', (ev) => {
+    if (submitTag.getAttribute('aria-disabled') !== 'true') return;
+    ev.preventDefault();
+    ev.stopImmediatePropagation();
+
+    const formTag = submitTag.closest('form');
+    const missingInputs = Array.from(formTag.querySelectorAll('.np-required-field:not(:disabled)'))
+      .filter((input) => !input.value);
+
+    const labels = missingInputs
+      .map((input) => input.dataset.fieldLabel)
+      .filter(Boolean);
+
+    summaryTag.textContent = labels.length ? missingFieldsMessage(labels) : '';
+
+    missingInputs.forEach((input) => input.showRequiredError?.());
+    const [firstMissing] = missingInputs;
+    if (firstMissing) {
+      if (firstMissing.focusField) firstMissing.focusField();
+      else firstMissing.focus();
+    }
+  });
+
+  wrapperTag.append(submitTag, summaryTag);
+  return wrapperTag;
 }
 
 function getNonprofitInput(params) {
   const {
     type, name, label, placeholder, required, value,
   } = params;
+  const isFileType = type === 'file';
   const baseParams = { name, placeholder };
   if (required) baseParams.required = 'required';
   if (value) baseParams.value = value;
   const controlTag = createTag('div', { class: 'np-control' });
   const labelTag = createTag('label', { class: 'np-label', for: name }, label);
+  const errorTag = createFieldErrorTag(createTag, name);
   const inputTag = createTag('input', {
-    class: `np-input${required ? ' np-required-field' : ''}`,
+    class: `np-input${required && !isFileType ? ' np-required-field' : ''}`,
     type,
     ...baseParams,
   });
+  if (required) markRequiredLabel(createTag, labelTag);
   controlTag.append(labelTag, inputTag);
 
-  // File validation
-  if (type === 'file') {
-    // Hide input and render a text one
+  let validatableTag = inputTag;
+
+  if (isFileType) {
     inputTag.style.display = 'none';
+    inputTag.setAttribute('aria-hidden', 'true');
+    inputTag.setAttribute('tabindex', '-1');
     const textTag = createTag('input', {
+      id: name,
       type: 'text',
-      class: 'np-input np-input-file',
+      class: `np-input np-input-file${required ? ' np-required-field' : ''}`,
       placeholder,
       readonly: 'readonly',
       'data-for': name,
     });
+    validatableTag = textTag;
 
     textTag.addEventListener('click', () => {
       inputTag.click();
@@ -431,6 +486,7 @@ function getNonprofitInput(params) {
     inputTag.addEventListener('change', () => {
       if (!inputTag.files || inputTag.files.length === 0) {
         textTag.value = '';
+        textTag.dispatchEvent(new Event('input'));
         return;
       }
 
@@ -455,12 +511,38 @@ function getNonprofitInput(params) {
       }
 
       textTag.value = file.name;
+      textTag.dispatchEvent(new Event('input'));
     });
 
     const uploadIconTag = getNonprofitIconTag(NONPRFIT_ICONS.UPLOAD);
 
     controlTag.append(textTag, uploadIconTag);
+  } else {
+    inputTag.id = name;
   }
+
+  validatableTag.setAttribute('aria-describedby', errorTag.id);
+  validatableTag.setInvalid = (message) => setFieldInvalid(validatableTag, errorTag, message);
+  validatableTag.clearInvalid = () => clearFieldInvalid(validatableTag, errorTag);
+  if (required) {
+    validatableTag.setAttribute('aria-required', 'true');
+    validatableTag.dataset.fieldLabel = label;
+    validatableTag.showRequiredError = () => setFieldInvalid(validatableTag, errorTag);
+    validatableTag.focusField = () => validatableTag.focus();
+  }
+
+  validatableTag.addEventListener('blur', () => {
+    if (required && !validatableTag.value) {
+      setFieldInvalid(validatableTag, errorTag);
+    } else {
+      clearFieldInvalid(validatableTag, errorTag);
+    }
+  });
+  validatableTag.addEventListener('input', () => {
+    if (validatableTag.value) clearFieldInvalid(validatableTag, errorTag);
+  });
+
+  controlTag.append(errorTag);
 
   return controlTag;
 }
@@ -553,18 +635,14 @@ function trackSubmitCondition(formTag) {
     const requiredInput = requiredInputs[index];
     requiredInput.addEventListener('input', () => {
       if (!requiredInput.value) {
-        submitTag.setAttribute('disabled', 'disabled');
+        setSubmitEnabled(submitTag, false);
       } else {
         let hasEmptyFields = false;
         requiredInputs.forEach((input) => {
           if (input === requiredInput) return;
           if (!input.value) hasEmptyFields = true;
         });
-        if (hasEmptyFields) {
-          submitTag.setAttribute('disabled', 'disabled');
-        } else {
-          submitTag.removeAttribute('disabled');
-        }
+        setSubmitEnabled(submitTag, !hasEmptyFields);
       }
     });
   }
@@ -581,7 +659,7 @@ function renderSelectNonprofit(containerTag) {
   );
 
   // Form
-  const formTag = createTag('form', { class: 'np-form' });
+  const formTag = getFormTag();
 
   const countryTag = nonprofitSelect({
     createTag,
@@ -713,7 +791,7 @@ function renderOrganizationDetails(containerTag) {
   const descriptionTag = getDescriptionTag(window.mph['nonprofit-title-organization-details']);
 
   // Form
-  const formTag = createTag('form', { class: 'np-form' });
+  const formTag = getFormTag();
 
   let abortController;
 
@@ -825,7 +903,7 @@ function renderOrganizationAddress(containerTag) {
   const descriptionTag = getDescriptionTag(window.mph['nonprofit-title-organization-address']);
 
   // Form
-  const formTag = createTag('form', { class: 'np-form' });
+  const formTag = getFormTag();
 
   const streetAddressTag = getNonprofitInput({
     type: 'text',
@@ -898,7 +976,7 @@ function renderPersonalData(containerTag, product) {
   );
 
   // Form
-  const formTag = createTag('form', { class: 'np-form' });
+  const formTag = getFormTag();
 
   const firstNameTag = getNonprofitInput({
     type: 'text',
@@ -941,7 +1019,11 @@ function renderPersonalData(containerTag, product) {
 
   const validateEmail = () => {
     const isValid = emailInput.validity.valid && emailPattern.test(emailInput.value);
-    emailInput.classList.toggle('np-error', !isValid);
+    if (!isValid && emailInput.value) {
+      emailInput.setInvalid(window.mph?.['nonprofit-invalid-email'] || 'Enter a valid email address.');
+    } else if (isValid) {
+      emailInput.clearInvalid();
+    }
     return isValid;
   };
 
@@ -949,17 +1031,17 @@ function renderPersonalData(containerTag, product) {
   emailInput.addEventListener('blur', validateEmail);
 
   replaceURL(disclaimerTag);
-  const submitTag = getSubmitTag();
+  const submitWrapperTag = getSubmitTag();
+  const submitTag = submitWrapperTag.querySelector('.np-button[type=submit]');
 
   const updateSubmitState = () => {
     const isFormValid = formTag.checkValidity() && validateEmail();
-    submitTag.toggleAttribute('disabled', !isFormValid);
+    setSubmitEnabled(submitTag, isFormValid);
   };
   formTag.addEventListener('input', updateSubmitState);
 
-  formTag.append(firstNameTag, lastNameTag, emailTag, disclaimerTag, submitTag);
+  formTag.append(firstNameTag, lastNameTag, emailTag, disclaimerTag, submitWrapperTag);
 
-  formTag.append(firstNameTag, lastNameTag, emailTag, submitTag);
   trackSubmitCondition(formTag);
   if (nonprofitFormData.email) updateSubmitState();
 

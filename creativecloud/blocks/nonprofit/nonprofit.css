@@ -9,6 +9,7 @@
   --np-selected-organization-fallback-background: #da408b;
   --np-button-disabled-background: #e6e6e6;
   --np-button-disabled-color: #b1b1b1;
+  --np-error-color: #d31510;
 }
 
 .np-container {
@@ -173,7 +174,8 @@
   color: var(--color-white);
 }
 
-.np-button:disabled {
+.np-button:disabled,
+.np-button[aria-disabled='true'] {
   background-color: var(--np-button-disabled-background);
   color: var(--np-button-disabled-color);
   cursor: default;
@@ -181,6 +183,45 @@
 
 .np-form .np-button {
   align-self: start;
+}
+
+.np-required-legend {
+  margin: 0;
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--color-gray-600);
+}
+
+.np-required-indicator {
+  color: var(--np-error-color);
+}
+
+.np-submit-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 10px;
+}
+
+.np-missing-fields-summary {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--np-error-color);
+}
+
+.np-missing-fields-summary:empty {
+  display: none;
+}
+
+.np-field-error {
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--np-error-color);
+}
+
+.np-field-error:empty {
+  display: none;
 }
 
 .np-control {
@@ -617,4 +658,9 @@
   background-repeat: no-repeat;
   background-position: right calc(0.375em + 0.1875rem) center;
   background-size: 1em;
+}
+
+.np-control:has(.np-icon) .np-input.np-error {
+  padding-right: calc(1.5em + 0.75rem + 33px);
+  background-position: right calc(0.375em + 0.1875rem + 33px) center;
 }

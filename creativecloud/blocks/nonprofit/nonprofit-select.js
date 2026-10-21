@@ -2,6 +2,12 @@
 /* eslint-disable max-len */
 import ReactiveStore from './reactiveStore.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
+import {
+  markRequiredLabel,
+  createFieldErrorTag,
+  setFieldInvalid,
+  clearFieldInvalid,
+} from './nonprofit-validation.js';
 
 export default function nonprofitSelect(props) {
   const {
@@ -32,10 +38,13 @@ export default function nonprofitSelect(props) {
 
   const controlTag = createTag('div', { class: 'np-control' });
   const labelTag = createTag('label', { class: 'np-label', for: name }, label);
+  const errorTag = createFieldErrorTag(createTag, name);
   const searchTag = createTag('input', {
+    id: name,
     class: 'np-input np-select-search',
     type: 'text',
     placeholder,
+    'aria-describedby': errorTag.id,
     'data-for': name,
   });
   const valueTag = createTag('input', {
@@ -45,13 +54,29 @@ export default function nonprofitSelect(props) {
   });
 
   if (required) {
+    markRequiredLabel(createTag, labelTag);
     searchTag.setAttribute('required', 'required');
+    searchTag.setAttribute('aria-required', 'true');
     valueTag.setAttribute('required', 'required');
+    valueTag.dataset.fieldLabel = label;
+    valueTag.showRequiredError = () => setFieldInvalid(searchTag, errorTag);
+    valueTag.focusField = () => searchTag.focus();
   }
   if (disabled) {
     searchTag.setAttribute('disabled', 'disabled');
     valueTag.setAttribute('disabled', 'disabled');
   }
+
+  searchTag.addEventListener('blur', () => {
+    if (required && !valueTag.value) {
+      setFieldInvalid(searchTag, errorTag);
+    } else {
+      clearFieldInvalid(searchTag, errorTag);
+    }
+  });
+  valueTag.addEventListener('input', () => {
+    if (valueTag.value) clearFieldInvalid(searchTag, errorTag);
+  });
 
   const listContainerTag = createTag('div', { class: 'np-select-list-container' });
   const listTag = createTag('ul', { class: 'np-select-list', 'data-for': name });
@@ -249,7 +274,7 @@ export default function nonprofitSelect(props) {
     footerTag.addEventListener('focusout', focusOut);
   }
 
-  controlTag.append(labelTag, searchTag, valueTag, listContainerTag);
+  controlTag.append(labelTag, searchTag, valueTag, errorTag, listContainerTag);
 
   if (!hideIcon) {
     const arrowIconTag = getNonprofitIconTag(NONPRFIT_ICONS.CHEVRON_DOWN);
