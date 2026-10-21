@@ -47,6 +47,7 @@ export default function nonprofitSelect(props) {
     'aria-describedby': errorTag.id,
     'data-for': name,
   });
+  const inputWrapTag = createTag('div', { class: 'np-input-wrap' }, searchTag);
   const valueTag = createTag('input', {
     class: `np-select-value${required ? ' np-required-field' : ''}`,
     name,
@@ -274,11 +275,11 @@ export default function nonprofitSelect(props) {
     footerTag.addEventListener('focusout', focusOut);
   }
 
-  controlTag.append(labelTag, searchTag, valueTag, errorTag, listContainerTag);
+  controlTag.append(labelTag, inputWrapTag, valueTag, errorTag, listContainerTag);
 
   if (!hideIcon) {
     const arrowIconTag = getNonprofitIconTag(NONPRFIT_ICONS.CHEVRON_DOWN);
-    controlTag.append(arrowIconTag);
+    inputWrapTag.append(arrowIconTag);
   }
 
   controlTag.onInput = (handler) => {

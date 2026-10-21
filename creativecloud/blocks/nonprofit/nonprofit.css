@@ -231,6 +231,11 @@
   position: relative;
 }
 
+.np-input-wrap {
+  position: relative;
+  width: 100%;
+}
+
 .np-label {
   font-weight: 400;
   font-size: 14px;
@@ -273,7 +278,8 @@
   position: absolute;
   height: 12px;
   right: 15px;
-  bottom: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   cursor: pointer;
   pointer-events: none;

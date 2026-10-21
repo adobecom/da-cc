@@ -416,7 +416,7 @@ function getSubmitTag() {
     ev.stopImmediatePropagation();
 
     const formTag = submitTag.closest('form');
-    const missingInputs = Array.from(formTag.querySelectorAll('.np-required-field:not(:disabled)'))
+    const missingInputs = Array.from(formTag.querySelectorAll('.np-required-field'))
       .filter((input) => !input.value);
 
     const labels = missingInputs
@@ -497,7 +497,7 @@ function getNonprofitInput(params) {
       if (!extensionRegex.exec(file.name)) {
         inputTag.value = '';
         inputTag.dispatchEvent(new Event('input'));
-        alert(window.mph['nonprofit-invalid-file-type']);
+        alert(window.mph?.['nonprofit-invalid-file-type'] || 'Please upload a file in jpg, png, or pdf format.');
         return;
       }
 
@@ -506,7 +506,7 @@ function getNonprofitInput(params) {
       if (size > 5) {
         inputTag.value = '';
         inputTag.dispatchEvent(new Event('input'));
-        alert(window.mph['nonprofit-file-size-exceeded']);
+        alert(window.mph?.['nonprofit-file-size-exceeded'] || 'The file you uploaded exceeds the 5 MB size limit.');
         return;
       }
 
@@ -515,8 +515,9 @@ function getNonprofitInput(params) {
     });
 
     const uploadIconTag = getNonprofitIconTag(NONPRFIT_ICONS.UPLOAD);
+    const inputWrapTag = createTag('div', { class: 'np-input-wrap' }, [textTag, uploadIconTag]);
 
-    controlTag.append(textTag, uploadIconTag);
+    controlTag.append(inputWrapTag);
   } else {
     inputTag.id = name;
   }
