@@ -383,23 +383,36 @@ const MARKET_LOCALE_OVERRIDES = { en: { AU: 'en_GB', IN: 'en_GB', GB: 'en_GB' } 
 const MAS_LINK_SELECTOR = 'a[href*="mas.adobe.com/studio.html"]';
 const preloadedMasFragments = new Set();
 
-function getMasLocale(miloLocale, geoCountry) {
+// Mirrors Milo's merch.js: the market's Global-EN locale override only applies when the
+// validated market differs from the page's own market (e.g. / serving an AU visitor),
+// never on /au, /in or /uk pages, which keep their native locale.
+export function getMasLocale(miloLocale, market) {
   const geo = (miloLocale?.prefix || 'US_en').replace('/', '');
   let [country = 'US', language = 'en'] = (MAS_GEO_MAP[geo] ?? geo).split('_', 2);
   country = country.toUpperCase();
   language = language.toLowerCase();
-  const marketOverride = MARKET_LOCALE_OVERRIDES[language]?.[geoCountry];
-  return { locale: marketOverride ?? MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`, country: geoCountry ?? country };
+  const locale = MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`;
+  if (!market) return { locale, country };
+  const override = market !== country ? MARKET_LOCALE_OVERRIDES[language]?.[market] : undefined;
+  return { locale: override ?? locale, country: market };
 }
 
 // Mirrors the country Milo's merch.js stamps on mas-commerce-service, so the preload URL matches
 // the fragment request MAS actually makes (a raw geo country would be an unused, uncached request).
-async function getMasMarket() {
-  const flag = new URLSearchParams(window.location.search).get('mas-geo-detection') ?? getMetadata('mas-geo-detection');
-  if (!['on', 'true'].includes(flag?.toLowerCase())) return undefined;
-  const { getValidatedMarket } = await import(`${miloLibs}/utils/market.js`);
-  return (await getValidatedMarket())?.toUpperCase();
+// The lookup is memoized so parallel preloads share a single markets config fetch.
+export function createMasMarketGetter(loadMarketModule = () => import(`${miloLibs}/utils/market.js`)) {
+  let marketPromise;
+  return () => {
+    const flag = new URLSearchParams(window.location.search).get('mas-geo-detection') ?? getMetadata('mas-geo-detection');
+    if (!['on', 'true'].includes(flag?.toLowerCase())) return Promise.resolve(undefined);
+    marketPromise ??= loadMarketModule()
+      .then(({ getValidatedMarket }) => getValidatedMarket())
+      .then((market) => market?.toUpperCase());
+    return marketPromise;
+  };
 }
+
+const getMasMarket = createMasMarketGetter();
 
 async function preloadMasFragment(a) {
   let url;
