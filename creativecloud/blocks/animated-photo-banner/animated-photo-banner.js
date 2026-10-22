@@ -81,9 +81,9 @@ function removeTransformTransition(element) {
 
 function parseParamValue(key, value) {
   if (key === 'start-pos' || key === 'end-pos') {
-    return value.split(',').map((coord) => parseFloat(coord));
+    return value.split(',').map((coord) => Number.parseFloat(coord));
   }
-  return ['scale', 'wave', 'height'].includes(key) ? parseFloat(value) : value;
+  return ['scale', 'wave', 'height'].includes(key) ? Number.parseFloat(value) : value;
 }
 
 function extractParams(paramDiv) {
