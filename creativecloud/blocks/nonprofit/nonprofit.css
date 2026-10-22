@@ -18,7 +18,7 @@
   align-items: center;
   padding-block: var(--np-container-padding);
   position: relative;
-  height: calc(
+  min-height: calc(
     var(--np-stepper-max-height) + var(--np-content-max-height) + 2 * var(--np-container-padding)
   );
   box-sizing: border-box;
@@ -123,7 +123,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-height: var(--np-content-max-height);
+  min-height: var(--np-content-max-height);
 }
 
 .np-description {
@@ -497,11 +497,13 @@
 @media screen and (max-width: 767px) {
   .np-container {
     height: auto;
+    min-height: auto;
   }
 
  .np-content-container {
     width: 100%;
     max-height: none;
+    min-height: auto;
     box-sizing: border-box;
   }
 
