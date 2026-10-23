@@ -221,6 +221,20 @@ export const [setLibs, getLibs] = (() => {
 
 const miloLibs = setLibs('/libs');
 
+// The MAS fragment preload awaits market.js when geo detection is on; preloading it now, before
+// utils.js resolves, keeps it off the critical path. Milo's getMetadata isn't available yet.
+export function preloadMasMarketModule(libs = miloLibs) {
+  const flag = new URLSearchParams(window.location.search).get('mas-geo-detection')
+    ?? document.head.querySelector('meta[name="mas-geo-detection"]')?.content;
+  if (!['on', 'true'].includes(flag?.toLowerCase())) return;
+  const link = document.createElement('link');
+  link.rel = 'modulepreload';
+  link.href = `${libs}/utils/market.js`;
+  document.head.append(link);
+}
+
+preloadMasMarketModule();
+
 // eslint-disable-next-line object-curly-newline
 const { createTag, localizeLinkAsync, getConfig, getMetadata, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry } = await import(`${miloLibs}/utils/utils.js`);
 
@@ -383,14 +397,36 @@ const MARKET_LOCALE_OVERRIDES = { en: { AU: 'en_GB', IN: 'en_GB', GB: 'en_GB' } 
 const MAS_LINK_SELECTOR = 'a[href*="mas.adobe.com/studio.html"]';
 const preloadedMasFragments = new Set();
 
-function getMasLocale(miloLocale, geoCountry) {
+// Mirrors Milo's merch.js: the market's Global-EN locale override only applies when the
+// validated market differs from the page's own market (e.g. / serving an AU visitor),
+// never on /au, /in or /uk pages, which keep their native locale.
+export function getMasLocale(miloLocale, market) {
   const geo = (miloLocale?.prefix || 'US_en').replace('/', '');
   let [country = 'US', language = 'en'] = (MAS_GEO_MAP[geo] ?? geo).split('_', 2);
   country = country.toUpperCase();
   language = language.toLowerCase();
-  const marketOverride = MARKET_LOCALE_OVERRIDES[language]?.[geoCountry];
-  return { locale: marketOverride ?? MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`, country: geoCountry ?? country };
+  const locale = MAS_EXTRA_LOCALES[geo] ?? `${language}_${country}`;
+  if (!market) return { locale, country };
+  const override = market !== country ? MARKET_LOCALE_OVERRIDES[language]?.[market] : undefined;
+  return { locale: override ?? locale, country: market };
 }
+
+// Mirrors the country Milo's merch.js stamps on mas-commerce-service, so the preload URL matches
+// the fragment request MAS actually makes (a raw geo country would be an unused, uncached request).
+// The lookup is memoized so parallel preloads share a single markets config fetch.
+export function createMasMarketGetter(loadMarketModule = () => import(`${miloLibs}/utils/market.js`)) {
+  let marketPromise;
+  return () => {
+    const flag = new URLSearchParams(window.location.search).get('mas-geo-detection') ?? getMetadata('mas-geo-detection');
+    if (!['on', 'true'].includes(flag?.toLowerCase())) return Promise.resolve(undefined);
+    marketPromise ??= loadMarketModule()
+      .then(({ getValidatedMarket }) => getValidatedMarket())
+      .then((market) => market?.toUpperCase());
+    return marketPromise;
+  };
+}
+
+const getMasMarket = createMasMarketGetter();
 
 async function preloadMasFragment(a) {
   let url;
@@ -402,13 +438,16 @@ async function preloadMasFragment(a) {
   if (url.hostname !== 'mas.adobe.com' || !url.pathname.endsWith('/studio.html')) return;
   const params = new URLSearchParams(url.hash.replace(/^#/, ''));
   const fragment = params.get('fragment') || params.get('query');
-  if (!fragment || preloadedMasFragments.has(fragment)) return;
-  preloadedMasFragments.add(fragment);
+  const mask = params.get('mask');
+  const preloadKey = `${fragment}|${mask ?? ''}`;
+  if (!fragment || preloadedMasFragments.has(preloadKey)) return;
+  preloadedMasFragments.add(preloadKey);
 
-  const { locale, country } = getMasLocale(getConfig().locale, (await getCountry())?.toUpperCase());
+  const { locale, country } = getMasLocale(getConfig().locale, await getMasMarket());
   const apiKey = getConfig().commerce?.['wcs-api-key'] ?? DEFAULT_MAS_FRAGMENT_API_KEY;
   let endpoint = `${MAS_FRAGMENT_API}?id=${fragment}&api_key=${apiKey}&locale=${locale}`;
   if (country && !locale.endsWith(`_${country}`)) endpoint += `&country=${country}`;
+  if (mask) endpoint += `&mask=${mask}`;
 
   // Explicitly low priority: default fetch-preload priority is High, same tier as the LCP
   // image's fetchpriority="high" below, and would compete with it for bandwidth. We still

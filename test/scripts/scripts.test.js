@@ -348,3 +348,52 @@ describe('Utility image decoration', () => {
     expect(fragment.querySelector('img').getAttribute('loading')).to.equal('lazy');
   });
 });
+
+describe('MAS fragment preload locale', () => {
+  [
+    ['', undefined, 'en_US', 'US'],
+    ['', 'AU', 'en_GB', 'AU'],
+    ['', 'GB', 'en_GB', 'GB'],
+    ['/au', 'AU', 'en_AU', 'AU'],
+    ['/in', 'IN', 'en_IN', 'IN'],
+    ['/uk', 'GB', 'en_GB', 'GB'],
+    ['/au', 'US', 'en_AU', 'US'],
+    ['/fr', 'AU', 'fr_FR', 'AU'],
+  ].forEach(([prefix, market, locale, country]) => {
+    it(`resolves ${locale}/${country} for prefix "${prefix}" and market ${market}`, () => {
+      expect(utils.getMasLocale({ prefix }, market)).to.deep.equal({ locale, country });
+    });
+  });
+
+  it('fetches the validated market once for parallel preloads', async () => {
+    const original = window.location.href;
+    window.history.replaceState(null, '', '?mas-geo-detection=on');
+    const getValidatedMarket = sinon.stub().resolves('au');
+    const loader = sinon.stub().resolves({ getValidatedMarket });
+    const getMarket = utils.createMasMarketGetter(loader);
+    const markets = await Promise.all([getMarket(), getMarket(), getMarket()]);
+    expect(markets).to.deep.equal(['AU', 'AU', 'AU']);
+    expect(loader.calledOnce).to.be.true;
+    expect(getValidatedMarket.calledOnce).to.be.true;
+    window.history.replaceState(null, '', original);
+  });
+
+  it('skips the market lookup when geo detection is off', async () => {
+    const loader = sinon.stub();
+    expect(await utils.createMasMarketGetter(loader)()).to.be.undefined;
+    expect(loader.called).to.be.false;
+  });
+
+  it('preloads market.js only when geo detection is on', () => {
+    const selector = 'link[rel="modulepreload"][href="/test-libs/utils/market.js"]';
+    utils.preloadMasMarketModule('/test-libs');
+    expect(document.head.querySelector(selector)).to.be.null;
+    const original = window.location.href;
+    window.history.replaceState(null, '', '?mas-geo-detection=on');
+    utils.preloadMasMarketModule('/test-libs');
+    window.history.replaceState(null, '', original);
+    const link = document.head.querySelector(selector);
+    expect(link).to.exist;
+    link.remove();
+  });
+});
