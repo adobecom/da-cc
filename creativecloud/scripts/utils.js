@@ -221,6 +221,20 @@ export const [setLibs, getLibs] = (() => {
 
 const miloLibs = setLibs('/libs');
 
+// The MAS fragment preload awaits market.js when geo detection is on; preloading it now, before
+// utils.js resolves, keeps it off the critical path. Milo's getMetadata isn't available yet.
+export function preloadMasMarketModule(libs = miloLibs) {
+  const flag = new URLSearchParams(window.location.search).get('mas-geo-detection')
+    ?? document.head.querySelector('meta[name="mas-geo-detection"]')?.content;
+  if (!['on', 'true'].includes(flag?.toLowerCase())) return;
+  const link = document.createElement('link');
+  link.rel = 'modulepreload';
+  link.href = `${libs}/utils/market.js`;
+  document.head.append(link);
+}
+
+preloadMasMarketModule();
+
 // eslint-disable-next-line object-curly-newline
 const { createTag, localizeLinkAsync, getConfig, getMetadata, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry } = await import(`${miloLibs}/utils/utils.js`);
 
