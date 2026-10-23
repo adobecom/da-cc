@@ -9,6 +9,7 @@
   --np-selected-organization-fallback-background: #da408b;
   --np-button-disabled-background: #e6e6e6;
   --np-button-disabled-color: #b1b1b1;
+  --np-error-color: #d31510;
   --np-focus-ring-color: var(--color-accent-focus-ring, #1473e6);
 }
 
@@ -33,7 +34,7 @@
   align-items: center;
   padding-block: var(--np-container-padding);
   position: relative;
-  height: calc(
+  min-height: calc(
     var(--np-stepper-max-height) + var(--np-content-max-height) + 2 * var(--np-container-padding)
   );
   box-sizing: border-box;
@@ -138,7 +139,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-height: var(--np-content-max-height);
+  min-height: var(--np-content-max-height);
 }
 
 .np-description {
@@ -189,7 +190,8 @@
   color: var(--color-white);
 }
 
-.np-button:disabled {
+.np-button:disabled,
+.np-button[aria-disabled='true'] {
   background-color: var(--np-button-disabled-background);
   color: var(--np-button-disabled-color);
   cursor: default;
@@ -197,6 +199,45 @@
 
 .np-form .np-button {
   align-self: start;
+}
+
+.np-required-legend {
+  margin: 0;
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--color-gray-600);
+}
+
+.np-required-indicator {
+  color: var(--np-error-color);
+}
+
+.np-submit-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 10px;
+}
+
+.np-missing-fields-summary {
+  margin: 0;
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--np-error-color);
+}
+
+.np-missing-fields-summary:empty {
+  display: none;
+}
+
+.np-field-error {
+  font-size: 13px;
+  line-height: 16px;
+  color: var(--np-error-color);
+}
+
+.np-field-error:empty {
+  display: none;
 }
 
 .np-control {
@@ -265,7 +306,8 @@
   position: absolute;
   height: 12px;
   right: 15px;
-  bottom: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   cursor: pointer;
   pointer-events: none;
@@ -495,11 +537,13 @@
 @media screen and (max-width: 767px) {
   .np-container {
     height: auto;
+    min-height: auto;
   }
 
  .np-content-container {
     width: 100%;
     max-height: none;
+    min-height: auto;
     box-sizing: border-box;
   }
 
@@ -662,4 +706,15 @@
   background-repeat: no-repeat;
   background-position: right calc(0.375em + 0.1875rem) center;
   background-size: 1em;
+}
+
+.np-control:has(.np-icon) .np-input.np-error {
+  padding-right: calc(1.5em + 0.75rem + 33px);
+  background-position: right calc(0.375em + 0.1875rem + 33px) center;
+}
+
+[dir='rtl'] .np-input.np-error,
+[dir='rtl'] .np-control:has(.np-icon) .np-input.np-error {
+  padding-right: 40px;
+  background-position: left calc(0.375em + 0.1875rem) center;
 }

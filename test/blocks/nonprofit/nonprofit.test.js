@@ -698,7 +698,11 @@ describe('nonprofit - Personal details', () => {
       },
     });
 
-    window.mph = {};
+    window.mph = {
+      'nonprofit-first-name': 'First name',
+      'nonprofit-last-name': 'Last name',
+      'nonprofit-email': 'Email',
+    };
     window.lana = { log: () => {} };
   });
 
@@ -721,6 +725,68 @@ describe('nonprofit - Personal details', () => {
     submit.click();
 
     expect(stepperStore.data.step).to.equal(2);
+  });
+
+  it('should recalculate the missing fields summary as fields are completed', async () => {
+    stepperStore.update({ step: 2, scenario: SCENARIOS.FOUND_IN_SEARCH });
+
+    const submit = document.querySelector('input[type="submit"]');
+    submit.click();
+
+    const summary = document.querySelector('.np-missing-fields-summary');
+    expect(summary.textContent).to.include('First name');
+    expect(summary.textContent).to.include('Last name');
+    expect(summary.textContent).to.include('Email');
+
+    const firstName = document.querySelector('.np-input[name="firstName"]');
+    firstName.value = 'Atest';
+    firstName.dispatchEvent(new Event('input'));
+
+    expect(summary.textContent).to.not.include('First name');
+    expect(summary.textContent).to.include('Last name');
+    expect(summary.textContent).to.include('Email');
+
+    const lastName = document.querySelector('.np-input[name="lastName"]');
+    lastName.value = 'Name';
+    lastName.dispatchEvent(new Event('input'));
+
+    const email = document.querySelector('.np-input[name="email"]');
+    email.value = 'atest@email.com';
+    email.dispatchEvent(new Event('input'));
+
+    expect(summary.textContent).to.equal('');
+  });
+
+  it('should include a field in the summary when it is filled but invalid (e.g. malformed email)', async () => {
+    stepperStore.update({ step: 2, scenario: SCENARIOS.FOUND_IN_SEARCH });
+
+    const firstName = document.querySelector('.np-input[name="firstName"]');
+    firstName.value = 'Atest';
+    firstName.dispatchEvent(new Event('input'));
+
+    const lastName = document.querySelector('.np-input[name="lastName"]');
+    lastName.value = 'Name';
+    lastName.dispatchEvent(new Event('input'));
+
+    const email = document.querySelector('.np-input[name="email"]');
+    email.value = 'not-a-valid-email';
+    email.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const submit = document.querySelector('input[type="submit"]');
+    expect(submit.getAttribute('aria-disabled')).to.equal('true');
+    submit.click();
+
+    const summary = document.querySelector('.np-missing-fields-summary');
+    expect(summary.textContent).to.include('Email');
+
+    const emailError = document.querySelector('.np-field-error[id="email-error"]');
+    expect(emailError.textContent).to.equal('Enter a valid email address.');
+
+    email.value = 'atest@email.com';
+    email.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(summary.textContent).to.equal('');
+    expect(emailError.textContent).to.equal('');
   });
 
   it('should submit completed form in found in search scenario', async () => {

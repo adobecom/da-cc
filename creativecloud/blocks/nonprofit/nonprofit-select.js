@@ -2,6 +2,12 @@
 /* eslint-disable max-len */
 import ReactiveStore from './reactiveStore.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
+import {
+  markRequiredLabel,
+  createFieldErrorTag,
+  setFieldInvalid,
+  clearFieldInvalid,
+} from './nonprofit-validation.js';
 
 export default function nonprofitSelect(props) {
   const {
@@ -33,14 +39,16 @@ export default function nonprofitSelect(props) {
   const controlTag = createTag('div', { class: 'np-control' });
   const fieldId = `np-field-${name}`;
   const labelTag = createTag('label', { class: 'np-label', for: fieldId }, label);
+  const errorTag = createFieldErrorTag(createTag, name);
   const searchTag = createTag('input', {
+    id: fieldId,
     class: 'np-input np-select-search',
     type: 'text',
     placeholder,
-    id: fieldId,
-    'aria-label': `${label},`,
+    'aria-describedby': errorTag.id,
     'data-for': name,
   });
+  const inputWrapTag = createTag('div', { class: 'np-input-wrapper' }, searchTag);
   const valueTag = createTag('input', {
     class: `np-select-value${required ? ' np-required-field' : ''}`,
     name,
@@ -48,13 +56,31 @@ export default function nonprofitSelect(props) {
   });
 
   if (required) {
+    markRequiredLabel(createTag, labelTag);
     searchTag.setAttribute('required', 'required');
+    searchTag.setAttribute('aria-required', 'true');
     valueTag.setAttribute('required', 'required');
+    valueTag.dataset.fieldLabel = label;
+    valueTag.showRequiredError = () => setFieldInvalid(searchTag, errorTag);
+    valueTag.focusField = () => searchTag.focus();
+    valueTag.isInvalid = () => searchTag.getAttribute('aria-invalid') === 'true';
   }
+  searchTag.setAttribute('aria-label', `${labelTag.textContent},`);
   if (disabled) {
     searchTag.setAttribute('disabled', 'disabled');
     valueTag.setAttribute('disabled', 'disabled');
   }
+
+  searchTag.addEventListener('blur', () => {
+    if (required && !valueTag.value) {
+      setFieldInvalid(searchTag, errorTag);
+    } else {
+      clearFieldInvalid(searchTag, errorTag);
+    }
+  });
+  valueTag.addEventListener('input', () => {
+    if (valueTag.value) clearFieldInvalid(searchTag, errorTag);
+  });
 
   const listContainerTag = createTag('div', { class: 'np-select-list-container' });
   const listTag = createTag('ul', { class: 'np-select-list', 'data-for': name, tabindex: -1 });
@@ -284,11 +310,10 @@ export default function nonprofitSelect(props) {
     });
   }
 
-  controlTag.append(labelTag, searchTag, valueTag, listContainerTag, liveRegionTag);
-
+  controlTag.append(labelTag, inputWrapTag, valueTag, errorTag, listContainerTag, liveRegionTag);
   if (!hideIcon) {
     const arrowIconTag = getNonprofitIconTag(NONPRFIT_ICONS.CHEVRON_DOWN);
-    controlTag.append(arrowIconTag);
+    inputWrapTag.append(arrowIconTag);
   }
 
   controlTag.onInput = (handler) => {
