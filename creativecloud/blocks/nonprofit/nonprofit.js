@@ -348,6 +348,7 @@ function renderStepper(containerTag) {
 
   const separatorIconTag = getNonprofitIconTag(NONPRFIT_ICONS.CHEVRON_RIGHT);
   separatorIconTag.classList.add('np-step-separator');
+  separatorIconTag.setAttribute('aria-hidden', 'true');
 
   stepperContainerTag.append(
     step1,
@@ -461,18 +462,21 @@ function getNonprofitInput(params) {
     type, name, label, placeholder, required, value,
   } = params;
   const isFileType = type === 'file';
+  const fieldId = `np-field-${name}`;
   const baseParams = { name, placeholder };
   if (required) baseParams.required = 'required';
   if (value) baseParams.value = value;
   const controlTag = createTag('div', { class: 'np-control' });
-  const labelTag = createTag('label', { class: 'np-label', for: name }, label);
+  const labelTag = createTag('label', { class: 'np-label', for: fieldId }, label);
   const errorTag = createFieldErrorTag(createTag, name);
   const inputTag = createTag('input', {
     class: `np-input${required && !isFileType ? ' np-required-field' : ''}`,
     type,
+    ...(type === 'file' ? {} : { id: fieldId }),
     ...baseParams,
   });
   if (required) markRequiredLabel(createTag, labelTag);
+  inputTag.setAttribute('aria-label', `${labelTag.textContent},`);
   controlTag.append(labelTag, inputTag);
 
   let validatableTag = inputTag;
@@ -482,11 +486,12 @@ function getNonprofitInput(params) {
     inputTag.setAttribute('aria-hidden', 'true');
     inputTag.setAttribute('tabindex', '-1');
     const textTag = createTag('input', {
-      id: name,
+      id: fieldId,
       type: 'text',
       class: `np-input np-input-file${required ? ' np-required-field' : ''}`,
       placeholder,
       readonly: 'readonly',
+      'aria-label': `${labelTag.textContent},`,
       'data-for': name,
     });
     validatableTag = textTag;
@@ -534,11 +539,9 @@ function getNonprofitInput(params) {
     });
 
     const uploadIconTag = getNonprofitIconTag(NONPRFIT_ICONS.UPLOAD);
-    const inputWrapTag = createTag('div', { class: 'np-input-wrap' }, [textTag, uploadIconTag]);
+    const inputWrapTag = createTag('div', { class: 'np-input-wrapper' }, [textTag, uploadIconTag]);
 
     controlTag.append(inputWrapTag);
-  } else {
-    inputTag.id = name;
   }
 
   validatableTag.setAttribute('aria-describedby', errorTag.id);
@@ -586,7 +589,7 @@ function getSelectedOrganizationTag() {
     initialsTag.textContent = initials;
   };
 
-  const logoTag = createTag('img', { class: 'np-selected-organization-logo' });
+  const logoTag = createTag('img', { class: 'np-selected-organization-logo', alt: '' });
   logoTag.addEventListener('error', () => {
     avatarTag.classList.remove('loading');
     showInitials();
@@ -876,6 +879,48 @@ function renderOrganizationDetails(containerTag) {
     label: window.mph['nonprofit-evidence-non-profit-status'],
     placeholder: window.mph['nonprofit-evidence-non-profit-status-placeholder'],
     required: true,
+  });
+
+  // A11y: announce the visible file control as a button with a descriptive name
+  const evidenceFileControl = evidenceNonProfitStatusTag.querySelector('.np-input-file');
+  const evidenceLabelTag = evidenceNonProfitStatusTag.querySelector('.np-label');
+  const evidenceErrorTag = evidenceNonProfitStatusTag.querySelector('.np-field-error');
+  evidenceFileControl.setAttribute('role', 'button');
+  evidenceFileControl.setAttribute('aria-label', `Upload ${evidenceLabelTag.textContent}`);
+
+  const evidenceHelperText = createTag(
+    'span',
+    { class: 'np-input-helper-text', id: 'np-evidence-helper-text' },
+    window.mph['nonprofit-evidence-helper-text'] || 'Accepted file types: JPG, PNG, PDF. Maximum file size: 5 MB.',
+  );
+  evidenceNonProfitStatusTag.append(evidenceHelperText);
+
+  // Keep the field's error message referenced at all times, alongside the helper text when relevant,
+  // instead of replacing it (so validation errors are still announced to screen readers).
+  const setEvidenceDescribedBy = (includeHelperText) => {
+    const ids = [evidenceErrorTag?.id, includeHelperText ? 'np-evidence-helper-text' : null].filter(Boolean);
+    if (ids.length) evidenceFileControl.setAttribute('aria-describedby', ids.join(' '));
+    else evidenceFileControl.removeAttribute('aria-describedby');
+  };
+  setEvidenceDescribedBy(true);
+
+  // A11y: announce the selected filename when tabbing back to the control
+  const evidenceNativeInput = evidenceNonProfitStatusTag.querySelector('input[type="file"]');
+
+  evidenceNativeInput.addEventListener('change', () => {
+    const file = evidenceNativeInput.files?.[0];
+    if (file) {
+      evidenceFileControl.setAttribute(
+        'aria-label',
+        `${evidenceLabelTag.textContent}: ${file.name}`,
+      );
+      evidenceFileControl.removeAttribute('placeholder');
+      setEvidenceDescribedBy(false);
+    } else {
+      evidenceFileControl.setAttribute('aria-label', `Upload ${evidenceLabelTag.textContent}`);
+      evidenceFileControl.setAttribute('placeholder', window.mph['nonprofit-evidence-non-profit-status-placeholder']);
+      setEvidenceDescribedBy(true);
+    }
   });
 
   const websiteTag = getNonprofitInput({
