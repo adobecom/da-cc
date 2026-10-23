@@ -712,3 +712,9 @@
   padding-right: calc(1.5em + 0.75rem + 33px);
   background-position: right calc(0.375em + 0.1875rem + 33px) center;
 }
+
+[dir='rtl'] .np-input.np-error,
+[dir='rtl'] .np-control:has(.np-icon) .np-input.np-error {
+  padding-right: 40px;
+  background-position: left calc(0.375em + 0.1875rem) center;
+}
