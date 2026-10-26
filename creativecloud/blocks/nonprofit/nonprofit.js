@@ -15,12 +15,9 @@ import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import nonprofitSelect from './nonprofit-select.js';
 import {
   markRequiredLabel,
-  createFieldErrorTag,
   setFieldInvalid,
   clearFieldInvalid,
   setSubmitEnabled,
-  getRequiredLegendTag,
-  missingFieldsMessage,
 } from './nonprofit-validation.js';
 
 const LANA_OPTIONS = {
@@ -390,9 +387,7 @@ function getDescriptionTag(title, subtitle) {
 }
 
 function getFormTag() {
-  const formTag = createTag('form', { class: 'np-form' });
-  formTag.append(getRequiredLegendTag(createTag));
-  return formTag;
+  return createTag('form', { class: 'np-form' });
 }
 
 function getIncompleteRequiredFields(formTag) {
@@ -400,31 +395,13 @@ function getIncompleteRequiredFields(formTag) {
     .filter((input) => !input.value || input.isInvalid?.());
 }
 
-function updateMissingFieldsSummary(formTag) {
-  const summaryTag = formTag.querySelector('.np-missing-fields-summary');
-  if (!summaryTag || !summaryTag.textContent) return;
-
-  const labels = getIncompleteRequiredFields(formTag)
-    .map((input) => input.dataset.fieldLabel)
-    .filter(Boolean);
-
-  summaryTag.textContent = labels.length ? missingFieldsMessage(labels) : '';
-}
-
 function getSubmitTag() {
-  const wrapperTag = createTag('div', { class: 'np-submit-wrapper' });
   const submitTag = createTag('input', {
     class: 'np-button',
     type: 'submit',
     value: window.mph['nonprofit-continue'],
     'aria-disabled': 'true',
     'daa-ll': 'continue',
-  });
-
-  const summaryTag = createTag('p', {
-    class: 'np-missing-fields-summary',
-    role: 'status',
-    'aria-live': 'polite',
   });
 
   submitTag.addEventListener('click', (ev) => {
@@ -435,14 +412,6 @@ function getSubmitTag() {
     const formTag = submitTag.closest('form');
     const incompleteInputs = getIncompleteRequiredFields(formTag);
 
-    const labels = incompleteInputs
-      .map((input) => input.dataset.fieldLabel)
-      .filter(Boolean);
-
-    summaryTag.textContent = labels.length ? missingFieldsMessage(labels) : '';
-
-    // Only force the generic "required" message on empty fields - fields that already have
-    // a value but are invalid (e.g. a malformed email) already show their own specific message.
     incompleteInputs.forEach((input) => {
       if (!input.value) input.showRequiredError?.();
     });
@@ -453,8 +422,7 @@ function getSubmitTag() {
     }
   });
 
-  wrapperTag.append(submitTag, summaryTag);
-  return wrapperTag;
+  return submitTag;
 }
 
 function getNonprofitInput(params) {
@@ -468,7 +436,6 @@ function getNonprofitInput(params) {
   if (value) baseParams.value = value;
   const controlTag = createTag('div', { class: 'np-control' });
   const labelTag = createTag('label', { class: 'np-label', for: fieldId }, label);
-  const errorTag = createFieldErrorTag(createTag, name);
   const inputTag = createTag('input', {
     class: `np-input${required && !isFileType ? ' np-required-field' : ''}`,
     type,
@@ -544,29 +511,26 @@ function getNonprofitInput(params) {
     controlTag.append(inputWrapTag);
   }
 
-  validatableTag.setAttribute('aria-describedby', errorTag.id);
-  validatableTag.setInvalid = (message) => setFieldInvalid(validatableTag, errorTag, message);
-  validatableTag.clearInvalid = () => clearFieldInvalid(validatableTag, errorTag);
+  validatableTag.setInvalid = () => setFieldInvalid(validatableTag);
+  validatableTag.clearInvalid = () => clearFieldInvalid(validatableTag);
   validatableTag.isInvalid = () => validatableTag.getAttribute('aria-invalid') === 'true';
   if (required) {
     validatableTag.setAttribute('aria-required', 'true');
     validatableTag.dataset.fieldLabel = label;
-    validatableTag.showRequiredError = () => setFieldInvalid(validatableTag, errorTag);
+    validatableTag.showRequiredError = () => setFieldInvalid(validatableTag);
     validatableTag.focusField = () => validatableTag.focus();
   }
 
   validatableTag.addEventListener('blur', () => {
     if (required && !validatableTag.value) {
-      setFieldInvalid(validatableTag, errorTag);
+      setFieldInvalid(validatableTag);
     } else {
-      clearFieldInvalid(validatableTag, errorTag);
+      clearFieldInvalid(validatableTag);
     }
   });
   validatableTag.addEventListener('input', () => {
-    if (validatableTag.value) clearFieldInvalid(validatableTag, errorTag);
+    if (validatableTag.value) clearFieldInvalid(validatableTag);
   });
-
-  controlTag.append(errorTag);
 
   return controlTag;
 }
@@ -668,7 +632,6 @@ function trackSubmitCondition(formTag) {
         });
         setSubmitEnabled(submitTag, !hasEmptyFields);
       }
-      updateMissingFieldsSummary(formTag);
     });
   }
 }
@@ -884,7 +847,6 @@ function renderOrganizationDetails(containerTag) {
   // A11y: announce the visible file control as a button with a descriptive name
   const evidenceFileControl = evidenceNonProfitStatusTag.querySelector('.np-input-file');
   const evidenceLabelTag = evidenceNonProfitStatusTag.querySelector('.np-label');
-  const evidenceErrorTag = evidenceNonProfitStatusTag.querySelector('.np-field-error');
   evidenceFileControl.setAttribute('role', 'button');
   evidenceFileControl.setAttribute('aria-label', `Upload ${evidenceLabelTag.textContent}`);
 
@@ -894,15 +856,7 @@ function renderOrganizationDetails(containerTag) {
     window.mph['nonprofit-evidence-helper-text'] || 'Accepted file types: JPG, PNG, PDF. Maximum file size: 5 MB.',
   );
   evidenceNonProfitStatusTag.append(evidenceHelperText);
-
-  // Keep the field's error message referenced at all times, alongside the helper text when relevant,
-  // instead of replacing it (so validation errors are still announced to screen readers).
-  const setEvidenceDescribedBy = (includeHelperText) => {
-    const ids = [evidenceErrorTag?.id, includeHelperText ? 'np-evidence-helper-text' : null].filter(Boolean);
-    if (ids.length) evidenceFileControl.setAttribute('aria-describedby', ids.join(' '));
-    else evidenceFileControl.removeAttribute('aria-describedby');
-  };
-  setEvidenceDescribedBy(true);
+  evidenceFileControl.setAttribute('aria-describedby', 'np-evidence-helper-text');
 
   // A11y: announce the selected filename when tabbing back to the control
   const evidenceNativeInput = evidenceNonProfitStatusTag.querySelector('input[type="file"]');
@@ -915,11 +869,11 @@ function renderOrganizationDetails(containerTag) {
         `${evidenceLabelTag.textContent}: ${file.name}`,
       );
       evidenceFileControl.removeAttribute('placeholder');
-      setEvidenceDescribedBy(false);
+      evidenceFileControl.removeAttribute('aria-describedby');
     } else {
       evidenceFileControl.setAttribute('aria-label', `Upload ${evidenceLabelTag.textContent}`);
       evidenceFileControl.setAttribute('placeholder', window.mph['nonprofit-evidence-non-profit-status-placeholder']);
-      setEvidenceDescribedBy(true);
+      evidenceFileControl.setAttribute('aria-describedby', 'np-evidence-helper-text');
     }
   });
 
@@ -1087,7 +1041,7 @@ function renderPersonalData(containerTag, product) {
   const validateEmail = () => {
     const isValid = emailInput.validity.valid && emailPattern.test(emailInput.value);
     if (!isValid && emailInput.value) {
-      emailInput.setInvalid(window.mph?.['nonprofit-invalid-email'] || 'Enter a valid email address.');
+      emailInput.setInvalid();
     } else if (isValid) {
       emailInput.clearInvalid();
     }
@@ -1098,8 +1052,7 @@ function renderPersonalData(containerTag, product) {
   emailInput.addEventListener('blur', validateEmail);
 
   replaceURL(disclaimerTag);
-  const submitWrapperTag = getSubmitTag();
-  const submitTag = submitWrapperTag.querySelector('.np-button[type=submit]');
+  const submitTag = getSubmitTag();
 
   const updateSubmitState = () => {
     const isFormValid = formTag.checkValidity() && validateEmail();
@@ -1107,7 +1060,7 @@ function renderPersonalData(containerTag, product) {
   };
   formTag.addEventListener('input', updateSubmitState);
 
-  formTag.append(firstNameTag, lastNameTag, emailTag, disclaimerTag, submitWrapperTag);
+  formTag.append(firstNameTag, lastNameTag, emailTag, disclaimerTag, submitTag);
 
   trackSubmitCondition(formTag);
   if (nonprofitFormData.email) updateSubmitState();

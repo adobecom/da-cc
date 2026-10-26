@@ -34,7 +34,7 @@
   align-items: center;
   padding-block: var(--np-container-padding);
   position: relative;
-  min-height: calc(
+  height: calc(
     var(--np-stepper-max-height) + var(--np-content-max-height) + 2 * var(--np-container-padding)
   );
   box-sizing: border-box;
@@ -139,7 +139,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: var(--np-content-max-height);
+  max-height: var(--np-content-max-height);
 }
 
 .np-description {
@@ -201,43 +201,8 @@
   align-self: start;
 }
 
-.np-required-legend {
-  margin: 0;
-  font-size: 13px;
-  line-height: 16px;
-  color: var(--color-gray-600);
-}
-
 .np-required-indicator {
   color: var(--np-error-color);
-}
-
-.np-submit-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: start;
-  gap: 10px;
-}
-
-.np-missing-fields-summary {
-  margin: 0;
-  font-size: 13px;
-  line-height: 18px;
-  color: var(--np-error-color);
-}
-
-.np-missing-fields-summary:empty {
-  display: none;
-}
-
-.np-field-error {
-  font-size: 13px;
-  line-height: 16px;
-  color: var(--np-error-color);
-}
-
-.np-field-error:empty {
-  display: none;
 }
 
 .np-control {
@@ -537,13 +502,11 @@
 @media screen and (max-width: 767px) {
   .np-container {
     height: auto;
-    min-height: auto;
   }
 
  .np-content-container {
     width: 100%;
     max-height: none;
-    min-height: auto;
     box-sizing: border-box;
   }
 

@@ -4,7 +4,6 @@ import ReactiveStore from './reactiveStore.js';
 import { getNonprofitIconTag, NONPRFIT_ICONS } from './icons.js';
 import {
   markRequiredLabel,
-  createFieldErrorTag,
   setFieldInvalid,
   clearFieldInvalid,
 } from './nonprofit-validation.js';
@@ -39,13 +38,11 @@ export default function nonprofitSelect(props) {
   const controlTag = createTag('div', { class: 'np-control' });
   const fieldId = `np-field-${name}`;
   const labelTag = createTag('label', { class: 'np-label', for: fieldId }, label);
-  const errorTag = createFieldErrorTag(createTag, name);
   const searchTag = createTag('input', {
     id: fieldId,
     class: 'np-input np-select-search',
     type: 'text',
     placeholder,
-    'aria-describedby': errorTag.id,
     'data-for': name,
   });
   const inputWrapTag = createTag('div', { class: 'np-input-wrapper' }, searchTag);
@@ -61,7 +58,7 @@ export default function nonprofitSelect(props) {
     searchTag.setAttribute('aria-required', 'true');
     valueTag.setAttribute('required', 'required');
     valueTag.dataset.fieldLabel = label;
-    valueTag.showRequiredError = () => setFieldInvalid(searchTag, errorTag);
+    valueTag.showRequiredError = () => setFieldInvalid(searchTag);
     valueTag.focusField = () => searchTag.focus();
     valueTag.isInvalid = () => searchTag.getAttribute('aria-invalid') === 'true';
   }
@@ -73,13 +70,13 @@ export default function nonprofitSelect(props) {
 
   searchTag.addEventListener('blur', () => {
     if (required && !valueTag.value) {
-      setFieldInvalid(searchTag, errorTag);
+      setFieldInvalid(searchTag);
     } else {
-      clearFieldInvalid(searchTag, errorTag);
+      clearFieldInvalid(searchTag);
     }
   });
   valueTag.addEventListener('input', () => {
-    if (valueTag.value) clearFieldInvalid(searchTag, errorTag);
+    if (valueTag.value) clearFieldInvalid(searchTag);
   });
 
   const listContainerTag = createTag('div', { class: 'np-select-list-container' });
@@ -310,7 +307,7 @@ export default function nonprofitSelect(props) {
     });
   }
 
-  controlTag.append(labelTag, inputWrapTag, valueTag, errorTag, listContainerTag, liveRegionTag);
+  controlTag.append(labelTag, inputWrapTag, valueTag, listContainerTag, liveRegionTag);
   if (!hideIcon) {
     const arrowIconTag = getNonprofitIconTag(NONPRFIT_ICONS.CHEVRON_DOWN);
     inputWrapTag.append(arrowIconTag);

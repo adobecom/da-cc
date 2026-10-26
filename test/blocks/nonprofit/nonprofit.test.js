@@ -727,37 +727,40 @@ describe('nonprofit - Personal details', () => {
     expect(stepperStore.data.step).to.equal(2);
   });
 
-  it('should recalculate the missing fields summary as fields are completed', async () => {
+  it('should highlight and focus the first incomplete required field on submit, without adding any message', async () => {
     stepperStore.update({ step: 2, scenario: SCENARIOS.FOUND_IN_SEARCH });
 
     const submit = document.querySelector('input[type="submit"]');
     submit.click();
 
-    const summary = document.querySelector('.np-missing-fields-summary');
-    expect(summary.textContent).to.include('First name');
-    expect(summary.textContent).to.include('Last name');
-    expect(summary.textContent).to.include('Email');
-
     const firstName = document.querySelector('.np-input[name="firstName"]');
+    const lastName = document.querySelector('.np-input[name="lastName"]');
+    const email = document.querySelector('.np-input[name="email"]');
+
+    expect(firstName.getAttribute('aria-invalid')).to.equal('true');
+    expect(firstName.classList.contains('np-error')).to.be.true;
+    expect(document.activeElement).to.equal(firstName);
+
+    expect(document.querySelector('.np-missing-fields-summary')).to.not.exist;
+    expect(document.querySelector('.np-field-error')).to.not.exist;
+    expect(document.querySelector('.np-required-legend')).to.not.exist;
+
     firstName.value = 'Atest';
     firstName.dispatchEvent(new Event('input'));
 
-    expect(summary.textContent).to.not.include('First name');
-    expect(summary.textContent).to.include('Last name');
-    expect(summary.textContent).to.include('Email');
+    expect(firstName.getAttribute('aria-invalid')).to.be.null;
+    expect(firstName.classList.contains('np-error')).to.be.false;
 
-    const lastName = document.querySelector('.np-input[name="lastName"]');
     lastName.value = 'Name';
     lastName.dispatchEvent(new Event('input'));
 
-    const email = document.querySelector('.np-input[name="email"]');
     email.value = 'atest@email.com';
     email.dispatchEvent(new Event('input'));
 
-    expect(summary.textContent).to.equal('');
+    expect(submit.getAttribute('aria-disabled')).to.be.null;
   });
 
-  it('should include a field in the summary when it is filled but invalid (e.g. malformed email)', async () => {
+  it('should highlight an email field with a malformed value, with no message', async () => {
     stepperStore.update({ step: 2, scenario: SCENARIOS.FOUND_IN_SEARCH });
 
     const firstName = document.querySelector('.np-input[name="firstName"]');
@@ -774,19 +777,16 @@ describe('nonprofit - Personal details', () => {
 
     const submit = document.querySelector('input[type="submit"]');
     expect(submit.getAttribute('aria-disabled')).to.equal('true');
-    submit.click();
 
-    const summary = document.querySelector('.np-missing-fields-summary');
-    expect(summary.textContent).to.include('Email');
-
-    const emailError = document.querySelector('.np-field-error[id="email-error"]');
-    expect(emailError.textContent).to.equal('Enter a valid email address.');
+    expect(email.getAttribute('aria-invalid')).to.equal('true');
+    expect(email.classList.contains('np-error')).to.be.true;
+    expect(document.querySelector('.np-field-error')).to.not.exist;
 
     email.value = 'atest@email.com';
     email.dispatchEvent(new Event('input', { bubbles: true }));
 
-    expect(summary.textContent).to.equal('');
-    expect(emailError.textContent).to.equal('');
+    expect(email.getAttribute('aria-invalid')).to.be.null;
+    expect(email.classList.contains('np-error')).to.be.false;
   });
 
   it('should submit completed form in found in search scenario', async () => {
