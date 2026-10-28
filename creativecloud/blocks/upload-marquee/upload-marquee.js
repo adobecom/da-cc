@@ -2,6 +2,7 @@ import { createTag, getLibs, getScreenSizeCategory } from '../../scripts/utils.j
 
 const miloLibs = getLibs('/libs');
 const VIEWPORTS = ['mobile-up', 'tablet-up', 'desktop-up'];
+const MEDIA_SELECTOR = 'picture, .video-container.video-holder, video';
 const DEFAULT_DROPZONE_ICON_IMAGE = '/cc-shared/assets/svg/s2-icon-default-image-20-n.svg';
 const DEFAULT_DROPZONE_ICON_VIDEO = '/cc-shared/assets/svg/s2-icon-default-video-20.svg';
 const AnalyticsKeys = {
@@ -105,7 +106,7 @@ function buildScopedId(prefix, columnId) {
 }
 
 function extractUploadContentParts(content) {
-  const media = content.querySelector('picture, .video-container.video-holder');
+  const media = content.querySelector(MEDIA_SELECTOR);
   const terms = content.querySelector('p:last-child');
   const mediaPara = media?.closest('p');
   const hasUploadMarker = (para) => para.querySelector(
@@ -323,7 +324,7 @@ function collectViewportContent(row, extractMedia) {
 }
 
 function extractMediaFromColumn(content) {
-  const media = content.querySelector('picture, .video-container.video-holder');
+  const media = content.querySelector(MEDIA_SELECTOR);
   if (!media) return null;
   const mediaContainer = createTag('div', { class: 'media-container' });
   mediaContainer.append(media);
@@ -472,6 +473,28 @@ async function initPromptVariant(el, mediaRow, layoutParts) {
   mountLayout(el, layoutParts, mediaWrapper);
 }
 
+export function extractAudioTracks(rows) {
+  return [...rows].slice(3).map((row) => {
+    const [labelCell, linkCell] = row.children;
+    const link = linkCell?.querySelector('a[href]');
+    const label = labelCell?.textContent.trim();
+    if (!link || !label) return null;
+    const url = new URL(link.href.replace('#_dnb', ''), window.location.href);
+    const isHelixHost = url.hostname.includes('.aem.') || url.hostname.includes('.hlx.');
+    return { label, src: isHelixHost ? `${url.pathname}${url.search}` : url.href };
+  }).filter(Boolean);
+}
+
+async function loadAudioCompare() {
+  const { loadStyle } = await import(`${miloLibs}/utils/utils.js`);
+  const cssHref = new URL('./audio-compare.css', import.meta.url).href;
+  const [{ default: initAudioCompare }] = await Promise.all([
+    import('./audio-compare.js'),
+    new Promise((resolve) => { loadStyle(cssHref, resolve); }),
+  ]);
+  return initAudioCompare;
+}
+
 export default async function init(el) {
   const { decorateBlockBg } = await import(`${miloLibs}/utils/decorate.js`);
   el.classList.add('upload-marquee-block', 'con-block');
@@ -479,11 +502,23 @@ export default async function init(el) {
   if (rows.length < 3) return;
   const [backgroundRow, marqueeRow, contentRow] = rows;
   const isPromptVariant = el.classList.contains('unity-prompt');
+  const isAudioCompare = el.classList.contains('audio-compare');
+  const audioTracks = isAudioCompare ? extractAudioTracks(rows) : [];
+  const audioComparePromise = isAudioCompare ? loadAudioCompare().catch((e) => {
+    logUploadMarqueeInfo(`Failed to load audio-compare: ${e.message}`);
+    return null;
+  }) : null;
   if (backgroundRow.textContent.trim() !== '') {
     backgroundRow.classList.add('background');
     decorateBlockBg(el, backgroundRow, { useHandleFocalpoint: true });
   }
   decorateContentRow(contentRow);
+  if (isAudioCompare) {
+    contentRow.querySelectorAll('video').forEach((video) => {
+      video.removeAttribute('controls');
+      if (video.preload === 'auto') video.preload = 'metadata';
+    });
+  }
   const layoutParts = buildLayout();
   if (!appendMarqueeContent(marqueeRow, layoutParts.leftCol)) return;
   if (isPromptVariant) {
@@ -491,4 +526,5 @@ export default async function init(el) {
   } else {
     await initDropzoneVariant(el, contentRow, layoutParts);
   }
+  audioComparePromise?.then((initAudioCompare) => initAudioCompare?.(el, audioTracks));
 }
