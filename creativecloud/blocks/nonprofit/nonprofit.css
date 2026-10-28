@@ -9,6 +9,7 @@
   --np-selected-organization-fallback-background: #da408b;
   --np-button-disabled-background: #e6e6e6;
   --np-button-disabled-color: #b1b1b1;
+  --np-error-color: #d31510;
   --np-focus-ring-color: var(--color-accent-focus-ring, #1473e6);
 }
 
@@ -193,7 +194,8 @@
   color: var(--color-white);
 }
 
-.np-button:disabled {
+.np-button:disabled,
+.np-button[aria-disabled='true'] {
   background-color: var(--np-button-disabled-background);
   color: var(--np-button-disabled-color);
   cursor: default;
@@ -201,6 +203,10 @@
 
 .np-form .np-button {
   align-self: start;
+}
+
+.np-required-indicator {
+  color: var(--np-error-color);
 }
 
 .np-control {
@@ -269,7 +275,8 @@
   position: absolute;
   height: 12px;
   right: 15px;
-  bottom: 14px;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   cursor: pointer;
   pointer-events: none;
@@ -682,4 +689,15 @@
   background-repeat: no-repeat;
   background-position: right calc(0.375em + 0.1875rem) center;
   background-size: 1em;
+}
+
+.np-control:has(.np-icon) .np-input.np-error {
+  padding-right: calc(1.5em + 0.75rem + 33px);
+  background-position: right calc(0.375em + 0.1875rem + 33px) center;
+}
+
+[dir='rtl'] .np-input.np-error,
+[dir='rtl'] .np-control:has(.np-icon) .np-input.np-error {
+  padding-right: 40px;
+  background-position: left calc(0.375em + 0.1875rem) center;
 }

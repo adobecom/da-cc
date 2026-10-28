@@ -698,7 +698,11 @@ describe('nonprofit - Personal details', () => {
       },
     });
 
-    window.mph = {};
+    window.mph = {
+      'nonprofit-first-name': 'First name',
+      'nonprofit-last-name': 'Last name',
+      'nonprofit-email': 'Email',
+    };
     window.lana = { log: () => {} };
   });
 
@@ -721,6 +725,68 @@ describe('nonprofit - Personal details', () => {
     submit.click();
 
     expect(stepperStore.data.step).to.equal(2);
+  });
+
+  it('should highlight and focus the first incomplete required field on submit, without adding any message', async () => {
+    stepperStore.update({ step: 2, scenario: SCENARIOS.FOUND_IN_SEARCH });
+
+    const submit = document.querySelector('input[type="submit"]');
+    submit.click();
+
+    const firstName = document.querySelector('.np-input[name="firstName"]');
+    const lastName = document.querySelector('.np-input[name="lastName"]');
+    const email = document.querySelector('.np-input[name="email"]');
+
+    expect(firstName.getAttribute('aria-invalid')).to.equal('true');
+    expect(firstName.classList.contains('np-error')).to.be.true;
+    expect(document.activeElement).to.equal(firstName);
+
+    expect(document.querySelector('.np-missing-fields-summary')).to.not.exist;
+    expect(document.querySelector('.np-field-error')).to.not.exist;
+    expect(document.querySelector('.np-required-legend')).to.not.exist;
+
+    firstName.value = 'Atest';
+    firstName.dispatchEvent(new Event('input'));
+
+    expect(firstName.getAttribute('aria-invalid')).to.be.null;
+    expect(firstName.classList.contains('np-error')).to.be.false;
+
+    lastName.value = 'Name';
+    lastName.dispatchEvent(new Event('input'));
+
+    email.value = 'atest@email.com';
+    email.dispatchEvent(new Event('input'));
+
+    expect(submit.getAttribute('aria-disabled')).to.be.null;
+  });
+
+  it('should highlight an email field with a malformed value, with no message', async () => {
+    stepperStore.update({ step: 2, scenario: SCENARIOS.FOUND_IN_SEARCH });
+
+    const firstName = document.querySelector('.np-input[name="firstName"]');
+    firstName.value = 'Atest';
+    firstName.dispatchEvent(new Event('input'));
+
+    const lastName = document.querySelector('.np-input[name="lastName"]');
+    lastName.value = 'Name';
+    lastName.dispatchEvent(new Event('input'));
+
+    const email = document.querySelector('.np-input[name="email"]');
+    email.value = 'not-a-valid-email';
+    email.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const submit = document.querySelector('input[type="submit"]');
+    expect(submit.getAttribute('aria-disabled')).to.equal('true');
+
+    expect(email.getAttribute('aria-invalid')).to.equal('true');
+    expect(email.classList.contains('np-error')).to.be.true;
+    expect(document.querySelector('.np-field-error')).to.not.exist;
+
+    email.value = 'atest@email.com';
+    email.dispatchEvent(new Event('input', { bubbles: true }));
+
+    expect(email.getAttribute('aria-invalid')).to.be.null;
+    expect(email.classList.contains('np-error')).to.be.false;
   });
 
   it('should submit completed form in found in search scenario', async () => {
