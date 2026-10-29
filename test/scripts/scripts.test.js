@@ -369,11 +369,9 @@ describe('MAS fragment preload locale', () => {
     const original = window.location.href;
     window.history.replaceState(null, '', '?mas-geo-detection=on');
     const getValidatedMarket = sinon.stub().resolves('au');
-    const loader = sinon.stub().resolves({ getValidatedMarket });
-    const getMarket = utils.createMasMarketGetter(loader);
+    const getMarket = utils.createMasMarketGetter(getValidatedMarket);
     const markets = await Promise.all([getMarket(), getMarket(), getMarket()]);
     expect(markets).to.deep.equal(['AU', 'AU', 'AU']);
-    expect(loader.calledOnce).to.be.true;
     expect(getValidatedMarket.calledOnce).to.be.true;
     window.history.replaceState(null, '', original);
   });
@@ -382,18 +380,5 @@ describe('MAS fragment preload locale', () => {
     const loader = sinon.stub();
     expect(await utils.createMasMarketGetter(loader)()).to.be.undefined;
     expect(loader.called).to.be.false;
-  });
-
-  it('preloads market.js only when geo detection is on', () => {
-    const selector = 'link[rel="modulepreload"][href="/test-libs/utils/market.js"]';
-    utils.preloadMasMarketModule('/test-libs');
-    expect(document.head.querySelector(selector)).to.be.null;
-    const original = window.location.href;
-    window.history.replaceState(null, '', '?mas-geo-detection=on');
-    utils.preloadMasMarketModule('/test-libs');
-    window.history.replaceState(null, '', original);
-    const link = document.head.querySelector(selector);
-    expect(link).to.exist;
-    link.remove();
   });
 });
