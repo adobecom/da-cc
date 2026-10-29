@@ -110,8 +110,8 @@ function analyze(el) {
   });
 
   // check Enticement
-  enticement.forEach((ele) => {
-    checkEnticement(rowID, ele);
+  enticement.forEach(() => {
+    checkEnticement(rowID);
     rowID += 1;
   });
 
@@ -122,7 +122,7 @@ function analyze(el) {
     }
     const dimensions = [...IMAGE_DIMENSIONS];
     const swtchDimention = [...THUMBNAILS_DIMENSIONS];
-    checkEnticement(rowID, '');
+    checkEnticement(rowID);
     if (rowID + 2 === temprowid) {
       checkImages3(rowID + 2, dimensions);
       checkImages3(rowID + 1, swtchDimention);
