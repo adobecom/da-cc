@@ -350,7 +350,6 @@ html[dir="rtl"] .cc-forms .check-item-label {
 
 .cc-forms .db-Menu {
   max-height: 300px;
-  overflow-y: auto;
   background-color: transparent;
   box-sizing: border-box;
   display: inline-block;

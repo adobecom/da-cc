@@ -61,7 +61,7 @@ function decorateBlockColumns(content) {
     return;
   }
 
-  const uploadEls = decorateUploadEls(getUploadPara, dropZoneContainer, dropZone);
+  const uploadEls = decorateUploadEls(getUploadPara);
   mediaContainer.append(media);
   dropZone.append(...paras);
   dropZoneContainer.append(dropZone, uploadEls, terms);
@@ -93,6 +93,6 @@ export default async function init(el) {
   rows.forEach((row) => {
     row.classList.add('foreground');
     decorateMultiViewport(row);
-    [...row.children].forEach((content) => decorateBlockColumns(content, el));
+    [...row.children].forEach((content) => decorateBlockColumns(content));
   });
 }
