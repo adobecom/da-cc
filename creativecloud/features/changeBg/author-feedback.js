@@ -110,7 +110,7 @@ function analyze(el) {
   });
 
   // check Enticement
-  enticement.forEach((ele) => {
+  enticement.forEach(() => {
     checkEnticement(rowID);
     rowID += 1;
   });
