@@ -6,6 +6,7 @@ const DECODE_SAMPLE_RATE = 48000;
 const LABEL_DEFAULTS = {
   'audio-play': 'Play',
   'audio-pause': 'Pause',
+  'audio-loading': 'Loading',
   'audio-mute': 'Mute',
   'audio-unmute': 'Unmute',
   'audio-seek': 'Seek',
@@ -13,6 +14,7 @@ const LABEL_DEFAULTS = {
 };
 const ICONS = {
   play: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M6 4.2v11.6c0 .6.7 1 1.2.6l9-5.8c.4-.3.4-.9 0-1.2l-9-5.8C6.7 3.2 6 3.6 6 4.2Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg>',
+  loading: '<svg class="audio-compare-spinner" viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M10 3a7 7 0 1 0 7 7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
   pause: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><rect x="5" y="4" width="3.5" height="12" rx="1" fill="currentColor"/><rect x="11.5" y="4" width="3.5" height="12" rx="1" fill="currentColor"/></svg>',
   volume: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 7.5h3l4-3.5v12l-4-3.5H3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M13 7.2a4 4 0 0 1 0 5.6M15.3 5a7 7 0 0 1 0 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
   muted: '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"><path d="M3 7.5h3l4-3.5v12l-4-3.5H3Z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="m13 7.5 5 5m0-5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
@@ -268,8 +270,13 @@ export default async function initAudioCompare(el, tracks) {
   });
   const controls = createTag('div', { class: 'audio-compare-controls' }, [scrubber, playBtn, time, muteBtn]);
 
+  // Audio only runs while the video has data to advance; otherwise the drift check
+  // would restart it every frame during buffering and stutter.
+  const canPlayAudio = () => engine && !video.paused && !video.seeking
+    && video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA;
+
   const startAudio = () => {
-    if (engine && !video.paused && !video.seeking) engine.start(video.currentTime);
+    if (canPlayAudio()) engine.start(video.currentTime);
   };
 
   const ensureEngine = () => {
@@ -314,9 +321,13 @@ export default async function initAudioCompare(el, tracks) {
 
   const tick = () => {
     render();
-    const audioTime = engine?.isRunning() ? engine.time() : null;
-    if (audioTime !== null && Math.abs(audioTime - video.currentTime) > DRIFT_TOLERANCE_SECONDS) {
-      startAudio();
+    if (engine) {
+      if (!canPlayAudio()) {
+        if (engine.isRunning()) engine.stop();
+      } else if (!engine.isRunning()
+        || Math.abs(engine.time() - video.currentTime) > DRIFT_TOLERANCE_SECONDS) {
+        startAudio();
+      }
     }
     rafId = requestAnimationFrame(tick);
   };
@@ -327,18 +338,52 @@ export default async function initAudioCompare(el, tracks) {
     container.classList.toggle('is-playing', playing);
   };
 
+  let pendingPlay = false;
+  const setLoadingUi = (loading) => {
+    pendingPlay = loading;
+    playBtn.classList.toggle('is-loading', loading);
+    if (loading) {
+      playBtn.setAttribute('aria-busy', 'true');
+      playBtn.setAttribute('aria-label', labels['audio-loading']);
+      playBtn.innerHTML = ICONS.loading;
+    } else {
+      playBtn.removeAttribute('aria-busy');
+      setPlayingUi(!video.paused && !video.ended);
+    }
+  };
+
+  const playVideo = () => {
+    setPlayingUi(true);
+    video.play()?.catch((e) => {
+      setPlayingUi(false);
+      logAudioCompare(`video play failed: ${e.message}`);
+    });
+  };
+
+  // Hold playback until both tracks are decoded so the video never starts silent.
   const togglePlay = () => {
     unlockAudioContext();
-    ensureEngine();
-    if (video.paused || video.ended) {
-      setPlayingUi(true);
-      video.play()?.catch((e) => {
-        setPlayingUi(false);
-        logAudioCompare(`video play failed: ${e.message}`);
-      });
-    } else {
-      video.pause();
+    if (pendingPlay) {
+      setLoadingUi(false);
+      return;
     }
+    if (!video.paused && !video.ended) {
+      video.pause();
+      return;
+    }
+    if (engine) {
+      playVideo();
+      return;
+    }
+    setLoadingUi(true);
+    ensureEngine().then(() => {
+      if (!pendingPlay) return;
+      setLoadingUi(false);
+      playVideo();
+    }).catch((e) => {
+      setLoadingUi(false);
+      logAudioCompare(`audio engine failed: ${e.message}`);
+    });
   };
 
   playBtn.addEventListener('click', togglePlay);
@@ -397,7 +442,8 @@ export default async function initAudioCompare(el, tracks) {
     toggle.setAttribute('aria-label', labels['audio-version']);
     scrubber.setAttribute('aria-label', labels['audio-seek']);
     const playing = !video.paused && !video.ended;
-    playBtn.setAttribute('aria-label', labels[playing ? 'audio-pause' : 'audio-play']);
+    const playKey = playing ? 'audio-pause' : 'audio-play';
+    playBtn.setAttribute('aria-label', labels[pendingPlay ? 'audio-loading' : playKey]);
     muteBtn.setAttribute('aria-label', labels[isMuted ? 'audio-unmute' : 'audio-mute']);
   });
 

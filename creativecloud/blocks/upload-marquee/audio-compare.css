@@ -98,6 +98,20 @@
   height: 22px;
 }
 
+.upload-marquee-block.audio-compare .audio-compare-play.is-loading .audio-compare-spinner {
+  animation: audio-compare-spin 0.9s linear infinite;
+}
+
+@keyframes audio-compare-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .upload-marquee-block.audio-compare .audio-compare-play.is-loading .audio-compare-spinner {
+    animation: none;
+  }
+}
+
 .upload-marquee-block.audio-compare .audio-compare-time {
   grid-row: 2;
   justify-self: center;

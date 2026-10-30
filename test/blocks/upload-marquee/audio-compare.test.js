@@ -137,11 +137,17 @@ describe('audio-compare player', () => {
   let el;
   let video;
   let fetchStub;
+  let player;
+
+  const stubPlay = (target) => sinon.stub(target, 'play').callsFake(() => {
+    target.dispatchEvent(new Event('play'));
+    return Promise.resolve();
+  });
 
   before(async () => {
     fetchStub = sinon.stub(window, 'fetch').rejects(new Error('blocked'));
     el = buildPlayerDom();
-    await initAudioCompare(el, TRACKS);
+    player = await initAudioCompare(el, TRACKS);
     video = el.querySelector('video');
     sinon.stub(video, 'play').callsFake(() => {
       video.dispatchEvent(new Event('play'));
@@ -198,7 +204,8 @@ describe('audio-compare player', () => {
     expect(options[1].getAttribute('aria-checked')).to.equal('false');
   });
 
-  it('swaps the play button label when playing and paused', () => {
+  it('swaps the play button label when playing and paused', async () => {
+    await player.ensureEngine();
     const playBtn = el.querySelector('.audio-compare-play');
     expect(playBtn.getAttribute('aria-label')).to.equal('Play');
     playBtn.click();
@@ -244,6 +251,49 @@ describe('audio-compare player', () => {
     video.dispatchEvent(new Event('ended'));
     expect(video.currentTime).to.equal(0);
     expect(el.querySelector('.audio-compare-play').getAttribute('aria-label')).to.equal('Play');
+  });
+
+  it('shows a loading state until audio is ready, then plays', async () => {
+    const result = await initAudioCompare(buildPlayerDom(), TRACKS);
+    const play = stubPlay(result.video);
+    const playBtn = result.container.querySelector('.audio-compare-play');
+    playBtn.click();
+    expect(playBtn.classList.contains('is-loading')).to.be.true;
+    expect(playBtn.getAttribute('aria-busy')).to.equal('true');
+    expect(playBtn.getAttribute('aria-label')).to.equal('Loading');
+    expect(play.called).to.be.false;
+    await result.ensureEngine();
+    await Promise.resolve();
+    expect(play.calledOnce).to.be.true;
+    expect(playBtn.hasAttribute('aria-busy')).to.be.false;
+    expect(playBtn.getAttribute('aria-label')).to.equal('Pause');
+  });
+
+  it('cancels a pending play when clicked again while loading', async () => {
+    const result = await initAudioCompare(buildPlayerDom(), TRACKS);
+    const play = stubPlay(result.video);
+    const playBtn = result.container.querySelector('.audio-compare-play');
+    playBtn.click();
+    playBtn.click();
+    await result.ensureEngine();
+    await Promise.resolve();
+    expect(play.called).to.be.false;
+    expect(playBtn.classList.contains('is-loading')).to.be.false;
+    expect(playBtn.getAttribute('aria-label')).to.equal('Play');
+  });
+
+  it('starts audio only once the video has data to play', async () => {
+    const result = await initAudioCompare(buildPlayerDom(), TRACKS);
+    const engine = await result.ensureEngine();
+    const start = sinon.stub(engine, 'start');
+    let readyState = HTMLMediaElement.HAVE_CURRENT_DATA;
+    Object.defineProperty(result.video, 'paused', { get: () => false });
+    Object.defineProperty(result.video, 'readyState', { get: () => readyState });
+    result.video.dispatchEvent(new Event('playing'));
+    expect(start.called).to.be.false;
+    readyState = HTMLMediaElement.HAVE_ENOUGH_DATA;
+    result.video.dispatchEvent(new Event('playing'));
+    expect(start.calledOnce).to.be.true;
   });
 
   it('falls back to the media engine when decoding fails', async () => {
