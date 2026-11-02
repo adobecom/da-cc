@@ -155,7 +155,7 @@ export const locales = {
   // New lingo sites
   ara: { ietf: 'ar', tk: 'dis2dpj.css'},
   el: { ietf: 'el', tk: 'fnx0rsr.css'},
-  'zh-hant': { ietf: 'zh', tk: 'jay0ecd'}, // ietf to update based on copy confirmation
+  'zh-hant': { ietf: 'zh-Hant', tk: 'jay0ecd'}, // ietf to update based on copy confirmation
 };
 
 const stageDomainsMap = {
