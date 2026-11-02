@@ -8,6 +8,15 @@ const AnalyticsKeys = {
   uploadAssetCTA: 'Upload asset CTA|UnityWidget',
   editPhotosCTA: 'Edit Photos CTA|UnityWidget',
 };
+
+function trackUnityCTA(name) {
+  // eslint-disable-next-line no-underscore-dangle
+  window._satellite?.track('event', {
+    xdm: {},
+    data: { web: { webInteraction: { name } } },
+  });
+}
+
 let uploadColumnCounter = 0;
 const LCP_IMAGE_PARAMS = {
   webpLarge: 'width=1000&format=webply&optimize=medium',
@@ -191,8 +200,7 @@ async function buildUploadActionControls(para) {
     'a',
     {
       tabindex: '0',
-      class: 'con-button blue action-button button-xl no-track',
-      'daa-ll': AnalyticsKeys.uploadAssetCTA,
+      class: 'con-button blue action-button button-xl',
     },
     para.innerHTML,
   );
@@ -205,10 +213,12 @@ async function buildUploadActionControls(para) {
     accept: 'image/*',
     'aria-hidden': 'true',
   });
+  input.addEventListener('click', (event) => event.stopPropagation());
+  button.addEventListener('click', () => trackUnityCTA(AnalyticsKeys.uploadAssetCTA));
   button.addEventListener('keydown', (event) => {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
-      input.click();
+      button.click();
     }
   });
   para.classList.add('upload-action-container');
@@ -219,8 +229,7 @@ async function buildUploadActionControls(para) {
 
 function wireDropZoneAccessibility(dropZone, fileInput) {
   dropZone.setAttribute('tabindex', '-1');
-  dropZone.addEventListener('click', (event) => {
-    event.stopPropagation();
+  dropZone.addEventListener('click', () => {
     fileInput?.click();
   });
 }
@@ -270,9 +279,11 @@ function buildMarqueeContent(marqueeCell) {
   }
   const ctaLink = marqueeContent.querySelector('p strong a[href]');
   if (ctaLink) {
-    ctaLink.classList.add('con-button', 'upload-marquee-cta', 'no-track');
+    ctaLink.classList.add('con-button', 'upload-marquee-cta');
+    ctaLink.classList.remove('no-track');
     ctaLink.setAttribute('aria-label', ctaLink.textContent.trim());
-    ctaLink.setAttribute('daa-ll', AnalyticsKeys.editPhotosCTA);
+    ctaLink.removeAttribute('daa-ll');
+    ctaLink.addEventListener('click', () => trackUnityCTA(AnalyticsKeys.editPhotosCTA));
   }
   const ctaParentPara = ctaLink?.closest('p');
   const heading = marqueeContent.querySelector(':scope > h1');
