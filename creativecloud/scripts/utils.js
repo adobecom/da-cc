@@ -152,6 +152,10 @@ export const locales = {
   vn_vi: { ietf: 'vi', tk: 'qxw8hzm.css' },
   cis_ru: { ietf: 'ru', tk: 'qxw8hzm.css' },
   cis_en: { ietf: 'en', tk: 'pps7abe.css', base: '' },
+  // New lingo sites
+  mena_ar: { ietf: 'ar', tk: 'dis2dpj.css'},
+  el: { ietf: 'el', tk: 'fnx0rsr.css'},
+  zh-hant: { ietf: 'zh-HK', tk: 'jay0ecd'}, // ietf to update based on copy confirmation
 };
 
 const stageDomainsMap = {
