@@ -66,9 +66,46 @@ function toSentenceCase(str) {
   return str.toLowerCase().replace(/(^\s*\w|[\.\!\?]\s*\w)/g, (c) => c.toUpperCase());
 }
 
+const TOOLTIP_VIEWPORT_MARGIN = 8;
+
+function getTooltipEdges(copyButton) {
+  const buttonRect = copyButton.getBoundingClientRect();
+  const tooltipStyle = getComputedStyle(copyButton, '::before');
+  const left = parseFloat(tooltipStyle.left) || 0;
+  const contentWidth = parseFloat(tooltipStyle.width) || 0;
+  const horizontalExtras = [
+    'paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth',
+  ].reduce((sum, prop) => sum + (parseFloat(tooltipStyle[prop]) || 0), 0);
+  const width = contentWidth + horizontalExtras;
+  const baselineTranslateX = -0.5 * width;
+
+  const tooltipLeft = buttonRect.left + left + baselineTranslateX;
+  const tooltipRight = tooltipLeft + width;
+  return { tooltipLeft, tooltipRight };
+}
+
+function positionCopyTooltip(copyButton) {
+  copyButton.classList.add('no-tooltip-transition');
+
+  const { tooltipLeft, tooltipRight } = getTooltipEdges(copyButton);
+  const viewportWidth = window.innerWidth;
+
+  let shift = 0;
+  if (tooltipLeft < TOOLTIP_VIEWPORT_MARGIN) {
+    shift = TOOLTIP_VIEWPORT_MARGIN - tooltipLeft;
+  } else if (tooltipRight > viewportWidth - TOOLTIP_VIEWPORT_MARGIN) {
+    shift = (viewportWidth - TOOLTIP_VIEWPORT_MARGIN) - tooltipRight;
+  }
+
+  copyButton.style.setProperty('--tooltip-shift', `${shift}px`);
+  void copyButton.offsetWidth;
+  copyButton.classList.remove('no-tooltip-transition');
+}
+
 function showCopyTooltip({ copyButton, show = true, copied = false }) {
   copyButton.classList.toggle('hide-copy-tooltip', !show);
   copyButton.classList.toggle('copy-to-clipboard-copied', copied);
+  if (show) positionCopyTooltip(copyButton);
 }
 
 export default async function decorate(block) {
