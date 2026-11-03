@@ -90,7 +90,7 @@ export const locales = {
   nl: { ietf: 'nl-NL', tk: 'cya6bri.css' },
   no: { ietf: 'no-NO', tk: 'aaz7dvd.css' },
   pl: { ietf: 'pl-PL', tk: 'aaz7dvd.css' },
-  pt: { ietf: 'pt-PT', tk: 'inq1xob.css', base: 'br'  },
+  pt: { ietf: 'pt-PT', tk: 'inq1xob.css', base: 'br' },
   ro: { ietf: 'ro-RO', tk: 'aaz7dvd.css' },
   sa_en: { ietf: 'en', tk: 'pps7abe.css', base: '' },
   ch_de: { ietf: 'de-CH', tk: 'vin7zsi.css', base: 'de' },
