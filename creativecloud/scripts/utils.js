@@ -90,7 +90,7 @@ export const locales = {
   nl: { ietf: 'nl-NL', tk: 'cya6bri.css' },
   no: { ietf: 'no-NO', tk: 'aaz7dvd.css' },
   pl: { ietf: 'pl-PL', tk: 'aaz7dvd.css' },
-  pt: { ietf: 'pt-PT', tk: 'inq1xob.css', base: 'br' },
+  pt: { ietf: 'pt-BR', tk: 'inq1xob.css', base: 'br' },
   ro: { ietf: 'ro-RO', tk: 'aaz7dvd.css' },
   sa_en: { ietf: 'en', tk: 'pps7abe.css', base: '' },
   ch_de: { ietf: 'de-CH', tk: 'vin7zsi.css', base: 'de' },
@@ -137,10 +137,10 @@ export const locales = {
   // geo expansion MWPW-125686
   za: { ietf: 'en-GB', tk: 'pps7abe.css', base: '' }, // South Africa (GB English)
   ng: { ietf: 'en-GB', tk: 'pps7abe.css', base: '' }, // Nigeria (GB English)
-  cr: { ietf: 'es-419', tk: 'oln4yqj.css', base: 'es' }, // Costa Rica (Spanish Latin America)
-  ec: { ietf: 'es-419', tk: 'oln4yqj.css', base: 'es' }, // Ecuador (Spanish Latin America)
-  pr: { ietf: 'es-419', tk: 'oln4yqj.css', base: 'es' }, // Puerto Rico (Spanish Latin America)
-  gt: { ietf: 'es-419', tk: 'oln4yqj.css', base: 'es' }, // Guatemala (Spanish Latin America)
+  cr: { ietf: 'es-ES', tk: 'oln4yqj.css', base: 'es' }, // Costa Rica (Spanish Latin America)
+  ec: { ietf: 'es-ES', tk: 'oln4yqj.css', base: 'es' }, // Ecuador (Spanish Latin America)
+  pr: { ietf: 'es-ES', tk: 'oln4yqj.css', base: 'es' }, // Puerto Rico (Spanish Latin America)
+  gt: { ietf: 'es-ES', tk: 'oln4yqj.css', base: 'es' }, // Guatemala (Spanish Latin America)
   eg_ar: { ietf: 'ar', tk: 'dis2dpj.css', dir: 'rtl', base: 'ara' }, // Egypt (Arabic)
   kw_ar: { ietf: 'ar', tk: 'dis2dpj.css', dir: 'rtl', base: 'ara' }, // Kuwait (Arabic)
   qa_ar: { ietf: 'ar', tk: 'dis2dpj.css', dir: 'rtl', base: 'ara' }, // Qatar (Arabic)
