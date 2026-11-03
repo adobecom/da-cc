@@ -153,8 +153,8 @@ export const locales = {
   cis_ru: { ietf: 'ru', tk: 'qxw8hzm.css' },
   cis_en: { ietf: 'en', tk: 'pps7abe.css', base: '' },
   // New lingo sites
-  ara: { ietf: 'ar', tk: 'dis2dpj.css'},
-  el: { ietf: 'el', tk: 'fnx0rsr.css'},
+  ara: { ietf: 'ar', tk: 'dis2dpj.css' },
+  el: { ietf: 'el', tk: 'fnx0rsr.css' },
   'zh-hant': { ietf: 'zh-Hant', tk: 'jay0ecd', dir: 'rtl' }
 };
 
