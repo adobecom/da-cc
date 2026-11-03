@@ -8,30 +8,29 @@
   inset-inline-end: 10px;
   z-index: 2;
   display: flex;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 22px;
-  background: rgb(0 0 0 / 55%);
-  border: 1px solid rgb(255 255 255 / 20%);
-  backdrop-filter: blur(8px);
+  gap: 4px;
+  padding: 5px 8px;
+  border-radius: 100px;
+  background: #1d1d1d;
+  border: 1px solid #3f3f3f;
 }
 
 .upload-marquee-block.audio-compare .audio-compare-option {
-  min-height: 34px;
-  padding: 0 14px;
+  height: 32px;
+  padding: 0 12px;
   border: 0;
-  border-radius: 18px;
+  border-radius: 20px;
   background: transparent;
-  color: #fff;
+  color: #ebebeb;
   font: inherit;
   font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
+  font-weight: 400;
+  line-height: 1.5;
   cursor: pointer;
 }
 
 .upload-marquee-block.audio-compare .audio-compare-option[aria-checked="true"] {
-  background: rgb(255 255 255 / 25%);
+  background: #3f3f3f;
 }
 
 .upload-marquee-block.audio-compare .audio-compare-controls {
@@ -40,40 +39,39 @@
   bottom: 0;
   z-index: 2;
   display: grid;
-  grid-template-columns: 44px 1fr 44px;
+  grid-template-columns: 36px 1fr 36px;
   grid-template-rows: 8px 59px;
   align-items: center;
-  padding: 0 12px;
-  background: linear-gradient(to top, rgb(0 0 0 / 70%), rgb(0 0 0 / 0%));
-  color: #fff;
+  padding: 0 24px 0 22px;
+  background: rgb(0 0 0 / 70%);
+  color: #dbdbdb;
 }
 
 .upload-marquee-block.audio-compare .audio-compare-scrubber {
   grid-column: 1 / -1;
   grid-row: 1;
-  width: 100%;
-  height: 8px;
-  margin: 0;
+  align-self: start;
+  width: calc(100% + 46px);
+  height: 20px;
+  margin: 0 -24px -12px -22px;
   appearance: none;
-  background: linear-gradient(to right, #fff var(--audio-compare-progress, 0%), rgb(255 255 255 / 35%) var(--audio-compare-progress, 0%));
-  border-radius: 4px;
+  background: linear-gradient(to right, #8a8a8a var(--audio-compare-progress, 0%), #393939 var(--audio-compare-progress, 0%)) top / 100% 8px no-repeat;
   cursor: pointer;
 }
 
+/* Thumb stays invisible; the 20px-tall input keeps a larger hit area than the 8px bar. */
 .upload-marquee-block.audio-compare .audio-compare-scrubber::-webkit-slider-thumb {
   appearance: none;
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  background: #fff;
+  width: 8px;
+  height: 20px;
+  opacity: 0;
 }
 
 .upload-marquee-block.audio-compare .audio-compare-scrubber::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 8px;
+  height: 20px;
   border: 0;
-  border-radius: 50%;
-  background: #fff;
+  opacity: 0;
 }
 
 .upload-marquee-block.audio-compare .audio-compare-play,
@@ -82,17 +80,21 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   padding: 0;
   border: 0;
-  border-radius: 50%;
+  border-radius: 8px;
   background: transparent;
-  color: #fff;
+  color: inherit;
   cursor: pointer;
 }
 
-.upload-marquee-block.audio-compare .audio-compare-play svg,
+.upload-marquee-block.audio-compare .audio-compare-play svg {
+  width: 24px;
+  height: 24px;
+}
+
 .upload-marquee-block.audio-compare .audio-compare-mute svg {
   width: 22px;
   height: 22px;
@@ -116,6 +118,7 @@
   grid-row: 2;
   justify-self: center;
   font-size: 16px;
+  line-height: 1.5;
   font-variant-numeric: tabular-nums;
 }
 
