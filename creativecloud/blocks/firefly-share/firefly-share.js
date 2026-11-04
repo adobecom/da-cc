@@ -68,6 +68,10 @@ function toSentenceCase(str) {
 
 const TOOLTIP_VIEWPORT_MARGIN = 8;
 
+function forceReflow(el) {
+  return el.offsetWidth;
+}
+
 function getTooltipEdges(copyButton) {
   const buttonRect = copyButton.getBoundingClientRect();
   const tooltipStyle = getComputedStyle(copyButton, '::before');
@@ -98,7 +102,7 @@ function positionCopyTooltip(copyButton) {
   }
 
   copyButton.style.setProperty('--tooltip-shift', `${shift}px`);
-  void copyButton.offsetWidth;
+  forceReflow(copyButton);
   copyButton.classList.remove('no-tooltip-transition');
 }
 
