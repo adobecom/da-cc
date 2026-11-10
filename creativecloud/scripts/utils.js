@@ -221,6 +221,39 @@ export const [setLibs, getLibs] = (() => {
 
 const miloLibs = setLibs('/libs');
 
+// Milo files requested before LCP on every page; preloading them shortens the critical chain.
+export const LCP_PRELOADS = [
+  '/martech/helpers.js',
+  '/features/personalization/personalization.js',
+  '/utils/fonts.js',
+  '/utils/sanitizeHtml.js',
+  '/features/personalization/promo-utils.js',
+  '/features/placeholders.js',
+  '/utils/decorate.js',
+];
+
+export function preloadLcpResources(libs = miloLibs) {
+  const addLink = (rel, href, attrs = {}) => {
+    if (document.head.querySelector(`link[rel="${rel}"][href="${href}"]`)) return;
+    const link = document.createElement('link');
+    link.setAttribute('rel', rel);
+    link.setAttribute('href', href);
+    Object.entries(attrs).forEach(([key, val]) => link.setAttribute(key, val));
+    document.head.append(link);
+  };
+  ['https://use.typekit.net', 'https://p.typekit.net']
+    .forEach((href) => addLink('preconnect', href, { crossorigin: 'anonymous' }));
+  const foundation = document.head.querySelector('meta[name="foundation"]')?.content;
+  const stylesPrefix = foundation === 'c2' ? '/c2' : '';
+  // Absolute href, so href-based "already loaded" checks don't mistake it for the stylesheet.
+  const stylesHref = new URL(`${libs}${stylesPrefix}/styles/styles.css`, window.location.href).href;
+  addLink('preload', stylesHref, { as: 'style' });
+  LCP_PRELOADS.forEach((path) => addLink('modulepreload', `${libs}${path}`, { crossorigin: 'anonymous' }));
+}
+
+// Runs before the Milo utils import below, so the preloads start in parallel with it.
+preloadLcpResources();
+
 // eslint-disable-next-line object-curly-newline
 const { createTag, localizeLinkAsync, getConfig, getMetadata, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry, getValidatedMarket } = await import(`${miloLibs}/utils/utils.js`);
 

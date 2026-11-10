@@ -2,6 +2,10 @@ import { readFile } from '@web/test-runner-commands';
 import { expect } from '@esm-bundle/chai';
 import sinon from 'sinon';
 
+// Ignore timers from the background page load started by scriptInit().
+const countPollTimers = (clock) => Object.values(clock.timers || {})
+  .filter((timer) => timer.func?.name === 'poll').length;
+
 function delay(ms) {
   return new Promise((res) => { setTimeout(() => { res(); }, ms); });
 }
@@ -130,7 +134,7 @@ describe('Utility helpers', () => {
     const clock = sandbox.useFakeTimers();
     window.adobeIMS = { isSignedInUser: () => false };
     await utils.isSignedInInitialized();
-    expect(clock.countTimers()).to.equal(0);
+    expect(countPollTimers(clock)).to.equal(0);
   });
 
   it('polls at the default interval until the IMS sign-in API is initialized', async () => {
@@ -144,7 +148,7 @@ describe('Utility helpers', () => {
     await clock.tickAsync(1);
     await initialized;
     expect(resolved.calledOnce).to.be.true;
-    expect(clock.countTimers()).to.equal(0);
+    expect(countPollTimers(clock)).to.equal(0);
   });
 
   it('keeps polling at a custom interval while the IMS sign-in API is missing', async () => {
@@ -154,12 +158,12 @@ describe('Utility helpers', () => {
     const initialized = utils.isSignedInInitialized(50).then(resolved);
     await clock.tickAsync(100);
     expect(resolved.called).to.be.false;
-    expect(clock.countTimers()).to.equal(1);
+    expect(countPollTimers(clock)).to.equal(1);
     window.adobeIMS.isSignedInUser = () => false;
     await clock.tickAsync(50);
     await initialized;
     expect(resolved.calledOnce).to.be.true;
-    expect(clock.countTimers()).to.equal(0);
+    expect(countPollTimers(clock)).to.equal(0);
   });
 });
 
