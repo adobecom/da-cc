@@ -311,6 +311,48 @@ describe('Utility image decoration', () => {
     });
   });
 
+  function setViewportBlock() {
+    const picture = (id) => `<picture><img id="${id}" loading="lazy"></picture>`;
+    document.body.innerHTML = `<main><div><div class="plans-hero">
+      <a class="fragment" href="/fragment">Fragment</a>
+      <div><div>mobile-viewport</div></div>
+      <div><div><h1>Title</h1></div><div>${picture('vp-mobile')}</div></div>
+      <div><div>tablet-viewport</div></div>
+      <div><div></div><div>${picture('vp-tablet')}</div></div>
+    </div></div></main>`;
+  }
+
+  const stubViewportWidth = (width) => sandbox.stub(window, 'matchMedia')
+    .callsFake((query) => ({ matches: width >= Number(query.match(/min-width: (\d+)px/)?.[1]) }));
+
+  [
+    [767, 'vp-mobile'],
+    [768, 'vp-tablet'],
+    [1280, 'vp-tablet'],
+  ].forEach(([width, selected]) => {
+    it(`prioritizes the ${selected} image of a viewport-delimited block at ${width}px`, () => {
+      stubViewportWidth(width);
+      setViewportBlock();
+      utils.decorateArea();
+      expectEager(selected);
+      ['vp-mobile', 'vp-tablet'].filter((id) => id !== selected).forEach((id) => {
+        expect(document.getElementById(id).getAttribute('loading')).to.equal('lazy');
+      });
+    });
+  });
+
+  it('prioritizes the first image of a block without viewport rows on desktop', () => {
+    stubViewportWidth(1440);
+    document.body.innerHTML = `<main><div><div class="plans-hero">
+      <a class="fragment" href="/fragment">Fragment</a>
+      <div><div><img id="first" loading="lazy"></div></div>
+      <div><div><img id="second" loading="lazy"></div></div>
+    </div></div></main>`;
+    utils.decorateArea();
+    expectEager('first');
+    expect(document.getElementById('second').getAttribute('loading')).to.equal('lazy');
+  });
+
   it('prioritizes the first image in an ordinary block only once', () => {
     document.body.innerHTML = `<main><div><div><img id="first" loading="lazy">
       <a class="fragment" href="/fragment">Fragment</a></div></div></main>`;

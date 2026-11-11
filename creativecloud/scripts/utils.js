@@ -460,6 +460,38 @@ function getDecorateAreaFn() {
     resetAttributeBase('source', 'srcset');
   }
 
+  function getViewportLCPImage(lcpImg) {
+    const VIEWPORTS = ['mobile', 'tablet', 'desktop'];
+    const vpDelimiterIndex = (row) => {
+      if (row.children.length !== 1) return -1;
+      const label = row.children[0].textContent.trim().toLowerCase().split(/[ (]/)[0];
+      return VIEWPORTS.indexOf(label.replace('-viewport', ''));
+    };
+    const lcpBlock = lcpImg?.closest('main > div > div');
+    if (!lcpBlock) return lcpImg;
+
+    let activeViewportIndex = 0;
+    if (window.matchMedia('(min-width: 1280px)').matches) activeViewportIndex = 2;
+    else if (window.matchMedia('(min-width: 768px)').matches) activeViewportIndex = 1;
+
+    const rows = [...lcpBlock.children];
+    const hasViewportRows = rows.some((row) => vpDelimiterIndex(row) !== -1);
+    if (activeViewportIndex === 0 || !hasViewportRows) return lcpImg;
+
+    const viewportSections = VIEWPORTS.map(() => []);
+    let currentViewport = -1;
+    rows.forEach((row) => {
+      const delimiterIndex = vpDelimiterIndex(row);
+      if (delimiterIndex !== -1) currentViewport = delimiterIndex;
+      else if (currentViewport !== -1) viewportSections[currentViewport].push(row);
+    });
+
+    const lcpRowIndex = viewportSections[0].findIndex((row) => row.querySelector('img'));
+    if (lcpRowIndex === -1) return lcpImg;
+    const viewportLCPs = viewportSections.map((section) => section[lcpRowIndex]?.querySelector('img'));
+    return viewportLCPs.slice(0, activeViewportIndex + 1).reverse().find(Boolean) ?? lcpImg;
+  }
+
   async function loadLCPImage(area = document, { fragmentLink = null } = {}) {
     const firstBlock = fragmentLink ? area.querySelector('body > div > div') : area.querySelector('body > main > div > div');
     const firstSection = area.querySelector('body > main > div');
@@ -523,7 +555,7 @@ function getDecorateAreaFn() {
         }
         break;
       default:
-        if (!fragmentLink) eagerLoad(area.querySelector('img'));
+        if (!fragmentLink) eagerLoad(getViewportLCPImage(area.querySelector('img')));
         break;
     }
   }
