@@ -386,3 +386,33 @@ describe('MAS fragment preload locale', () => {
     expect(loader.called).to.be.false;
   });
 });
+
+describe('LCP preloads', () => {
+  const libs = 'https://main--milo--adobecom.aem.live/libs';
+  afterEach(() => {
+    document.head.querySelectorAll('link[href*="lcp-test"]').forEach((l) => l.remove());
+  });
+
+  it('adds hints for matching rows and resolves {libs}', () => {
+    const foundation = document.head.querySelector('meta[name="foundation"]')?.content || 'c1';
+    const other = foundation === 'c2' ? 'c1' : 'c2';
+    utils.addLcpPreloads([
+      { rel: 'modulepreload', href: '{libs}/lcp-test/a.js', crossorigin: 'anonymous' },
+      { rel: 'preload', href: '{libs}/lcp-test/match.css', as: 'style', foundation },
+      { rel: 'preload', href: '{libs}/lcp-test/other.css', as: 'style', foundation: other },
+      { rel: '', href: '{libs}/lcp-test/no-rel.js' },
+    ], libs);
+    const module = document.head.querySelector(`link[href="${libs}/lcp-test/a.js"]`);
+    expect(module.rel).to.equal('modulepreload');
+    expect(module.getAttribute('crossorigin')).to.equal('anonymous');
+    expect(document.head.querySelector(`link[href="${libs}/lcp-test/match.css"]`).as).to.equal('style');
+    expect(document.head.querySelector('link[href*="lcp-test/other.css"]')).to.be.null;
+    expect(document.head.querySelector('link[href*="lcp-test/no-rel.js"]')).to.be.null;
+  });
+
+  it('does not add the same hint twice', () => {
+    const row = { rel: 'modulepreload', href: '{libs}/lcp-test/dup.js' };
+    utils.addLcpPreloads([row, row], libs);
+    expect(document.head.querySelectorAll('link[href*="lcp-test/dup.js"]')).to.have.length(1);
+  });
+});

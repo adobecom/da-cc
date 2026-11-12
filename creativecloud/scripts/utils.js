@@ -14,6 +14,19 @@
  * Edit below at your own risk
  * ------------------------------------------------------------
  */
+// Fetched first thing, so the preload list downloads in parallel with the rest of this module.
+const LCP_PRELOADS_URL = '/drafts/ramuntea/cc-lcp-preloads.json';
+// Never throws, so a failing fetch can't break evaluation of this module.
+const lcpPreloads = (async () => {
+  try {
+    const resp = await fetch(LCP_PRELOADS_URL);
+    const { data } = resp.ok ? await resp.json() : {};
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
+  }
+})();
+
 const COOKIE_SIGNED_IN = 'acomsis';
 const COOKIE_SIGNED_IN_STAGE = 'acomsis_stage';
 const CHINA_SIGNED_IN_HOME_PATH = '/cn/creativecloud/roc/home';
@@ -221,38 +234,28 @@ export const [setLibs, getLibs] = (() => {
 
 const miloLibs = setLibs('/libs');
 
-// Milo files requested before LCP on every page; preloading them shortens the critical chain.
-export const LCP_PRELOADS = [
-  '/martech/helpers.js',
-  '/features/personalization/personalization.js',
-  '/utils/fonts.js',
-  '/utils/sanitizeHtml.js',
-  '/features/personalization/promo-utils.js',
-  '/features/placeholders.js',
-  '/utils/decorate.js',
-];
-
-export function preloadLcpResources(libs = miloLibs) {
-  const addLink = (rel, href, attrs = {}) => {
-    if (document.head.querySelector(`link[rel="${rel}"][href="${href}"]`)) return;
+/**
+ * Adds the preload hints listed in the LCP preloads sheet.
+ * Columns: rel, href ({libs} = Milo libs base), as, crossorigin,
+ * foundation (c1/c2; empty applies to every page).
+ */
+export function addLcpPreloads(rows = [], libs = miloLibs) {
+  const pageFoundation = document.head.querySelector('meta[name="foundation"]')?.content || 'c1';
+  rows.forEach(({ rel, href, as, crossorigin, foundation }) => {
+    if (!rel || !href || (foundation && foundation !== pageFoundation)) return;
+    // Absolute href, so href-based "already loaded" checks don't mistake a preload for the file.
+    const url = new URL(href.replace('{libs}', libs), window.location.href).href;
+    if (document.head.querySelector(`link[rel="${rel}"][href="${url}"]`)) return;
     const link = document.createElement('link');
     link.setAttribute('rel', rel);
-    link.setAttribute('href', href);
-    Object.entries(attrs).forEach(([key, val]) => link.setAttribute(key, val));
+    link.setAttribute('href', url);
+    if (as) link.setAttribute('as', as);
+    if (crossorigin) link.setAttribute('crossorigin', crossorigin);
     document.head.append(link);
-  };
-  ['https://use.typekit.net', 'https://p.typekit.net']
-    .forEach((href) => addLink('preconnect', href, { crossorigin: 'anonymous' }));
-  const foundation = document.head.querySelector('meta[name="foundation"]')?.content;
-  const stylesPrefix = foundation === 'c2' ? '/c2' : '';
-  // Absolute href, so href-based "already loaded" checks don't mistake it for the stylesheet.
-  const stylesHref = new URL(`${libs}${stylesPrefix}/styles/styles.css`, window.location.href).href;
-  addLink('preload', stylesHref, { as: 'style' });
-  LCP_PRELOADS.forEach((path) => addLink('modulepreload', `${libs}${path}`, { crossorigin: 'anonymous' }));
+  });
 }
 
-// Runs before the Milo utils import below, so the preloads start in parallel with it.
-preloadLcpResources();
+lcpPreloads.then((rows) => addLcpPreloads(rows));
 
 // eslint-disable-next-line object-curly-newline
 const { createTag, localizeLinkAsync, getConfig, getMetadata, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry, getValidatedMarket } = await import(`${miloLibs}/utils/utils.js`);
