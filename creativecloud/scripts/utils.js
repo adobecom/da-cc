@@ -150,7 +150,7 @@ export const locales = {
   gr_el: { ietf: 'el', tk: 'fnx0rsr.css', base: 'el' }, // Greece (Greek)
   vn_en: { ietf: 'en-GB', tk: 'hah7vzn.css', base: '' },
   vn_vi: { ietf: 'vi', tk: 'qxw8hzm.css' },
-  cis_ru: { ietf: 'ru', tk: 'qxw8hzm.css' },
+  cis_ru: { ietf: 'ru', tk: 'qxw8hzm.css', base: 'ru' },
   cis_en: { ietf: 'en', tk: 'pps7abe.css', base: '' },
   // New lingo sites
   ara: { ietf: 'ar', tk: 'dis2dpj.css', dir: 'rtl' },
