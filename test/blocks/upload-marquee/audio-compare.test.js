@@ -258,15 +258,114 @@ describe('audio-compare player', () => {
     const play = stubPlay(result.video);
     const playBtn = result.container.querySelector('.audio-compare-play');
     playBtn.click();
-    expect(playBtn.classList.contains('is-loading')).to.be.true;
     expect(playBtn.getAttribute('aria-busy')).to.equal('true');
     expect(playBtn.getAttribute('aria-label')).to.equal('Loading');
+    expect(playBtn.querySelector('.audio-compare-spinner')).to.be.null;
     expect(play.called).to.be.false;
     await result.ensureEngine();
     await Promise.resolve();
     expect(play.calledOnce).to.be.true;
     expect(playBtn.hasAttribute('aria-busy')).to.be.false;
     expect(playBtn.getAttribute('aria-label')).to.equal('Pause');
+  });
+
+  it('shows the centered loader only after a delay and announces it once', async () => {
+    const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const result = await initAudioCompare(buildPlayerDom(), TRACKS);
+      const { container } = result;
+      const status = container.querySelector('.audio-compare-status');
+      expect(container.querySelector('.audio-compare-loader').getAttribute('aria-hidden')).to.equal('true');
+      expect(status.getAttribute('role')).to.equal('status');
+      container.querySelector('.audio-compare-play').click();
+      clock.tick(299);
+      expect(container.classList.contains('is-loading')).to.be.false;
+      expect(status.textContent).to.equal('');
+      clock.tick(1);
+      expect(container.classList.contains('is-loading')).to.be.true;
+      expect(status.textContent).to.equal('Loading');
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('keeps the loader up without re-announcing when audio is ready and video starts', async () => {
+    const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const result = await initAudioCompare(buildPlayerDom(), TRACKS);
+      stubPlay(result.video);
+      const { container } = result;
+      const status = container.querySelector('.audio-compare-status');
+      const announcements = [];
+      const record = () => announcements.push(status.textContent);
+      new MutationObserver(record).observe(status, { childList: true });
+      container.querySelector('.audio-compare-play').click();
+      clock.tick(300);
+      await result.ensureEngine();
+      await Promise.resolve();
+      clock.tick(300);
+      await Promise.resolve();
+      expect(container.classList.contains('is-loading')).to.be.true;
+      expect(announcements).to.deep.equal(['Loading']);
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('never shows the loader when loading finishes before the delay', async () => {
+    const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const result = await initAudioCompare(buildPlayerDom(), TRACKS);
+      const playBtn = result.container.querySelector('.audio-compare-play');
+      playBtn.click();
+      clock.tick(100);
+      playBtn.click();
+      clock.tick(1000);
+      expect(result.container.classList.contains('is-loading')).to.be.false;
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('shows the loader while buffering mid-playback and keeps the pause icon', async () => {
+    const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const result = await initAudioCompare(buildPlayerDom(), TRACKS);
+      const { container, video: v } = result;
+      const playBtn = container.querySelector('.audio-compare-play');
+      Object.defineProperty(v, 'paused', { configurable: true, get: () => false });
+      v.dispatchEvent(new Event('play'));
+      v.dispatchEvent(new Event('waiting'));
+      clock.tick(300);
+      expect(container.classList.contains('is-loading')).to.be.true;
+      expect(playBtn.getAttribute('aria-label')).to.equal('Pause');
+      v.dispatchEvent(new Event('playing'));
+      expect(container.classList.contains('is-loading')).to.be.false;
+      expect(container.querySelector('.audio-compare-status').textContent).to.equal('');
+    } finally {
+      clock.restore();
+    }
+  });
+
+  it('ignores waiting while paused and hides the loader on pause', async () => {
+    const clock = sinon.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const result = await initAudioCompare(buildPlayerDom(), TRACKS);
+      const { container, video: v } = result;
+      v.dispatchEvent(new Event('waiting'));
+      clock.tick(300);
+      expect(container.classList.contains('is-loading')).to.be.false;
+      let paused = false;
+      Object.defineProperty(v, 'paused', { configurable: true, get: () => paused });
+      v.dispatchEvent(new Event('waiting'));
+      clock.tick(300);
+      expect(container.classList.contains('is-loading')).to.be.true;
+      paused = true;
+      v.dispatchEvent(new Event('pause'));
+      expect(container.classList.contains('is-loading')).to.be.false;
+    } finally {
+      clock.restore();
+    }
   });
 
   it('cancels a pending play when clicked again while loading', async () => {
@@ -278,7 +377,7 @@ describe('audio-compare player', () => {
     await result.ensureEngine();
     await Promise.resolve();
     expect(play.called).to.be.false;
-    expect(playBtn.classList.contains('is-loading')).to.be.false;
+    expect(playBtn.hasAttribute('aria-busy')).to.be.false;
     expect(playBtn.getAttribute('aria-label')).to.equal('Play');
   });
 
