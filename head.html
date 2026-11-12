@@ -1,5 +1,48 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="head-loaded" content="false" />
+<script>
+  // Preload Milo files needed before LCP; mirrors setLibs() in creativecloud/scripts/utils.js.
+  (() => {
+    const LCP_PRELOADS = [
+      '/martech/helpers.js',
+      '/features/personalization/personalization.js',
+      '/utils/fonts.js',
+      '/utils/sanitizeHtml.js',
+      '/features/personalization/promo-utils.js',
+      '/features/placeholders.js',
+      '/utils/decorate.js',
+    ];
+    const getLibs = () => {
+      const { hostname, search } = window.location;
+      if (!['.aem.', '.hlx.', '.stage.', 'localhost', '.da.'].some((i) => hostname.includes(i))) return '/libs';
+      const branch = new URLSearchParams(search).get('milolibs') || 'main';
+      if (!/^[a-zA-Z0-9_-]+$/.test(branch)) return null;
+      if (branch === 'local') return 'http://localhost:6456/libs';
+      if (branch === 'main' && hostname.includes('.stage.')) return '/libs';
+      const env = hostname.includes('.hlx.') ? 'hlx' : 'aem';
+      if (branch.indexOf('--') > -1) return `https://${branch}.${env}.live/libs`;
+      return `https://${branch}--milo--adobecom.${env}.live/libs`;
+    };
+    const libs = getLibs();
+    if (!libs) return;
+    const addLink = (rel, href, attrs = {}) => {
+      if (document.head.querySelector(`link[rel="${rel}"][href="${href}"]`)) return;
+      const link = document.createElement('link');
+      link.setAttribute('rel', rel);
+      link.setAttribute('href', href);
+      Object.entries(attrs).forEach(([key, val]) => link.setAttribute(key, val));
+      document.head.append(link);
+    };
+    ['https://use.typekit.net', 'https://p.typekit.net']
+      .forEach((href) => addLink('preconnect', href, { crossorigin: 'anonymous' }));
+    const foundation = document.head.querySelector('meta[name="foundation"]')?.content;
+    const stylesPrefix = foundation === 'c2' ? '/c2' : '';
+    // Absolute href, so href-based "already loaded" checks don't mistake it for the stylesheet.
+    const stylesHref = new URL(`${libs}${stylesPrefix}/styles/styles.css`, window.location.href).href;
+    addLink('preload', stylesHref, { as: 'style' });
+    LCP_PRELOADS.forEach((path) => addLink('modulepreload', `${libs}${path}`, { crossorigin: 'anonymous' }));
+  })();
+</script>
 <style>
   body {
     display: none;
