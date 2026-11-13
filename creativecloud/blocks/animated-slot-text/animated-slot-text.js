@@ -425,9 +425,9 @@ function setupEventTriggers(config) {
           if (entry.isIntersecting) {
             state.dimensions = measureGeometry(reelEl);
             updateAnimationState(state, reelEl, 0, 0);
-            const waitTime = data.initialWait !== null
-              ? data.initialWait
-              : DEFAULTS.initialWait;
+            const waitTime = data.initialWait === null
+              ? DEFAULTS.initialWait
+              : data.initialWait;
 
             const startCancel = setRafTimeout(() => animationController.runSequence(1), waitTime);
             animationRef.cancel = startCancel;
