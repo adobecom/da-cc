@@ -1067,6 +1067,10 @@ function renderPersonalData(containerTag, product) {
       emailErrorTag.hidden = isValid;
     } else if (isValid) {
       emailInput.clearInvalid();
+      emailInput.classList.remove('np-error');
+      emailInput.setAttribute('aria-invalid', 'false');
+      emailErrorTag.textContent = '';
+      emailErrorTag.hidden = true;
     }
 
     return isValid;

@@ -704,7 +704,7 @@
 }
 
 .np-input-error-message {
-  color: #d31510;
+  color: var(--np-error-color);
   font-size: 12px;
   line-height: 16px;
 }
