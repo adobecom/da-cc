@@ -1042,6 +1042,15 @@ function renderPersonalData(containerTag, product) {
     window.mph['nonprofit-personal-data-disclaimer'],
   );
   const emailInput = emailTag.querySelector('input');
+  const emailErrorTag = createTag('span', {
+    id: 'np-field-email-error',
+    class: 'np-input-error-message',
+    'aria-live': 'polite',
+    hidden: 'hidden',
+  });
+  emailInput.setAttribute('aria-describedby', emailErrorTag.id);
+  emailInput.setAttribute('aria-invalid', 'false');
+  emailInput.after(emailErrorTag);
   if (hasRenewalUrlParam() && nonprofitFormData.email) {
     emailInput.setAttribute('readonly', 'readonly');
     emailInput.classList.add('np-input-readonly');
@@ -1052,9 +1061,18 @@ function renderPersonalData(containerTag, product) {
     const isValid = emailInput.validity.valid && emailPattern.test(emailInput.value);
     if (!isValid && emailInput.value) {
       emailInput.setInvalid();
+      emailInput.classList.toggle('np-error', !isValid);
+      emailInput.setAttribute('aria-invalid', String(!isValid));
+      emailErrorTag.textContent = (window.mph['nonprofit-invalid-email-error'] || 'Enter a valid email address, for example name@example.com.');
+      emailErrorTag.hidden = isValid;
     } else if (isValid) {
       emailInput.clearInvalid();
+      emailInput.classList.remove('np-error');
+      emailInput.setAttribute('aria-invalid', 'false');
+      emailErrorTag.textContent = '';
+      emailErrorTag.hidden = true;
     }
+
     return isValid;
   };
 
