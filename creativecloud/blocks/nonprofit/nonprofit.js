@@ -1063,7 +1063,7 @@ function renderPersonalData(containerTag, product) {
       emailInput.setInvalid();
       emailInput.classList.toggle('np-error', !isValid);
       emailInput.setAttribute('aria-invalid', String(!isValid));
-      emailErrorTag.textContent = (window.mph['nonprofit-invalid-email-error'] || 'Enter a valid email address, for example name@example.com.')
+      emailErrorTag.textContent = (window.mph['nonprofit-invalid-email-error'] || 'Enter a valid email address, for example name@example.com.');
       emailErrorTag.hidden = isValid;
     } else if (isValid) {
       emailInput.clearInvalid();
