@@ -58,24 +58,16 @@ function observeBlade(blade, audioSrc) {
 }
 
 function bindBladeA11y(playBtn, audioEl, ids) {
-  const actionLabel = createTag('span', { id: ids.action, class: 'sr-only' }, 'Play');
+  const actionLabel = createTag('span', { id: ids.action, class: 'sr-only' }, 'Play voiceover');
   playBtn.prepend(actionLabel);
   playBtn.dataset.bladeControlled = 'true';
-  const labelledBy = `${ids.action} ${ids.language} ${ids.country}`;
+  playBtn.setAttribute('aria-labelledby', `${ids.action} ${ids.language} ${ids.country}`);
 
   const sync = () => {
     const playing = !audioEl.paused && !audioEl.ended;
-    actionLabel.textContent = playing ? 'Pause' : 'Play';
+    actionLabel.textContent = playing ? 'Pause voiceover,' : 'Play voiceover,';
     playBtn.setAttribute('aria-pressed', playing ? 'true' : 'false');
     playBtn.removeAttribute('title');
-
-    if (playing) {
-      playBtn.setAttribute('aria-label', 'Pause');
-      playBtn.removeAttribute('aria-labelledby');
-    } else {
-      playBtn.setAttribute('aria-labelledby', labelledBy);
-      playBtn.removeAttribute('aria-label');
-    }
   };
 
   sync();
