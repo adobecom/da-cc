@@ -14,6 +14,15 @@
  * Edit below at your own risk
  * ------------------------------------------------------------
  */
+// Added by head.html only on opted-in pages.
+const lcpPreloadsUrl = document.getElementById('c2-lcp-preloads')?.href;
+const lcpPreloads = lcpPreloadsUrl
+  ? fetch(lcpPreloadsUrl).then((resp) => {
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return resp.json();
+  }).then(({ data }) => (Array.isArray(data) ? data : []))
+  : Promise.resolve([]);
+
 const COOKIE_SIGNED_IN = 'acomsis';
 const COOKIE_SIGNED_IN_STAGE = 'acomsis_stage';
 const CHINA_SIGNED_IN_HOME_PATH = '/cn/creativecloud/roc/home';
@@ -224,6 +233,35 @@ export const [setLibs, getLibs] = (() => {
 })();
 
 const miloLibs = setLibs('/libs');
+
+const LCP_PRELOAD_RELS = ['preload', 'modulepreload', 'preconnect'];
+
+export function addLcpPreloads(rows = [], libs = miloLibs) {
+  rows.forEach(({ rel, href, as, crossorigin, priority }) => {
+    if (!LCP_PRELOAD_RELS.includes(rel) || !href) return;
+    let resolved;
+    try {
+      resolved = new URL(href.replace('{libs}', libs), window.location.href);
+    } catch {
+      return;
+    }
+    if ([...document.head.querySelectorAll(`link[rel="${rel}"]`)].some((l) => l.href === resolved.href)) return;
+    // Absolute, so href-based "already loaded" checks don't mistake a preload for the file.
+    // Preconnects use the bare origin, as Milo's warmTypekit() does, so they aren't duplicated.
+    const url = rel === 'preconnect' ? resolved.origin : resolved.href;
+    const link = document.createElement('link');
+    link.setAttribute('rel', rel);
+    link.setAttribute('href', url);
+    if (as) link.setAttribute('as', as);
+    if (crossorigin) link.setAttribute('crossorigin', crossorigin);
+    if (priority) link.setAttribute('fetchpriority', priority);
+    document.head.append(link);
+  });
+}
+
+lcpPreloads.then((rows) => addLcpPreloads(rows)).catch((e) => {
+  window.lana?.log(`LCP preloads failed: ${e.message}`, { tags: 'utils,lcp-preloads', errorType: 'i' });
+});
 
 // eslint-disable-next-line object-curly-newline
 const { createTag, localizeLinkAsync, getConfig, getMetadata, loadStyle, loadLink, loadScript, createIntersectionObserver, lingoActive, getCountry, getValidatedMarket } = await import(`${miloLibs}/utils/utils.js`);
