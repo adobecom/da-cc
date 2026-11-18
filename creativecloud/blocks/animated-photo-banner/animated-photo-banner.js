@@ -317,8 +317,8 @@ function setupAnimation(container, paramsList, headerParams) {
 
 function optimizeImageWidth(url) {
   return url
-    .replace(new RegExp(`width=${CONFIG.DESKTOP_TABLET_WIDTH.ORIGINAL}`, 'g'), `width=${CONFIG.DESKTOP_TABLET_WIDTH.OPTIMIZED}`)
-    .replace(new RegExp(`width=${CONFIG.MOBILE_WIDTH.ORIGINAL}`, 'g'), `width=${CONFIG.MOBILE_WIDTH.OPTIMIZED}`);
+    .replaceAll(`width=${CONFIG.DESKTOP_TABLET_WIDTH.ORIGINAL}`, `width=${CONFIG.DESKTOP_TABLET_WIDTH.OPTIMIZED}`)
+    .replaceAll(`width=${CONFIG.MOBILE_WIDTH.ORIGINAL}`, `width=${CONFIG.MOBILE_WIDTH.OPTIMIZED}`);
 }
 
 function createMainContainer() {
