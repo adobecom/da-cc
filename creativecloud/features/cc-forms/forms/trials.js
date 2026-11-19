@@ -101,7 +101,7 @@ export class ConsentNotice {
       this.setNoticeBody();
       this.observeNoticeCheckboxes();
     } else {
-      this.setNoticetagswithCountryCode();
+      this.setNoticetagswithCountryCode(); // NOSONAR
     }
   }
 

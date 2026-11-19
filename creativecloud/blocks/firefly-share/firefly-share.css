@@ -87,6 +87,8 @@
 }
 
 .firefly-share .copy-to-clipboard {
+  --tooltip-shift: 0px;
+
   padding: 0;
   background: none;
   margin: 0;
@@ -111,11 +113,16 @@
   cursor: default;
 }
 
+.firefly-share .copy-to-clipboard.no-tooltip-transition::before,
+.firefly-share .copy-to-clipboard.no-tooltip-transition::after {
+  transition: none;
+}
+
 .firefly-share .copy-to-clipboard::before {
   content: attr(aria-label);
   bottom: 100%;
   left: -45%;
-  transform: translate(-50%, -4px);
+  transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -4px);
   color: var(--color-white);
   padding: 4px 9px 5px;
   font-size: 12px;
@@ -157,7 +164,7 @@
 }
 
 .firefly-share .copy-to-clipboard:not(.hide-copy-tooltip)::before {
-  transform: translate(-50%, -6px);
+  transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -6px);
 }
 
 .firefly-share .copy-to-clipboard:not(.hide-copy-tooltip)::after {
@@ -247,7 +254,7 @@ main > .section.center firefly-share.inline ul.icon-container {
     content: attr(aria-label);
     bottom: 100%;
     left: -45%;
-    transform: translate(-50%, -4px);
+    transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -4px);
     color: var(--color-white);
     padding: 4px 9px 5px;
     font-size: 16px;
