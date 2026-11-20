@@ -457,7 +457,7 @@ function applyCustomPropsForViewport(container, customProps, viewport) {
 }
 
 function processCustomProperties(el, container) {
-  const customPropsSection = Array.from(el.children).slice(-1)[0];
+  const customPropsSection = Array.from(el.children).at(-1);
   const customProps = {};
 
   if (
