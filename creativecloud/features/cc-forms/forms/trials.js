@@ -254,7 +254,7 @@ export class ConsentNotice {
   setNoticeBody() {
     const consentNotice = this.noticeEl.querySelectorAll('p, .form-items');
     consentNotice.forEach((e) => { this.noticeBody += e.innerHTML; });
-    this.noticeEl.setAttribute('data-notice-body', this.noticeBody.trim());
+    this.noticeEl.dataset.noticeBody = this.noticeBody.trim();
   }
 
   observeNoticeCheckboxes() {
@@ -286,7 +286,7 @@ export class ConsentNotice {
     if (this.noticePhonePreset !== '') {
       this.marketingPermissions.PHONE = this.getBooleanValue(this.noticePhonePreset);
     }
-    this.noticeEl.setAttribute('data-marketing-permissions', JSON.stringify(this.marketingPermissions));
+    this.noticeEl.dataset.marketingPermissions = JSON.stringify(this.marketingPermissions);
   }
 }
 class Trials {
@@ -331,7 +331,7 @@ class Trials {
 
   buttonListener() {
     this.formContainer.querySelector(SELECTOR_BUTTON).addEventListener('click', () => {
-      this.form.setAttribute('data-show-error', 'true');
+      this.form.dataset.showError = 'true';
       this.formContainer.dispatchEvent(this.event);
       try {
         this.checkValidElements();
