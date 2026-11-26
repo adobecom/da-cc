@@ -323,7 +323,7 @@ class Trials {
   checkValidElements() {
     this.valid = true;
     this.elements.forEach((element) => {
-      if (element.getAttribute('data-valid') === 'false') {
+      if (element.dataset.valid === 'false') {
         this.valid = false;
       }
     });
