@@ -131,7 +131,7 @@ class Textfield {
   }
 
   isValid() {
-    const showError = this.form.getAttribute('data-show-error') === 'true';
+    const showError = this.form.dataset.showError === 'true';
     if (!showError) return this.valid;
     this.value = this.textfield.value;
     this.valid = false;
