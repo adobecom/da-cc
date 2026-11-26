@@ -19,7 +19,7 @@ class Checkbox {
   init() {
     this.form.addEventListener('checkValidation', () => this.isValid());
     this.checkboxInput.addEventListener('change', () => {
-      this.form.setAttribute('data-show-error', 'true');
+      this.form.dataset.showError = 'true';
       this.isValid();
     });
   }
@@ -97,7 +97,7 @@ class Checkbox {
     i.setAttribute('required', 'required');
     i.setAttribute('unchecked', 'unchecked');
     i.setAttribute('value', false);
-    i.setAttribute('data-required', 'required');
+    i.dataset.required = 'required';
     return cfgKeys;
   }
 
@@ -108,7 +108,7 @@ class Checkbox {
     this.checkboxInput.setCustomValidity('');
     if (!this.required) this.valid = true;
     if (this.required && this.checkboxInput.checked) this.valid = true;
-    this.checkboxInput.setAttribute('data-valid', this.valid);
+    this.checkboxInput.dataset.valid = this.valid;
     if (!this.valid) {
       const elem = this.checkboxInput.closest('.form-item').querySelector(`${SELECTOR_PREFIX_MESSAGE}required`);
       if (!elem) return this.valid;
@@ -119,7 +119,7 @@ class Checkbox {
         });
         this.checkboxInput.setCustomValidity(`${elem.innerText}`);
         this.checkboxInput.reportValidity();
-        this.form.setAttribute('data-show-error', 'false');
+        this.form.dataset.showError = 'false';
       }
     }
     // eslint-disable-next-line consistent-return
