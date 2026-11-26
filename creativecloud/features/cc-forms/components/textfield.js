@@ -23,7 +23,7 @@ class Textfield {
 
   init() {
     this.textfield.addEventListener('input', () => {
-      this.form.setAttribute('data-show-error', 'true');
+      this.form.dataset.showError = 'true';
       this.isValid();
     });
     this.form.addEventListener('checkValidation', () => this.isValid());
@@ -126,7 +126,7 @@ class Textfield {
     i.setAttribute('name', fieldType);
     i.setAttribute('id', fieldType);
     i.setAttribute('required', 'required');
-    i.setAttribute('data-required', 'required');
+    i.dataset.required = 'required';
     return i;
   }
 
@@ -145,19 +145,19 @@ class Textfield {
     if (this.required && this.value.trim() === '') {
       this.valid = false;
     }
-    this.textfield.setAttribute('data-valid', this.valid);
+    this.textfield.dataset.valid = this.valid;
     if (this.required && this.value.trim() === '' && showError) {
       const elem = this.textfield.closest('.form-item').querySelector(`${SELECTOR_PREFIX_MESSAGE}required`);
       this.textfield.focus();
       this.textfield.setCustomValidity(`${elem.innerText}`);
       this.textfield.reportValidity();
-      this.form.setAttribute('data-show-error', 'false');
+      this.form.dataset.showError = 'false';
     } else if (!this.valid && showError) {
       const elem = this.textfield.closest('.form-item').querySelector(`${SELECTOR_PREFIX_MESSAGE}invalid`);
       this.textfield.focus();
       this.textfield.setCustomValidity(`${elem.innerText}`);
       this.textfield.reportValidity();
-      this.form.setAttribute('data-show-error', 'false');
+      this.form.dataset.showError = 'false';
     }
     return this.valid;
   }
