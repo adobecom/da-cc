@@ -185,7 +185,7 @@ class DemandBase {
       const label = createTag('div', { class: 'db-Menu-itemLabel' });
       li.setAttribute('role', 'option');
       li.setAttribute(ATTRIBUTE_DEMAND_BASE_VALUE, item.company_name);
-      li.setAttribute('data-demandbase-json', JSON.stringify(item));
+      li.dataset.demandbaseJson = JSON.stringify(item);
       label.innerHTML = `${this.sanitizeInput(item.company_name)}<div>${this.sanitizeInput(item.street_address || '')} ${this.sanitizeInput(item.city || '')} ${this.sanitizeInput(item.country_name || '')}</div>`;
       li.appendChild(label);
       list.appendChild(li);
