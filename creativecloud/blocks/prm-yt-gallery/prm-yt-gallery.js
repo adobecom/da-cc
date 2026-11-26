@@ -356,7 +356,7 @@ const updateCardWithData = (card, item, eager = false) => {
     card.setAttribute('aria-label', item.altText);
   }
   if (item.ID) {
-    card.setAttribute('data-template-id', item.ID);
+    card.dataset.templateId = item.ID;
   }
 
   // Add and handle image loading
