@@ -230,11 +230,11 @@ class ConnectTrials extends Trials {
       }
     }
 
-    const actionName = this.form.getAttribute('data-form-type');
+    const actionName = this.form.dataset.formType;
     JsonPayload.custom.type = (actionName === 'form.connect.enterprise.action') ? 'enterprise' : 'standard';
     JsonPayload.custom.language = localeTOBamaLocaleMap[document.getElementsByTagName('html')[0].getAttribute('lang')] || 'en';
 
-    const customGroup = this.formContainer.getAttribute('data-customValue').split(',') || '';
+    const customGroup = this.formContainer.dataset.customvalue.split(',') || '';
     for (let i = 0; i < customGroup.length; i += 1) {
       JsonPayload.custom[ipaasParamMap[customGroup[i]]] = parseInt(this.getValue(`[name=${customGroup[i]}]`), 10);
     }
