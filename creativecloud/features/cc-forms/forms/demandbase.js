@@ -58,7 +58,7 @@ class DemandBase {
     const itemHighlighted = e.target.parentNode.querySelector(`${SELECTOR_MENU} .is-highlighted`);
     if (itemHighlighted) {
       e.target.value = itemHighlighted.getAttribute(ATTRIBUTE_DEMAND_BASE_VALUE);
-      const itemData = JSON.parse(itemHighlighted.getAttribute('data-demandbase-json'));
+      const itemData = JSON.parse(itemHighlighted.dataset.demandbaseJson);
       this.prepopulateFields(itemData);
     }
     this.popoverHide(e);
@@ -193,7 +193,7 @@ class DemandBase {
     const listItems = list.querySelectorAll('[data-demandbase-value]');
     listItems.forEach((item) => {
       item.addEventListener('click', () => {
-        const itemData = JSON.parse(item.getAttribute('data-demandbase-json'));
+        const itemData = JSON.parse(item.dataset.demandbaseJson);
         e.target.parentNode.querySelector('.cc-form-component[name="orgname"]').value = item.getAttribute(ATTRIBUTE_DEMAND_BASE_VALUE);
         this.popoverHide(e);
         this.prepopulateFields(itemData);
