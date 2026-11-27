@@ -227,7 +227,7 @@ class DemandBase {
           this.updateSelectField(selectEl, opt.value);
           break;
         }
-      } else if (opt.value.endsWith('+') && fieldValue >= parseInt(opt.value, 10)) {
+      } else if (opt.value.endsWith('+') && fieldValue >= Number.parseInt(opt.value, 10)) {
         this.updateSelectField(selectEl, opt.value);
         break;
       }
