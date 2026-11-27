@@ -612,7 +612,7 @@ export class TrustCenterLibraryGate {
   }
 
   base64UrlSafe(encoded = '') {
-    return encoded.replace(/\+/g, '-').replace(/\//g, '_');
+    return encoded.replaceAll('+', '-').replaceAll('/', '_');
   }
 }
 

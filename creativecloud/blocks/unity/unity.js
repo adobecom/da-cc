@@ -9,7 +9,7 @@ function getUnityLibs(prodLibs = '/unitylibs') {
   if (!/^[a-zA-Z0-9_-]+$/.test(branch)) throw new Error('Invalid branch name.');
   if (branch === 'main' && hostname.includes('.stage.')) return prodLibs;
   const env = hostname.includes('.hlx.') ? 'hlx' : 'aem';
-  if (branch.indexOf('--') > -1) return `https://${branch}.${env}.live/unitylibs`;
+  if (branch.includes('--')) return `https://${branch}.${env}.live/unitylibs`;
   return `https://${branch}--unity--adobecom.${env}.live/unitylibs`;
 }
 

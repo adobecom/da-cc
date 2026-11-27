@@ -37,14 +37,14 @@ class Subscribe extends trials {
       const val = this.getValue(`[name=${userProfileParams[i]}]`);
       if (val) JsonPayload[subscribeIpaasParamMap[userProfileParams[i]]] = val;
     }
-    JsonPayload.sname = this.formContainer.getAttribute('data-sname') || '';
+    JsonPayload.sname = this.formContainer.dataset.sname || '';
     // gdpr
     const currentUrl = this.getValue(CUR_URL);
     if (currentUrl) {
       JsonPayload.current_url = currentUrl;
     }
     const consentNotice = document.querySelector('.consentnotice');
-    if (typeof consentNotice !== 'undefined' && consentNotice !== null) {
+    if (consentNotice !== undefined && consentNotice !== null) {
       JsonPayload.consent_notice = consentNotice.innerHTML;
     }
     this.payLoad = JsonPayload;

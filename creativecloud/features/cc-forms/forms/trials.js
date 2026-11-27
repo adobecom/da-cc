@@ -254,7 +254,7 @@ export class ConsentNotice {
   setNoticeBody() {
     const consentNotice = this.noticeEl.querySelectorAll('p, .form-items');
     consentNotice.forEach((e) => { this.noticeBody += e.innerHTML; });
-    this.noticeEl.setAttribute('data-notice-body', this.noticeBody.trim());
+    this.noticeEl.dataset.noticeBody = this.noticeBody.trim();
   }
 
   observeNoticeCheckboxes() {
@@ -286,7 +286,7 @@ export class ConsentNotice {
     if (this.noticePhonePreset !== '') {
       this.marketingPermissions.PHONE = this.getBooleanValue(this.noticePhonePreset);
     }
-    this.noticeEl.setAttribute('data-marketing-permissions', JSON.stringify(this.marketingPermissions));
+    this.noticeEl.dataset.marketingPermissions = JSON.stringify(this.marketingPermissions);
   }
 }
 class Trials {
@@ -323,7 +323,7 @@ class Trials {
   checkValidElements() {
     this.valid = true;
     this.elements.forEach((element) => {
-      if (element.getAttribute('data-valid') === 'false') {
+      if (element.dataset.valid === 'false') {
         this.valid = false;
       }
     });
@@ -331,7 +331,7 @@ class Trials {
 
   buttonListener() {
     this.formContainer.querySelector(SELECTOR_BUTTON).addEventListener('click', () => {
-      this.form.setAttribute('data-show-error', 'true');
+      this.form.dataset.showError = 'true';
       this.formContainer.dispatchEvent(this.event);
       try {
         this.checkValidElements();
@@ -437,7 +437,7 @@ class Trials {
   }
 
   escapeXml(unsafe) {
-    return unsafe.replace(/[<>&'"]/g, (c) => {
+    return unsafe.replaceAll(/[<>&'"]/g, (c) => {
       switch (c) {
         case '<': return '&lt;';
         case '>': return '&gt;';
@@ -466,7 +466,7 @@ class Trials {
   }
 
   setValue(selector, value, attr) {
-    const attribute = (typeof attr !== 'undefined') ? attr : 'value';
+    const attribute = (attr !== undefined) ? attr : 'value';
     const elem = this.formContainer.querySelector(selector);
     if (!(elem instanceof HTMLElement)) return false;
     if (!value) return false;

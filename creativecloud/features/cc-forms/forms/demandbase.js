@@ -58,7 +58,7 @@ class DemandBase {
     const itemHighlighted = e.target.parentNode.querySelector(`${SELECTOR_MENU} .is-highlighted`);
     if (itemHighlighted) {
       e.target.value = itemHighlighted.getAttribute(ATTRIBUTE_DEMAND_BASE_VALUE);
-      const itemData = JSON.parse(itemHighlighted.getAttribute('data-demandbase-json'));
+      const itemData = JSON.parse(itemHighlighted.dataset.demandbaseJson);
       this.prepopulateFields(itemData);
     }
     this.popoverHide(e);
@@ -174,7 +174,7 @@ class DemandBase {
       "'": '&#39;',
       ' ': '&nbsp;',
     };
-    return str.replace(/[&<>"' ]/g, (match) => escapeMap[match]);
+    return str.replaceAll(/[&<>"' ]/g, (match) => escapeMap[match]);
   }
 
   fillList(e, json) {
@@ -185,7 +185,7 @@ class DemandBase {
       const label = createTag('div', { class: 'db-Menu-itemLabel' });
       li.setAttribute('role', 'option');
       li.setAttribute(ATTRIBUTE_DEMAND_BASE_VALUE, item.company_name);
-      li.setAttribute('data-demandbase-json', JSON.stringify(item));
+      li.dataset.demandbaseJson = JSON.stringify(item);
       label.innerHTML = `${this.sanitizeInput(item.company_name)}<div>${this.sanitizeInput(item.street_address || '')} ${this.sanitizeInput(item.city || '')} ${this.sanitizeInput(item.country_name || '')}</div>`;
       li.appendChild(label);
       list.appendChild(li);
@@ -193,7 +193,7 @@ class DemandBase {
     const listItems = list.querySelectorAll('[data-demandbase-value]');
     listItems.forEach((item) => {
       item.addEventListener('click', () => {
-        const itemData = JSON.parse(item.getAttribute('data-demandbase-json'));
+        const itemData = JSON.parse(item.dataset.demandbaseJson);
         e.target.parentNode.querySelector('.cc-form-component[name="orgname"]').value = item.getAttribute(ATTRIBUTE_DEMAND_BASE_VALUE);
         this.popoverHide(e);
         this.prepopulateFields(itemData);

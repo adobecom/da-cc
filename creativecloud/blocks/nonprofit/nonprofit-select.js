@@ -240,7 +240,7 @@ export default function nonprofitSelect(props) {
       itemTag.addEventListener('click', selectItem);
 
       itemTag.addEventListener('focus', (ev) => {
-        keyboardFocusedId = ev.target.getAttribute('data-value');
+        keyboardFocusedId = ev.target.dataset.value;
       });
 
       itemTag.addEventListener('focusout', (ev) => {
