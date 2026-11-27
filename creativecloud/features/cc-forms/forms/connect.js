@@ -236,7 +236,7 @@ class ConnectTrials extends Trials {
 
     const customGroup = this.formContainer.dataset.customvalue.split(',') || '';
     for (let i = 0; i < customGroup.length; i += 1) {
-      JsonPayload.custom[ipaasParamMap[customGroup[i]]] = parseInt(this.getValue(`[name=${customGroup[i]}]`), 10);
+      JsonPayload.custom[ipaasParamMap[customGroup[i]]] = Number.parseInt(this.getValue(`[name=${customGroup[i]}]`), 10);
     }
     JsonPayload.custom.assignedId = this.urlParam(ASSIGNEE_ID)
       ? this.urlParam(ASSIGNEE_ID) : null;
