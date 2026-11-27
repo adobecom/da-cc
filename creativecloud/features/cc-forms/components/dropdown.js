@@ -365,7 +365,7 @@ class Dropdown {
     const items = data.data[Object.keys(data.data)[0]].items[0].version[0].language_os;
     const listItems = [];
     items.forEach((item) => {
-      let filesize = parseInt(item.filesize, 10);
+      let filesize = Number.parseInt(item.filesize, 10);
       let fileSizeSKU = '';
       if (filesize < 1024) {
         fileSizeSKU = `${filesize}Bytes`;
