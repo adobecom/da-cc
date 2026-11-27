@@ -33,10 +33,10 @@ class Subscribe extends trials {
   createPayLoad() {
     const JsonPayload = {};
     const userProfileParams = this.userprofile;
-    for (let i = 0; i < userProfileParams.length; i += 1) {
-      const val = this.getValue(`[name=${userProfileParams[i]}]`);
-      if (val) JsonPayload[subscribeIpaasParamMap[userProfileParams[i]]] = val;
-    }
+    userProfileParams.forEach((param) => {
+      const val = this.getValue(`[name=${param}]`);
+      if (val) JsonPayload[subscribeIpaasParamMap[param]] = val;
+    });
     JsonPayload.sname = this.formContainer.getAttribute('data-sname') || '';
     // gdpr
     const currentUrl = this.getValue(CUR_URL);

@@ -442,10 +442,7 @@ function appendMarqueeContent(marqueeRow, leftCol) {
 
 async function initDropzoneVariant(el, uploadRow, layoutParts) {
   const { layout, leftCol, uploadsWrapper, mediaWrapper } = layoutParts;
-  for (let i = 0; i < uploadRow.children.length; i += 1) {
-    // eslint-disable-next-line no-await-in-loop
-    await decorateUploadColumn(uploadRow.children[i]);
-  }
+  await Promise.all(Array.from(uploadRow.children).map((child) => decorateUploadColumn(child)));
   appendColumns(
     collectViewportContent(uploadRow, (c) => c.querySelector(':scope > .media-container')),
     uploadsWrapper,

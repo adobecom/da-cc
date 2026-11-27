@@ -629,8 +629,7 @@ function trackSubmitCondition(formTag) {
   const requiredInputs = formTag.querySelectorAll('.np-required-field');
   const submitTag = formTag.querySelector('.np-button[type=submit]');
 
-  for (let index = 0; index < requiredInputs.length; index++) {
-    const requiredInput = requiredInputs[index];
+  requiredInputs.forEach((requiredInput) => {
     requiredInput.addEventListener('input', () => {
       if (!requiredInput.value) {
         setSubmitEnabled(submitTag, false);
@@ -643,7 +642,7 @@ function trackSubmitCondition(formTag) {
         setSubmitEnabled(submitTag, !hasEmptyFields);
       }
     });
-  }
+  });
 }
 
 // Select non-profit

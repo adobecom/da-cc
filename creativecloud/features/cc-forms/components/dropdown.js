@@ -404,10 +404,10 @@ class Dropdown {
   sortCountries(items) {
     const sortedTopCountries = [];
     const sortedCountries = [];
-    for (let i = 0; i < items.length; i += 1) {
-      if (items[i].isTop) sortedTopCountries.push(items[i]);
-      else sortedCountries.push(items[i]);
-    }
+    items.forEach((item) => {
+      if (item.isTop) sortedTopCountries.push(item);
+      else sortedCountries.push(item);
+    });
     sortedTopCountries.sort((a, b) => ((a.value > b.value) ? -1 : 1));
     sortedCountries.sort((a, b) => ((a.value > b.value) ? 1 : -1));
     return sortedTopCountries.concat(sortedCountries);
