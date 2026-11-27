@@ -93,7 +93,7 @@ export function extractAspectRatio(asset) {
         asset.custom.input['firefly#inputModel'],
       );
       if (inputModel.aspectRatio) {
-        aspectRatio = parseFloat(inputModel.aspectRatio);
+        aspectRatio = Number.parseFloat(inputModel.aspectRatio);
       }
     } catch (err) {
       window.lana?.log(`Error parsing Firefly response: ${err}`, LANA_OPTIONS);
