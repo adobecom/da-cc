@@ -75,7 +75,7 @@ function attachThumbnailEvents(a, data, layer) {
     layer.classList.add('disable-click');
     const curra = e.target.nodeName === 'A' ? e.target : e.target.closest('a');
     await data.openForExecution;
-    data.displayPath = parseInt(curra.dataset.dispPth, 10);
+    data.displayPath = Number.parseInt(curra.dataset.dispPth, 10);
     const trObj = { src: curra.dataset.dispSrc, alt: curra.dataset.dispAlt, useCfg: true };
     await handleImageTransition(data, trObj);
     data.el.dispatchEvent(new CustomEvent(data.nextStepEvent));
@@ -88,8 +88,8 @@ function selectorTrayWithImgs(layer, data) {
   const configTray = getTrayConfig(data);
   let pathIdx = getStartingPathIdx(data);
   const pics = [...configTray.querySelectorAll('li picture')];
-  const thumbnails = pics.filter((p) => parseInt(p.querySelector('img').getAttribute('width'), 10) <= 500);
-  const displayImgs = pics.filter((p) => parseInt(p.querySelector('img').getAttribute('width'), 10) > 500);
+  const thumbnails = pics.filter((p) => Number.parseInt(p.querySelector('img').getAttribute('width'), 10) <= 500);
+  const displayImgs = pics.filter((p) => Number.parseInt(p.querySelector('img').getAttribute('width'), 10) > 500);
   [...thumbnails].forEach((thumbnailPic, idx) => {
     const displayPic = displayImgs[idx];
     const displayImg = [getImgSrc(displayPic), displayPic.querySelector('img').alt];
