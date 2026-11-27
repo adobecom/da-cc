@@ -437,7 +437,7 @@ class Trials {
   }
 
   escapeXml(unsafe) {
-    return unsafe.replace(/[<>&'"]/g, (c) => {
+    return unsafe.replaceAll(/[<>&'"]/g, (c) => {
       switch (c) {
         case '<': return '&lt;';
         case '>': return '&gt;';

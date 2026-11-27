@@ -125,12 +125,12 @@ class Unsubscribe extends Trials {
 
     Array.prototype.forEach.call(textContainer, (elem) => {
       if (email) {
-        const newHtml = elem.innerHTML.replace(/{email}/g, `<b>${email}</b>`);
+        const newHtml = elem.innerHTML.replaceAll('{email}', `<b>${email}</b>`);
         elem.innerHTML = newHtml;
       }
       const sNameFallback = sname || form.getAttribute(DATA_SNAME_FALLBACK);
       const sNameLabel = this.sanitizeHTML(this.getParam('slabel') || sNameFallback || '');
-      elem.innerHTML = elem.innerHTML.replace(/{sname}/g, sNameLabel);
+      elem.innerHTML = elem.innerHTML.replaceAll('{sname}', sNameLabel);
     });
   }
 
@@ -138,8 +138,8 @@ class Unsubscribe extends Trials {
     if (!this.form) {
       return str;
     }
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;');
+    return String(str).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;');
   }
 
   validateEmail(str) {
