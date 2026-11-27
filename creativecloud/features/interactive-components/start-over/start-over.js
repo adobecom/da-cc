@@ -90,7 +90,7 @@ export default async function stepInit(data) {
     });
   }
   if (delay) {
-    const dInt = parseInt(delay, 10);
+    const dInt = Number.parseInt(delay, 10);
     const normDelay = dInt > 99 ? dInt : (dInt * 1000);
     btnLoadDelay(layer, startOverCTA, normDelay);
   } else startOverCTA.style.display = 'flex';
