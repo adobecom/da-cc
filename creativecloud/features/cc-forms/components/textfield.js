@@ -37,8 +37,8 @@ class Textfield {
     const cfgKeys = Object.keys(this.fieldConfig);
     [...cfgKeys].forEach((ckraw) => {
       const ck = ckraw.toLowerCase();
-      if (ck.startsWith('max-length')) return i.setAttribute('maxlength', parseInt(ck.split('-').pop(), 10));
-      if (ck.startsWith('max-lines')) return i.setAttribute('rows', parseInt(ck.split('-').pop(), 10));
+      if (ck.startsWith('max-length')) return i.setAttribute('maxlength', Number.parseInt(ck.split('-').pop(), 10));
+      if (ck.startsWith('max-lines')) return i.setAttribute('rows', Number.parseInt(ck.split('-').pop(), 10));
       switch (ck) {
         case 'label': {
           const l = this.fieldConfig[ck].innerText.trim();
