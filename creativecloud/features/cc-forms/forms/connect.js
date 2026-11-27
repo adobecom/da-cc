@@ -84,13 +84,8 @@ class ConnectTrials extends Trials {
   urlParam(name) {
     const sPageURL = window.location.search.substring(1);
     const sURLVariables = sPageURL.split('&');
-    for (let i = 0; i < sURLVariables.length; i += 1) {
-      const sParameterName = sURLVariables[i].split('=');
-      if (sParameterName[0] === name) {
-        return sParameterName[1];
-      }
-    }
-    return null;
+    const match = sURLVariables.map((variable) => variable.split('=')).find(([key]) => key === name);
+    return match ? match[1] : null;
   }
 
   getTreatmentID() {
@@ -217,17 +212,17 @@ class ConnectTrials extends Trials {
       JsonPayload.ims.renga_uds.org_size = orgEl.value;
     }
 
-    for (let i = 0; i < this.userprofile.length; i += 1) {
-      JsonPayload.ims.userProfile[ipaasParamMap[this.userprofile[i]]] = this.getValue(`[name=${this.userprofile[i]}]`);
-    }
+    this.userprofile.forEach((profileField) => {
+      JsonPayload.ims.userProfile[ipaasParamMap[profileField]] = this.getValue(`[name=${profileField}]`);
+    });
 
     if (JsonPayload.ims.userProfile.address === undefined) {
       JsonPayload.ims.userProfile['address.mail_to'] = {};
       JsonPayload.ims.userProfile['address.mail_to'].primary = true;
 
-      for (let i = 0; i < this.address_mail_to.length; i += 1) {
-        JsonPayload.ims.userProfile['address.mail_to'][ipaasParamMap[this.address_mail_to[i]]] = (this.getValue(`[name=${this.address_mail_to[i]}]`) === null) ? '' : this.getValue(`[name=${this.address_mail_to[i]}]`);
-      }
+      this.address_mail_to.forEach((field) => {
+        JsonPayload.ims.userProfile['address.mail_to'][ipaasParamMap[field]] = (this.getValue(`[name=${field}]`) === null) ? '' : this.getValue(`[name=${field}]`);
+      });
     }
 
     const actionName = this.form.dataset.formType;
@@ -235,9 +230,9 @@ class ConnectTrials extends Trials {
     JsonPayload.custom.language = localeTOBamaLocaleMap[document.getElementsByTagName('html')[0].getAttribute('lang')] || 'en';
 
     const customGroup = this.formContainer.dataset.customvalue.split(',') || '';
-    for (let i = 0; i < customGroup.length; i += 1) {
-      JsonPayload.custom[ipaasParamMap[customGroup[i]]] = parseInt(this.getValue(`[name=${customGroup[i]}]`), 10);
-    }
+    customGroup.forEach((field) => {
+      JsonPayload.custom[ipaasParamMap[field]] = parseInt(this.getValue(`[name=${field}]`), 10);
+    });
     JsonPayload.custom.assignedId = this.urlParam(ASSIGNEE_ID)
       ? this.urlParam(ASSIGNEE_ID) : null;
 

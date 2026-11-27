@@ -216,18 +216,19 @@ export class ConsentNotice {
   }
 
   getUserGroup(userCountry) {
-    for (let i = 0; i < this.formCongfig.concentCfgs.length; i += 1) {
-      const [btype, ntype] = this.formCongfig.concentCfgs[i].bucketNoticeType.split('-');
+    const matched = this.formCongfig.concentCfgs.find((concentCfg) => {
+      const [btype, ntype] = concentCfg.bucketNoticeType.split('-');
       const cl = this.cnConfig[btype][ntype].countryList;
-      if (cl.length && cl.includes(userCountry)) {
-        return {
-          countryCode: userCountry,
-          consentFragment: this.formCongfig.concentCfgs[i].consetFragment,
-          bucketType: btype,
-          noticeType: ntype,
-        };
-      }
-    }
+      return cl.length && cl.includes(userCountry);
+    });
+    if (!matched) return undefined;
+    const [btype, ntype] = matched.bucketNoticeType.split('-');
+    return {
+      countryCode: userCountry,
+      consentFragment: matched.consetFragment,
+      bucketType: btype,
+      noticeType: ntype,
+    };
   }
 
   setNoticetags(userCountry) {
@@ -481,12 +482,14 @@ class Trials {
   getCookieValueByName(cookieName) {
     const name = `${cookieName}=`;
     const ca = document.cookie.split(';');
-    for (let i = 0; i < ca.length; i += 1) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1);
-      if (c.indexOf(name) === 0) return c.substring(name.length, c.length);
-    }
-    return '';
+    const found = ca
+      .map((c) => {
+        let trimmed = c;
+        while (trimmed.charAt(0) === ' ') trimmed = trimmed.substring(1);
+        return trimmed;
+      })
+      .find((c) => c.indexOf(name) === 0);
+    return found ? found.substring(name.length, found.length) : '';
   }
 
   setCookie(cookie, value, options) {
