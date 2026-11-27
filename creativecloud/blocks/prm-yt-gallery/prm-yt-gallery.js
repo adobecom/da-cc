@@ -512,7 +512,7 @@ const setupInfoOverlay = (card) => {
 // Sets up card interaction handlers (hover, focus, click).
 const setupCardInteractions = (card) => {
   const video = card.querySelector(`.${CLASSES.VIDEO_WRAPPER} video`);
-  const templateId = card.getAttribute('data-template-id') || '';
+  const templateId = card.dataset.templateId || '';
 
   // Mobile/Tablet: expand on click, Desktop: expand on hover
   if (getScreenSizeCategory(CONFIG.VIEWPORT) === 'mobile' || getScreenSizeCategory(CONFIG.VIEWPORT) === 'tablet') {
