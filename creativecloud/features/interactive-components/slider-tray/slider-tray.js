@@ -191,7 +191,7 @@ function sliderEvent(media, layer, imgObj) {
           hue = value;
           break;
         case ('saturation'):
-          saturation = parseInt(value, 10);
+          saturation = Number.parseInt(value, 10);
           break;
         default:
           break;
@@ -332,8 +332,8 @@ function animateSlider(menu, target) {
   });
   outerCircle.addEventListener('transitionend', () => {
     setTimeout(() => {
-      const min = parseInt(option.min, 10);
-      const max = parseInt(option.max, 10);
+      const min = Number.parseInt(option.min, 10);
+      const max = Number.parseInt(option.max, 10);
       const middle = (min + max) / 2;
       sliderScroll(option, middle, max, 1200, outerCircle, target, aobj);
     }, 500);
