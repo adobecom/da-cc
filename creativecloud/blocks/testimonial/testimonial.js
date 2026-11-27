@@ -94,7 +94,7 @@ function getBeforeActive(currentIndex, hasScrolled) {
 function getTrackStep(cards, track) {
   const cardWidth = cards[0]?.getBoundingClientRect().width;
   if (!cardWidth) return 0;
-  const gap = parseFloat(getComputedStyle(track).gap) || 24;
+  const gap = Number.parseFloat(getComputedStyle(track).gap) || 24;
   return cardWidth + gap;
 }
 
