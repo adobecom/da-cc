@@ -216,7 +216,7 @@ class ConnectTrials extends Trials {
       JsonPayload.ims.userProfile[ipaasParamMap[profileField]] = this.getValue(`[name=${profileField}]`);
     });
 
-    if (typeof JsonPayload.ims.userProfile.address === 'undefined') {
+    if (JsonPayload.ims.userProfile.address === undefined) {
       JsonPayload.ims.userProfile['address.mail_to'] = {};
       JsonPayload.ims.userProfile['address.mail_to'].primary = true;
 
@@ -225,11 +225,11 @@ class ConnectTrials extends Trials {
       });
     }
 
-    const actionName = this.form.getAttribute('data-form-type');
+    const actionName = this.form.dataset.formType;
     JsonPayload.custom.type = (actionName === 'form.connect.enterprise.action') ? 'enterprise' : 'standard';
     JsonPayload.custom.language = localeTOBamaLocaleMap[document.getElementsByTagName('html')[0].getAttribute('lang')] || 'en';
 
-    const customGroup = this.formContainer.getAttribute('data-customValue').split(',') || '';
+    const customGroup = this.formContainer.dataset.customvalue.split(',') || '';
     customGroup.forEach((field) => {
       JsonPayload.custom[ipaasParamMap[field]] = parseInt(this.getValue(`[name=${field}]`), 10);
     });
@@ -261,7 +261,7 @@ class ConnectTrials extends Trials {
     const marketingPermissions = this.getValue('#noticeplaceholder', 'data-marketing-permissions');
     JsonPayload.custom.marketing_permissions = JSON.parse(marketingPermissions);
 
-    if (typeof this.getValue('#website') !== 'undefined' && this.getValue('#website').length > 0) {
+    if (this.getValue('#website') !== undefined && this.getValue('#website').length > 0) {
       JsonPayload.custom.website = this.getValue('#website');
     }
 

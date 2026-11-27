@@ -28,7 +28,7 @@ function syncVideoDaaLl(host, label) {
   const wrapper = host?.querySelector('.pause-play-wrapper');
   const ll = wrapper?.getAttribute('daa-ll');
   if (!ll) return;
-  wrapper.setAttribute('daa-ll', ll.replace(/\b(?:play|pause)\b/gi, label));
+  wrapper.setAttribute('daa-ll', ll.replaceAll(/\b(?:play|pause)\b/gi, label));
 }
 
 function syncVideoChrome(videoEl, isPlaying) {

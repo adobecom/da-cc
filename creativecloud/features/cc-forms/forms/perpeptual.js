@@ -104,11 +104,11 @@ class PerpetualTrials extends Trials {
     let OSName = 'Unsupported';
     let OSSelect = '';
     const { userAgent } = window.navigator;
-    if (userAgent.indexOf('Win') !== -1) OSName = 'Windows |';
-    if (userAgent.indexOf('Mac') !== -1) OSName = 'Mac';
-    if (userAgent.indexOf('X11') !== -1) OSName = 'UNIX';
-    if (userAgent.indexOf('Linux') !== -1) OSName = 'Linux';
-    if (userAgent.indexOf('WOW64') !== -1 || userAgent.indexOf('Win64') !== -1) OSName = 'Windows 64-bit';
+    if (userAgent.includes('Win')) OSName = 'Windows |';
+    if (userAgent.includes('Mac')) OSName = 'Mac';
+    if (userAgent.includes('X11')) OSName = 'UNIX';
+    if (userAgent.includes('Linux')) OSName = 'Linux';
+    if (userAgent.includes('WOW64') || userAgent.includes('Win64')) OSName = 'Windows 64-bit';
     if (OSName === 'Unsupported') OSSelect = 'Undefined';
     return OSSelect;
   }
@@ -183,7 +183,7 @@ class PerpetualTrials extends Trials {
     };
     const countryCode = this.imsProfile ? this.imsProfile.countryCode : undefined;
 
-    if (typeof jsonPayload.ims.userProfile['address.mail_to'] === 'undefined') {
+    if (jsonPayload.ims.userProfile['address.mail_to'] === undefined) {
       jsonPayload.ims.userProfile['address.mail_to'] = {
         primary: true,
         carrierRoute: null,
@@ -277,7 +277,7 @@ class PerpetualTrials extends Trials {
       },
       actions: ['apo', 'ice', 'ims_update', 'ok_to_call'],
     };
-    if (typeof this.getValue(SELECTOR.WEBSITE) !== 'undefined' && this.getValue(SELECTOR.WEBSITE) !== null) {
+    if (this.getValue(SELECTOR.WEBSITE) !== undefined && this.getValue(SELECTOR.WEBSITE) !== null) {
       jsonPayload.custom.website = this.getValue(SELECTOR.WEBSITE);
     }
     jsonPayload.custom.questions_comments = this.escapeXml(((!this.getValue('#usertype')) ? '' : this.getValue('#usertype')).concat('|', ((!this.getValue('#purchaseintent')) ? '' : this.getValue('#purchaseintent')), '|', ((!this.getValue('#softwaredetail')) ? '' : this.escapeXml(this.getValue('#softwaredetail').trim()))));

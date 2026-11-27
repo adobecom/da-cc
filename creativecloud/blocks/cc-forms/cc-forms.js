@@ -178,12 +178,12 @@ class CCForms {
       if (componentName === 'cc-form-snamefallback' && this.formConfig.type === 'unsubscribe') {
         const snamefallback = c.parentElement.textContent;
         this.formConfig.snamefallback = snamefallback;
-        this.form.setAttribute('data-snamefallback', snamefallback);
+        this.form.dataset.snamefallback = snamefallback;
       }
       if (componentName === 'cc-form-internal-service-name') {
         const sval = c.parentElement.textContent;
         this.formConfig.sname = sval;
-        this.form.setAttribute('data-sname', sval);
+        this.form.dataset.sname = sval;
       }
       if (c.parentElement.nextElementSibling) {
         componentConfig.value = c.parentElement.nextElementSibling;

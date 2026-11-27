@@ -65,7 +65,7 @@ const ICONS = {
 };
 
 // Cleans URL by removing escaped forward slashes.
-const cleanUrl = (url) => (url ? url.replace(/\\\//g, '/') : '');
+const cleanUrl = (url) => (url ? url.replaceAll('\\/', '/') : '');
 
 // Generates template deep link URL.
 const createTemplateDeepLink = (templateId, branchLinkTestId) => `https://premierepro.app.link/${branchLinkTestId}?template_id=${templateId}`;
@@ -356,7 +356,7 @@ const updateCardWithData = (card, item, eager = false) => {
     card.setAttribute('aria-label', item.altText);
   }
   if (item.ID) {
-    card.setAttribute('data-template-id', item.ID);
+    card.dataset.templateId = item.ID;
   }
 
   // Add and handle image loading
@@ -512,7 +512,7 @@ const setupInfoOverlay = (card) => {
 // Sets up card interaction handlers (hover, focus, click).
 const setupCardInteractions = (card) => {
   const video = card.querySelector(`.${CLASSES.VIDEO_WRAPPER} video`);
-  const templateId = card.getAttribute('data-template-id') || '';
+  const templateId = card.dataset.templateId || '';
 
   // Mobile/Tablet: expand on click, Desktop: expand on hover
   if (getScreenSizeCategory(CONFIG.VIEWPORT) === 'mobile' || getScreenSizeCategory(CONFIG.VIEWPORT) === 'tablet') {

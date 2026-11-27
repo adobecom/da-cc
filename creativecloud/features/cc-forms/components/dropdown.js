@@ -46,14 +46,14 @@ class Dropdown {
     this.child = false;
     this.source = this.dropdown.getAttribute(ATTR_DROPDOWN_SOURCE);
     this.source = this.dropdown.getAttribute(ATTR_DROPDOWN_SOURCE) || false;
-    if (this.source && this.form && this.form.getAttribute(DATA_ODIN_ENVIRONMENT) && this.source.indexOf('https://') === -1) {
+    if (this.source && this.form && this.form.getAttribute(DATA_ODIN_ENVIRONMENT) && !this.source.includes('https://')) {
       this.source = this.form.getAttribute(DATA_ODIN_ENVIRONMENT) + this.source;
     }
     this.name = this.dropdown.getAttribute(ATTR_DROPDOWN_NAME);
     this.sortProperty = this.dropdown.getAttribute(ATTR_SORT_PROPERTY);
     this.value = this.dropdown.value;
     this.valid = true;
-    this.required = !!(this.dropdown.getAttribute('data-form-required'));
+    this.required = !!(this.dropdown.dataset.formRequired);
     this.init();
   }
 
@@ -203,9 +203,9 @@ class Dropdown {
             break;
           }
         }
-        hiddenPtEl.setAttribute('data-plabel', '');
-        hiddenPtEl.setAttribute('data-email', email);
-        hiddenPtEl.setAttribute('data-ctxid', ctxid);
+        hiddenPtEl.dataset.plabel = '';
+        hiddenPtEl.dataset.email = email;
+        hiddenPtEl.dataset.ctxid = ctxid;
         hiddenPtEl.setAttribute('value', value);
       })
       .catch(() => {});
@@ -229,7 +229,7 @@ class Dropdown {
     i.setAttribute('name', typeAttrs['dropdown-name']);
     i.setAttribute('id', typeAttrs['dropdown-name']);
     i.setAttribute('required', 'required');
-    i.setAttribute('data-form-required', 'required');
+    i.dataset.formRequired = 'required';
     i.setAttribute(ATTR_DROPDOWN_TYPE, 'independent');
     const dependentParent = cfgKeys.find((k) => k.includes('dependent'));
     if (dependentParent) {
@@ -240,7 +240,7 @@ class Dropdown {
   }
 
   isValid() {
-    const showError = this.form.getAttribute('data-show-error') === 'true';
+    const showError = this.form.dataset.showError === 'true';
     if (!showError) return this.valid;
     this.value = this.dropdown.value;
     this.valid = false;
@@ -248,7 +248,7 @@ class Dropdown {
     if (!this.required) this.valid = true;
     if (this.required && !!(this.value)) this.valid = true;
     if (this.required && this.dropdown.disabled) this.valid = true;
-    this.dropdown.setAttribute('data-valid', this.valid);
+    this.dropdown.dataset.valid = this.valid;
     if (this.valid) {
       this.dropdown.closest('.form-item').querySelector(SELECTOR_PREFIX_MESSAGE)?.classList.add(CLASS_HIDDEN);
       return this.valid;
@@ -262,7 +262,7 @@ class Dropdown {
       });
       this.dropdown.setCustomValidity(`${elem.innerText}`);
       this.dropdown.reportValidity();
-      this.form.setAttribute('data-show-error', 'false');
+      this.form.dataset.showError = 'false';
     }
     return this.valid;
   }
@@ -276,7 +276,7 @@ class Dropdown {
     if (this.type === 'independent' && this.source) this.loadData();
     if (this.form) this.form.addEventListener('checkValidation', () => this.isValid());
     this.dropdown.addEventListener('change', () => {
-      this.form.setAttribute('data-show-error', 'true');
+      this.form.dataset.showError = 'true';
       this.isValid();
     });
     if (this.name === 'productsku') this.handleProductSKUChange();
@@ -417,7 +417,7 @@ class Dropdown {
     this.parent = this.form.querySelector(`.menu[data-dropdown-name="${this.parentName}"]`);
     if (!(this.parent instanceof HTMLElement)) return;
     this.parent.addEventListener('change', (event) => {
-      this.dropdown.setAttribute('data-loading', 'loading');
+      this.dropdown.dataset.loading = 'loading';
       if (this.parentName === 'country') {
         let fetchRegionSource;
         const countrySourceAPI = this.parent.getAttribute(ATTR_DROPDOWN_SOURCE);
@@ -493,11 +493,11 @@ class Dropdown {
     this.dropdown.append(placeholderItem);
     items.forEach((item) => {
       const listItem = createTag('option', { value: item.value }, item.title);
-      listItem.setAttribute('data-value', item.value);
-      listItem.setAttribute('data-isTop', item.isTop);
+      listItem.dataset.value = item.value;
+      listItem.dataset.istop = item.isTop;
       listItem.setAttribute('role', 'option');
       listItem.setAttribute('sku', item.sku);
-      if (item.child) listItem.setAttribute('data-child', JSON.stringify(item.child));
+      if (item.child) listItem.dataset.child = JSON.stringify(item.child);
       this.dropdown.append(listItem);
     });
   }

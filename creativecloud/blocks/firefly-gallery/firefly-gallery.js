@@ -162,9 +162,9 @@ async function fetchFireflyAssets(categoryId, viewBtnLabel, cgenId, aiCreatedLab
 }
 
 const replaceRenditionUrl = (url, format, dimension, size) => url
-  .replace(/{format}/g, format)
-  .replace(/{dimension}/g, dimension)
-  .replace(/{size}/g, size);
+  .replaceAll('{format}', format)
+  .replaceAll('{dimension}', dimension)
+  .replaceAll('{size}', size);
 
 export function createFireflyURL(urn, assetType = 'image', cgenId = '') {
   const assetTypeParam = assetType === 'video' ? 'VideoGeneration' : 'ImageGeneration';

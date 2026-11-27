@@ -125,7 +125,7 @@ function isDragClick(e, item) {
 function setExpandedState(item, trigger, expanded) {
   const analyticsValue = trigger.getAttribute('daa-ll');
   const label = expanded ? 'close' : 'open';
-  trigger.setAttribute('daa-ll', analyticsValue.replace(/open|close/gi, label));
+  trigger.setAttribute('daa-ll', analyticsValue.replaceAll(/open|close/gi, label));
   trigger.setAttribute('aria-expanded', expanded ? 'true' : 'false');
   item.classList.toggle('is-open', expanded);
 }
