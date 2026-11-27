@@ -110,8 +110,8 @@ function handlePointerDown(e) {
 }
 
 function isDragClick(e, item) {
-  const startX = parseFloat(item.dataset.startX || 0);
-  const startY = parseFloat(item.dataset.startY || 0);
+  const startX = Number.parseFloat(item.dataset.startX || 0);
+  const startY = Number.parseFloat(item.dataset.startY || 0);
 
   if (e.clientX !== 0 || e.clientY !== 0) {
     const diffX = Math.abs(e.clientX - startX);
