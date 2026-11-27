@@ -53,7 +53,7 @@ class Dropdown {
     this.sortProperty = this.dropdown.getAttribute(ATTR_SORT_PROPERTY);
     this.value = this.dropdown.value;
     this.valid = true;
-    this.required = !!(this.dropdown.getAttribute('data-form-required'));
+    this.required = !!(this.dropdown.dataset.formRequired);
     this.init();
   }
 
@@ -240,7 +240,7 @@ class Dropdown {
   }
 
   isValid() {
-    const showError = this.form.getAttribute('data-show-error') === 'true';
+    const showError = this.form.dataset.showError === 'true';
     if (!showError) return this.valid;
     this.value = this.dropdown.value;
     this.valid = false;
