@@ -46,7 +46,7 @@ class Dropdown {
     this.child = false;
     this.source = this.dropdown.getAttribute(ATTR_DROPDOWN_SOURCE);
     this.source = this.dropdown.getAttribute(ATTR_DROPDOWN_SOURCE) || false;
-    if (this.source && this.form && this.form.getAttribute(DATA_ODIN_ENVIRONMENT) && this.source.indexOf('https://') === -1) {
+    if (this.source && this.form && this.form.getAttribute(DATA_ODIN_ENVIRONMENT) && !this.source.includes('https://')) {
       this.source = this.form.getAttribute(DATA_ODIN_ENVIRONMENT) + this.source;
     }
     this.name = this.dropdown.getAttribute(ATTR_DROPDOWN_NAME);
