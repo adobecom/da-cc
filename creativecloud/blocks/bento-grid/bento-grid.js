@@ -42,7 +42,7 @@ function parseConfigBlock(configContainer) {
           }
 
           if (prop === 'left') {
-            currentProps[rowNum].left = parseFloat(val);
+            currentProps[rowNum].left = Number.parseFloat(val);
           } else if (prop === 'start-index') {
             currentProps[rowNum].startIndex = Number.parseInt(val, 10);
           }
