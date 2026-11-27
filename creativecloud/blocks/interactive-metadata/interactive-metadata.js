@@ -197,7 +197,7 @@ async function implementWorkflow(stepInfo) {
 }
 
 function checkRenderStatus(targetBlock, res, rej, etime, rtime) {
-  if (etime > 20000) { rej(); return; }
+  if (etime > 20000) { rej(new Error('Timed out waiting for interactive metadata target block to render.')); return; }
   if (targetBlock.querySelector('.text') && targetBlock.querySelector('.asset, .image')) res();
   else setTimeout(() => checkRenderStatus(targetBlock, res, rej, etime + rtime), rtime);
 }
@@ -206,7 +206,9 @@ function intEnbReendered(targetBlock) {
   return new Promise((res, rej) => {
     try {
       checkRenderStatus(targetBlock, res, rej, 0, 100);
-    } catch (err) { rej(); }
+    } catch {
+      rej(new Error('Failed to check interactive metadata render status.'));
+    }
   });
 }
 
@@ -292,7 +294,7 @@ async function renderLayer(stepInfo) {
     stepInfo.stepName = stepInfo.stepList[stepInfo.stepIndex];
     implementWorkflow(stepInfo)
       .then(() => resolve())
-      .catch(() => reject());
+      .catch(() => reject(new Error('Failed to implement interactive metadata workflow step.')));
   });
 }
 

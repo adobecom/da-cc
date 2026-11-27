@@ -451,7 +451,7 @@ function isContentAvailable(targetSection) {
 
 function checkRenderStatus(targetSection, res, rej, etime, rtime) {
   if (etime > 20000) {
-    rej();
+    rej(new Error('Timed out waiting for trust center metadata content to render.'));
   } else if (isContentAvailable(targetSection)) {
     res();
   } else {
@@ -463,7 +463,9 @@ function trucsiContainersRendered(targetSection) {
   return new Promise((res, rej) => {
     try {
       checkRenderStatus(targetSection, res, rej, 0, 100);
-    } catch (err) { rej(); }
+    } catch {
+      rej(new Error('Failed to check trust center metadata render status.'));
+    }
   });
 }
 

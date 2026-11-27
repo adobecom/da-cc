@@ -32,7 +32,7 @@ analyticsWrapper.onReady = () => {
       const waitTimeout = setTimeout(() => {
         isAnalyticsReady = false;
         clearInterval(analyticsIntervalFn);
-        reject();
+        reject(new Error('Timed out waiting for analytics to become available.'));
       }, CONFIG.timeouts.maxWait);
 
       analyticsIntervalFn = setInterval(() => {
