@@ -44,7 +44,7 @@ class Subscribe extends trials {
       JsonPayload.current_url = currentUrl;
     }
     const consentNotice = document.querySelector('.consentnotice');
-    if (typeof consentNotice !== 'undefined' && consentNotice !== null) {
+    if (consentNotice !== undefined && consentNotice !== null) {
       JsonPayload.consent_notice = consentNotice.innerHTML;
     }
     this.payLoad = JsonPayload;
