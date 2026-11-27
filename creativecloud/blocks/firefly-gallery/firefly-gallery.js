@@ -543,7 +543,7 @@ function loadFireflyImages(skeletonItems, assets = []) {
       createIntersectionObserver({
         el: item,
         callback: (element) => {
-          const index = parseInt(element.dataset.index, 10);
+          const index = Number.parseInt(element.dataset.index, 10);
           if (index >= 0 && index < assets.length) {
             buildAndProcessAssetItem(element, assets[index], locale);
           }
