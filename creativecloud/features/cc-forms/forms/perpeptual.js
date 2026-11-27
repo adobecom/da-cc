@@ -183,7 +183,7 @@ class PerpetualTrials extends Trials {
     };
     const countryCode = this.imsProfile ? this.imsProfile.countryCode : undefined;
 
-    if (typeof jsonPayload.ims.userProfile['address.mail_to'] === 'undefined') {
+    if (jsonPayload.ims.userProfile['address.mail_to'] === undefined) {
       jsonPayload.ims.userProfile['address.mail_to'] = {
         primary: true,
         carrierRoute: null,
@@ -277,7 +277,7 @@ class PerpetualTrials extends Trials {
       },
       actions: ['apo', 'ice', 'ims_update', 'ok_to_call'],
     };
-    if (typeof this.getValue(SELECTOR.WEBSITE) !== 'undefined' && this.getValue(SELECTOR.WEBSITE) !== null) {
+    if (this.getValue(SELECTOR.WEBSITE) !== undefined && this.getValue(SELECTOR.WEBSITE) !== null) {
       jsonPayload.custom.website = this.getValue(SELECTOR.WEBSITE);
     }
     jsonPayload.custom.questions_comments = this.escapeXml(((!this.getValue('#usertype')) ? '' : this.getValue('#usertype')).concat('|', ((!this.getValue('#purchaseintent')) ? '' : this.getValue('#purchaseintent')), '|', ((!this.getValue('#softwaredetail')) ? '' : this.escapeXml(this.getValue('#softwaredetail').trim()))));

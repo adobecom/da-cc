@@ -221,7 +221,7 @@ class ConnectTrials extends Trials {
       JsonPayload.ims.userProfile[ipaasParamMap[this.userprofile[i]]] = this.getValue(`[name=${this.userprofile[i]}]`);
     }
 
-    if (typeof JsonPayload.ims.userProfile.address === 'undefined') {
+    if (JsonPayload.ims.userProfile.address === undefined) {
       JsonPayload.ims.userProfile['address.mail_to'] = {};
       JsonPayload.ims.userProfile['address.mail_to'].primary = true;
 
@@ -266,7 +266,7 @@ class ConnectTrials extends Trials {
     const marketingPermissions = this.getValue('#noticeplaceholder', 'data-marketing-permissions');
     JsonPayload.custom.marketing_permissions = JSON.parse(marketingPermissions);
 
-    if (typeof this.getValue('#website') !== 'undefined' && this.getValue('#website').length > 0) {
+    if (this.getValue('#website') !== undefined && this.getValue('#website').length > 0) {
       JsonPayload.custom.website = this.getValue('#website');
     }
 

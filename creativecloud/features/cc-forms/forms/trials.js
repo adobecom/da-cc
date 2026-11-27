@@ -466,7 +466,7 @@ class Trials {
   }
 
   setValue(selector, value, attr) {
-    const attribute = (typeof attr !== 'undefined') ? attr : 'value';
+    const attribute = (attr !== undefined) ? attr : 'value';
     const elem = this.formContainer.querySelector(selector);
     if (!(elem instanceof HTMLElement)) return false;
     if (!value) return false;
