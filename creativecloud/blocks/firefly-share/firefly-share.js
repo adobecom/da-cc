@@ -63,7 +63,7 @@ function getPrevHeadingLevel(block) {
 function toSentenceCase(str) {
   if (!str || typeof str !== 'string') return '';
   /* eslint-disable-next-line no-useless-escape */
-  return str.toLowerCase().replace(/(^\s*\w|[\.\!\?]\s*\w)/g, (c) => c.toUpperCase());
+  return str.toLowerCase().replaceAll(/(^\s*\w|[\.\!\?]\s*\w)/g, (c) => c.toUpperCase());
 }
 
 const TOOLTIP_VIEWPORT_MARGIN = 8;

@@ -65,7 +65,7 @@ const ICONS = {
 };
 
 // Cleans URL by removing escaped forward slashes.
-const cleanUrl = (url) => (url ? url.replace(/\\\//g, '/') : '');
+const cleanUrl = (url) => (url ? url.replaceAll('\\/', '/') : '');
 
 // Generates template deep link URL.
 const createTemplateDeepLink = (templateId, branchLinkTestId) => `https://premierepro.app.link/${branchLinkTestId}?template_id=${templateId}`;

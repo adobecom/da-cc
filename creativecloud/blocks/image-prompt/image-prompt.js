@@ -66,7 +66,7 @@ export default async function init(el) {
   const rows = [...el.querySelectorAll(':scope > div')];
   const promptLink = rows[0]?.querySelector(':scope a');
   promptLink.classList.add('prompt-link');
-  const buttonText = rows[2]?.textContent.replace(/\|/g, '').trim();
+  const buttonText = rows[2]?.textContent.replaceAll('|', '').trim();
   promptLink.setAttribute('aria-label', buttonText);
   promptLink.setAttribute('aria-describedby', promptLink.querySelector('picture img').getAttribute('alt'));
   const promptBlock = createTag('div');

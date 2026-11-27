@@ -174,7 +174,7 @@ class DemandBase {
       "'": '&#39;',
       ' ': '&nbsp;',
     };
-    return str.replace(/[&<>"' ]/g, (match) => escapeMap[match]);
+    return str.replaceAll(/[&<>"' ]/g, (match) => escapeMap[match]);
   }
 
   fillList(e, json) {
