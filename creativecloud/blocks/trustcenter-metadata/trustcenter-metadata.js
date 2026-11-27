@@ -352,7 +352,7 @@ class TrustCenterApp {
     document.addEventListener('click', this.hideNDAiFrameListener);
     const handleSign = (e) => {
       // eslint-disable-next-line prefer-regex-literals
-      const isTrustedOrigin = new RegExp('^https://[\\w.-]+\\.(?:adobesign|echosign|documents\\.adobe)\\.com$').test(e.origin) || e.origin === webAccessPoint;
+      const isTrustedOrigin = new RegExp(String.raw`^https://[\w.-]+\.(?:adobesign|echosign|documents\.adobe)\.com$`).test(e.origin) || e.origin === webAccessPoint;
       if (isTrustedOrigin && e.data) {
         let data;
         try {
